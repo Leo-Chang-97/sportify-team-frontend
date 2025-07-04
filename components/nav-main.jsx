@@ -1,7 +1,7 @@
 'use client'
 
 import { IconCirclePlusFilled, IconMail } from '@tabler/icons-react'
-
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
   SidebarGroup,
@@ -47,9 +47,9 @@ export function NavMain({ items }) {
                 <CollapsibleTrigger asChild>
                   <SidebarMenuItem className="group">
                     <SidebarMenuButton tooltip={item.title}>
-                      {item.icon && <item.icon className="size-4" />}
+                      <item.icon className="size-4" />
                       <span>{item.title}</span>
-                      <ChevronRightIcon className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]:rotate-90" />
+                      <ChevronRightIcon className="ml-auto size-4 transition-transform group-data-[state=open]:rotate-90" />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </CollapsibleTrigger>
@@ -57,8 +57,10 @@ export function NavMain({ items }) {
                   <div className="pl-8 space-y-1">
                     {item.items.map((subitem) => (
                       <SidebarMenuItem key={subitem.title}>
-                        <SidebarMenuButton tooltip={subitem.title}>
-                          <span>{subitem.title}</span>
+                        <SidebarMenuButton asChild tooltip={subitem.title}>
+                          <Link href={subitem.url}>
+                            <span>{subitem.title}</span>
+                          </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
