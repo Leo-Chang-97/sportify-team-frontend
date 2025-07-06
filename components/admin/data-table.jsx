@@ -39,6 +39,9 @@ import {
   IconPlus,
   IconLayoutColumns,
   IconTrash,
+  IconArrowsSort,
+  IconArrowBarUp,
+  IconArrowBarDown,
 } from '@tabler/icons-react'
 import {
   DropdownMenu,
@@ -62,6 +65,8 @@ export function DataTable({
   onBulkDelete,
   onSearch, // 新增搜尋事件
   initialKeyword = '', // 可選，初始搜尋字
+  onOrderBy, // 新增排序事件
+  initialOrderBy = '', // 初始排序
 }) {
   // ===== 狀態管理 =====
   const [pagination, setPagination] = React.useState({
@@ -71,6 +76,7 @@ export function DataTable({
 
   const [rowSelection, setRowSelection] = React.useState({})
   const [keyword, setKeyword] = React.useState(initialKeyword)
+  const [orderBy, setOrderBy] = React.useState(initialOrderBy)
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (updater) => {
@@ -88,6 +94,20 @@ export function DataTable({
     e.preventDefault()
     if (onSearch) {
       onSearch(keyword)
+    }
+  }
+
+  // ===== 排序處理函數 =====
+  const handleSort = (columnId) => {
+    let newOrderBy = ''
+    if (orderBy === `${columnId}_asc`) {
+      newOrderBy = `${columnId}_desc`
+    } else {
+      newOrderBy = `${columnId}_asc`
+    }
+    setOrderBy(newOrderBy)
+    if (onOrderBy) {
+      onOrderBy(newOrderBy)
     }
   }
 
@@ -179,7 +199,8 @@ export function DataTable({
                 .filter(
                   (column) =>
                     typeof column.accessorFn !== 'undefined' &&
-                    column.getCanHide()
+                    column.getCanHide() &&
+                    column.columnDef.sortable !== false // 只有 sortable !== false 的欄位可自訂顯示
                 )
                 .map((column) => {
                   return (
@@ -210,14 +231,36 @@ export function DataTable({
           <TableHeader className="bg-muted sticky top-0 z-10">
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id}>
-                {group.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableHead>
-                ))}
+                {group.headers.map((header) => {
+                  // 只對有 accessorFn 的欄位啟用排序
+                  const canSort =
+                    header.column.accessorFn && header.id !== 'actions'
+                  const isSortedAsc = orderBy === `${header.id}_asc`
+                  const isSortedDesc = orderBy === `${header.id}_desc`
+                  return (
+                    <TableHead
+                      key={header.id}
+                      onClick={
+                        canSort ? () => handleSort(header.id) : undefined
+                      }
+                      className={canSort ? 'cursor-pointer select-none' : ''}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {canSort && (
+                          isSortedAsc ? (
+                            <IconArrowBarUp size={16} />
+                          ) : isSortedDesc ? (
+                            <IconArrowBarDown size={16} />
+                          ) : null
+                        )}
+                      </span>
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>

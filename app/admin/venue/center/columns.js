@@ -27,7 +27,7 @@ export const centerColumns = [
     enableSorting: false,
     enableHiding: false,
   },
-  { accessorKey: 'id', header: '編號' },
+  { accessorKey: 'id', header: '編號', sortable: true },
   {
     accessorKey: 'name',
     header: '場館名稱',

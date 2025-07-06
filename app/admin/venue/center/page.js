@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppSidebar } from '@/components/app-sidebar'
-import { SiteHeader } from '@/components/site-header'
+import { SiteHeader } from '@/components/admin/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
 import { centerColumns } from './columns'
@@ -119,6 +119,17 @@ export default function CenterPage() {
       newParams.delete('keyword')
       newParams.set('page', '1')
     }
+    router.push(`?${newParams.toString()}`)
+  }
+
+  const handleOrderBy = (orderby) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+    if (orderby) {
+      newParams.set('orderby', orderby)
+    } else {
+      newParams.delete('orderby')
+    }
+    newParams.set('page', '1') // 排序時回到第一頁
     router.push(`?${newParams.toString()}`)
   }
 
@@ -332,6 +343,8 @@ export default function CenterPage() {
                 onBulkDelete={handleBulkDelete}
                 onSearch={handleSearch}
                 initialKeyword={queryParams.keyword || ''}
+                onOrderBy={handleOrderBy}
+                initialOrderBy={queryParams.orderby || ''}
               />
             </div>
           </div>
