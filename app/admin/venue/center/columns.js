@@ -1,14 +1,50 @@
 // center/columns.js
 import { Button } from '@/components/ui/button'
 import { IconTrash, IconEdit } from '@tabler/icons-react'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export const centerColumns = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <div className="pl-2">
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="pl-2">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   { accessorKey: 'id', header: '編號' },
-  { accessorKey: 'name', header: '場館名稱' },
+  {
+    accessorKey: 'name',
+    header: '場館名稱',
+    cell: ({ row, table }) => {
+      const value = row.original.name
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
   {
     accessorKey: 'location',
     header: '地區',
-    cell: ({ row }) => row.original.location?.name ?? '—',
+    cell: ({ row, table }) => {
+      const value = row.original.location?.name ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
   },
   {
     id: 'actions',

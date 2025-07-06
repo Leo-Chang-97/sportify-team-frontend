@@ -15,6 +15,7 @@ import {
   createCenter,
   updateCenter,
   deleteCenter,
+  deleteMultipleCenters,
   fetchLocations,
 } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -64,6 +65,8 @@ export default function CenterPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [centerToDelete, setCenterToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  const [centersToDelete, setCentersToDelete] = useState([])
   const [formData, setFormData] = useState({
     name: '',
     locationId: '',
@@ -104,6 +107,18 @@ export default function CenterPage() {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(paginationState.pageIndex + 1))
     newParams.set('perPage', String(paginationState.pageSize))
+    router.push(`?${newParams.toString()}`)
+  }
+
+  const handleSearch = (keyword) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+    if (keyword) {
+      newParams.set('keyword', keyword)
+      newParams.set('page', '1')
+    } else {
+      newParams.delete('keyword')
+      newParams.set('page', '1')
+    }
     router.push(`?${newParams.toString()}`)
   }
 
@@ -219,6 +234,38 @@ export default function CenterPage() {
     setIsDeleteDialogOpen(true)
   }
 
+  const handleBulkDelete = async (selectedData) => {
+    setCentersToDelete(selectedData)
+    setIsBulkDeleteDialogOpen(true)
+  }
+
+  const confirmBulkDelete = async () => {
+    setIsDeleting(true)
+    try {
+      const checkedItems = centersToDelete.map((item) => item.id)
+      const result = await deleteMultipleCenters(checkedItems)
+
+      if (result.success) {
+        toast.success(`成功刪除 ${centersToDelete.length} 個中心！`)
+        mutate() // 重新載入資料
+        setIsBulkDeleteDialogOpen(false)
+        setCentersToDelete([])
+      } else {
+        toast.error(result.message || '批量刪除失敗')
+      }
+    } catch (error) {
+      console.error('批量刪除失敗:', error)
+      toast.error('批量刪除失敗：' + (error.message || '未知錯誤'))
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const cancelBulkDelete = () => {
+    setIsBulkDeleteDialogOpen(false)
+    setCentersToDelete([])
+  }
+
   const confirmDelete = async () => {
     if (!centerToDelete) return
 
@@ -282,6 +329,9 @@ export default function CenterPage() {
                 onAddNew={handleAddNew}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onBulkDelete={handleBulkDelete}
+                onSearch={handleSearch}
+                initialKeyword={queryParams.keyword || ''}
               />
             </div>
           </div>
@@ -405,6 +455,48 @@ export default function CenterPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-base"
+            >
+              {isDeleting ? '刪除中...' : '確定刪除'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ===== 批量刪除確認對話框 ===== */}
+      <AlertDialog
+        open={isBulkDeleteDialogOpen}
+        onOpenChange={setIsBulkDeleteDialogOpen}
+      >
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-bold my-2 flex items-baseline gap-2">
+              <IconTrash className="h-6 w-6 text-red-600 translate-y-0.5" />
+              確認批量刪除
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg text-gray-600">
+              您確定要刪除以下
+              <strong className="text-red-600">
+                {centersToDelete.length} 項資料
+              </strong>
+              嗎？
+            </AlertDialogDescription>
+            <div className="mt-3 max-h-32 overflow-y-auto">
+              {centersToDelete.map((center, index) => (
+                <div key={center.id} className="text-sm text-gray-700 py-1">
+                  {index + 1}. {center.name}
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 mt-2">此操作無法復原。</p>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-3">
+            <AlertDialogCancel onClick={cancelBulkDelete} className="text-base">
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkDelete}
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-base"
             >

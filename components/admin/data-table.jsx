@@ -28,14 +28,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import SearchForm from '@/components/search-form'
 
 import {
+  IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
   IconPlus,
+  IconLayoutColumns,
+  IconTrash,
 } from '@tabler/icons-react'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 // ===== 組件參數定義 =====
 export function DataTable({
@@ -47,12 +59,18 @@ export function DataTable({
   onAddNew,
   onEdit,
   onDelete,
+  onBulkDelete,
+  onSearch, // 新增搜尋事件
+  initialKeyword = '', // 可選，初始搜尋字
 }) {
   // ===== 狀態管理 =====
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   })
+
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [keyword, setKeyword] = React.useState(initialKeyword)
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (updater) => {
@@ -65,19 +83,50 @@ export function DataTable({
     }
   }
 
+  // 新增搜尋提交事件
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    if (onSearch) {
+      onSearch(keyword)
+    }
+  }
+
+  // ===== 高亮關鍵字函式 =====
+  function highlightKeyword(text) {
+    if (!keyword || typeof text !== 'string') return text
+    const regex = new RegExp(
+      `(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
+      'gi'
+    )
+    return text.split(regex).map((part, i) =>
+      regex.test(part) ? (
+        <span key={i} className="text-red-600 font-bold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    )
+  }
+
   // ===== TanStack Table 配置 =====
   const table = useReactTable({
     data,
     columns,
     state: {
       pagination,
+      rowSelection,
     },
     onPaginationChange: handlePaginationChange,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    enableRowSelection: true,
+    getRowId: (row, index) => row.id || index,
     meta: {
       onEdit,
       onDelete,
+      highlightKeyword,
     },
 
     ...(totalRows !== undefined && {
@@ -88,17 +137,76 @@ export function DataTable({
 
   return (
     <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-      {/* ===== 新增按鈕區域 ===== */}
-      <div className="flex items-center justify-end">
-        <Button variant="outline" size="sm" onClick={onAddNew}>
-          <IconPlus />
-          <span className="hidden lg:inline">Add Section</span>
-        </Button>
+      {/* ===== 搜尋框區域 ===== */}
+      <SearchForm
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        onSubmit={handleSearchSubmit}
+      />
+      {/* ===== 按鈕區域 ===== */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const selectedRows = table.getSelectedRowModel().rows
+              const selectedData = selectedRows.map((row) => row.original)
+              onBulkDelete?.(selectedData)
+              setRowSelection({})
+            }}
+            disabled={Object.keys(rowSelection).length === 0}
+            className="h-8 text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
+          >
+            <IconTrash />
+            Delete {Object.keys(rowSelection).length}
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-end gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <IconLayoutColumns />
+                <span className="hidden lg:inline">Customize Columns</span>
+                <span className="lg:hidden">Columns</span>
+                <IconChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {table
+                .getAllColumns()
+                .filter(
+                  (column) =>
+                    typeof column.accessorFn !== 'undefined' &&
+                    column.getCanHide()
+                )
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="outline" size="sm" onClick={onAddNew}>
+            <IconPlus />
+            <span className="hidden lg:inline">Add Section</span>
+          </Button>
+        </div>
       </div>
 
       {/* ===== 表格主體區域 ===== */}
       <div className="rounded-md border overflow-x-auto">
-        <Table>
+        <Table className="w-full">
           <TableHeader className="bg-muted sticky top-0 z-10">
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id}>
@@ -120,10 +228,12 @@ export function DataTable({
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {typeof cell.getValue() === 'string'
+                        ? highlightKeyword(cell.getValue())
+                        : flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                     </TableCell>
                   ))}
                 </TableRow>
