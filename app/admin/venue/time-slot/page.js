@@ -1,4 +1,4 @@
-// app/admin/venue/center/page.js
+// app/admin/venue/time-slot/page.js
 'use client'
 
 // ===== 依賴項匯入 =====
@@ -8,15 +8,15 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
-import { centerColumns } from './columns'
+import { timeSlotColumns } from './columns'
 import useSWR from 'swr'
 import {
-  fetchCenters,
-  createCenter,
-  updateCenter,
-  deleteCenter,
-  deleteMultipleCenters,
-  fetchLocation,
+  fetchTimeSlots,
+  createTimeSlot,
+  updateTimeSlot,
+  deleteTimeSlot,
+  deleteMultipleTimeSlots,
+  fetchTimePeriod,
 } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,7 +34,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet'
 import {
   AlertDialog,
@@ -45,12 +44,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 
-export default function CenterPage() {
+export default function TimeSlotPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -58,18 +56,19 @@ export default function CenterPage() {
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [locations, setLocations] = useState([])
+  const [timePeriods, setTimePeriods] = useState([])
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
-  const [editingCenter, setEditingCenter] = useState(null)
+  const [editingTimeSlot, setEditingTimeSlot] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [centerToDelete, setCenterToDelete] = useState(null)
+  const [timeSlotToDelete, setTimeSlotToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
-  const [centersToDelete, setCentersToDelete] = useState([])
+  const [timeSlotsToDelete, setTimeSlotsToDelete] = useState([])
   const [formData, setFormData] = useState({
-    name: '',
-    locationId: '',
+    startTime: '',
+    endTime: '',
+    timePeriodId: '',
   })
 
   // ===== URL 參數處理 =====
@@ -84,22 +83,22 @@ export default function CenterPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['centers', queryParams], async ([, params]) =>
-    fetchCenters(params)
+  } = useSWR(['time-slots', queryParams], async ([, params]) =>
+    fetchTimeSlots(params)
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadLocations = async () => {
+    const loadTimePeriods = async () => {
       try {
-        const data = await fetchLocation()
-        setLocations(data.rows || [])
+        const data = await fetchTimePeriod()
+        setTimePeriods(data.rows || [])
       } catch (error) {
-        console.error('載入地點失敗:', error)
-        toast.error('載入地點失敗')
+        console.error('載入時間區段失敗:', error)
+        toast.error('載入時間區段失敗')
       }
     }
-    loadLocations()
+    loadTimePeriods()
   }, [])
 
   // ===== 事件處理函數 =====
@@ -137,11 +136,35 @@ export default function CenterPage() {
     setIsSheetOpen(true)
   }
 
+  // 根據 startTime 自動判斷時段名稱並對應 timePeriodId
+  const getTimePeriodIdByTime = (start, periods) => {
+    if (!start || !periods?.length) return ''
+    const [h] = start.split(':').map(Number)
+    let label = ''
+    if (h >= 8 && h < 12) label = '早上'
+    else if (h >= 12 && h < 18) label = '下午'
+    else if (h >= 18 && h < 22) label = '晚上'
+    const found = periods.find((p) => p.name === label)
+    return found ? String(found.id) : ''
+  }
+
   const handleInputChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => {
+      let next = { ...prev, [name]: value }
+      // 自動判斷 timePeriodId
+      if (
+        (name === 'startTime' || name === 'endTime') &&
+        value &&
+        timePeriods.length
+      ) {
+        const autoId = getTimePeriodIdByTime(
+          name === 'startTime' ? value : next.startTime,
+          timePeriods
+        )
+        if (autoId) next.timePeriodId = autoId
+      }
+      return next
+    })
   }
 
   const handleSubmit = async (e) => {
@@ -155,22 +178,22 @@ export default function CenterPage() {
     try {
       let result
 
-      if (isEditMode && editingCenter) {
+      if (isEditMode && editingTimeSlot) {
         // 編輯模式
-        result = await updateCenter(editingCenter.id, formData)
+        result = await updateTimeSlot(editingTimeSlot.id, formData)
       } else {
         // 新增模式
-        result = await createCenter(formData)
+        result = await createTimeSlot(formData)
       }
 
       console.log('API 回應:', result) // Debug 用
 
       if (result.success) {
-        toast.success(isEditMode ? '編輯中心成功！' : '新增中心成功！')
+        toast.success(isEditMode ? '編輯時段成功！' : '新增時段成功！')
         setIsSheetOpen(false)
-        setFormData({ name: '', locationId: '' })
+        setFormData({ startTime: '', endTime: '', timePeriodId: '' })
         setIsEditMode(false)
-        setEditingCenter(null)
+        setEditingTimeSlot(null)
         mutate()
       } else {
         // 處理 zod 驗證錯誤
@@ -191,13 +214,13 @@ export default function CenterPage() {
           toast.error(
             result.message ||
               (isEditMode
-                ? '編輯中心失敗，請稍後再試'
-                : '新增中心失敗，請稍後再試')
+                ? '編輯時段失敗，請稍後再試'
+                : '新增時段失敗，請稍後再試')
           )
         }
       }
     } catch (error) {
-      console.error(isEditMode ? '編輯中心失敗:' : '新增中心失敗:', error)
+      console.error(isEditMode ? '編輯時段失敗:' : '新增時段失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (
         error.message.includes('network') ||
@@ -210,7 +233,7 @@ export default function CenterPage() {
         toast.error('伺服器錯誤，請稍後再試')
       } else {
         toast.error(
-          (isEditMode ? '編輯中心失敗：' : '新增中心失敗：') +
+          (isEditMode ? '編輯時段失敗：' : '新增時段失敗：') +
             (error.message || '未知錯誤')
         )
       }
@@ -221,46 +244,46 @@ export default function CenterPage() {
 
   const handleCancel = () => {
     setIsSheetOpen(false)
-    setFormData({ name: '', locationId: '' })
+    setFormData({ startTime: '', endTime: '', timePeriodId: '' })
     setErrors({}) // 清除錯誤訊息
     setIsEditMode(false)
-    setEditingCenter(null)
+    setEditingTimeSlot(null)
   }
 
-  const handleEdit = (center) => {
-    console.log('編輯中心 - 完整資料:', center)
+  const handleEdit = (slot) => {
+    console.log('編輯時段 - 完整資料:', slot)
     setIsEditMode(true)
-    setEditingCenter(center)
+    setEditingTimeSlot(slot)
     setFormData({
-      name: center.name,
-      locationId:
-        center.location?.id?.toString() || center.locationId?.toString() || '',
+      startTime: slot.startTime || '',
+      endTime: slot.endTime || '',
+      timePeriodId: slot.timePeriodId ? String(slot.timePeriodId) : '',
     })
     setIsSheetOpen(true)
   }
 
-  const handleDelete = (center) => {
-    console.log('準備刪除中心 - 完整資料:', center)
-    setCenterToDelete(center)
+  const handleDelete = (slot) => {
+    console.log('準備刪除時段 - 完整資料:', slot)
+    setTimeSlotToDelete(slot)
     setIsDeleteDialogOpen(true)
   }
 
-  const handleBulkDelete = async (selectedData) => {
-    setCentersToDelete(selectedData)
+  const handleBulkDelete = (selectedData) => {
+    setTimeSlotsToDelete(selectedData)
     setIsBulkDeleteDialogOpen(true)
   }
 
   const confirmBulkDelete = async () => {
     setIsDeleting(true)
     try {
-      const checkedItems = centersToDelete.map((item) => item.id)
-      const result = await deleteMultipleCenters(checkedItems)
+      const checkedItems = timeSlotsToDelete.map((item) => item.id)
+      const result = await deleteMultipleTimeSlots(checkedItems)
 
       if (result.success) {
-        toast.success(`成功刪除 ${centersToDelete.length} 個中心！`)
+        toast.success(`成功刪除 ${timeSlotsToDelete.length} 個時段！`)
         mutate() // 重新載入資料
         setIsBulkDeleteDialogOpen(false)
-        setCentersToDelete([])
+        setTimeSlotsToDelete([])
       } else {
         toast.error(result.message || '批量刪除失敗')
       }
@@ -274,21 +297,21 @@ export default function CenterPage() {
 
   const cancelBulkDelete = () => {
     setIsBulkDeleteDialogOpen(false)
-    setCentersToDelete([])
+    setTimeSlotsToDelete([])
   }
 
   const confirmDelete = async () => {
-    if (!centerToDelete) return
+    if (!timeSlotToDelete) return
 
     setIsDeleting(true)
     try {
-      const result = await deleteCenter(centerToDelete.id)
+      const result = await deleteTimeSlot(timeSlotToDelete.id)
 
       if (result.success) {
         toast.success('刪除成功！')
         mutate() // 重新載入資料
         setIsDeleteDialogOpen(false)
-        setCenterToDelete(null)
+        setTimeSlotToDelete(null)
       } else {
         toast.error(result.message || '刪除失敗')
       }
@@ -302,7 +325,7 @@ export default function CenterPage() {
 
   const cancelDelete = () => {
     setIsDeleteDialogOpen(false)
-    setCenterToDelete(null)
+    setTimeSlotToDelete(null)
   }
 
   // ===== 載入和錯誤狀態處理 =====
@@ -327,13 +350,13 @@ export default function CenterPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Center" />
+        <SiteHeader title="時段管理" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <DataTable
                 data={data?.rows ?? []}
-                columns={centerColumns}
+                columns={timeSlotColumns}
                 totalRows={data?.totalRows}
                 totalPages={data?.totalPages}
                 onPaginationChange={handlePaginationChange}
@@ -351,12 +374,12 @@ export default function CenterPage() {
         </div>
       </SidebarInset>
 
-      {/* ===== 新增/編輯中心表單 ===== */}
+      {/* ===== 新增/編輯時段表單 ===== */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent>
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="text-xl text-primary">
-              {isEditMode ? '編輯運動中心' : '新增運動中心'}
+              {isEditMode ? '編輯時段' : '新增時段'}
             </SheetTitle>
             <SheetDescription className="text-gray-500">
               請填寫以下資訊
@@ -366,58 +389,69 @@ export default function CenterPage() {
           <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">
-                  中心名稱
-                  <span className="text-red-500">*</span>
+                <Label htmlFor="startTime">
+                  開始時間<span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="請輸入中心名稱"
-                  className={errors.name ? 'border-red-500' : ''}
+                  id="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) =>
+                    handleInputChange('startTime', e.target.value)
+                  }
+                  className={errors.startTime ? 'border-red-500' : ''}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500 mt-1">{errors.name}</p>
+                {errors.startTime && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.startTime}
+                  </p>
                 )}
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="locationId">
-                  地點
-                  <span className="text-red-500">*</span>
+                <Label htmlFor="endTime">
+                  結束時間<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => handleInputChange('endTime', e.target.value)}
+                  className={errors.endTime ? 'border-red-500' : ''}
+                />
+                {errors.endTime && (
+                  <p className="text-sm text-red-500 mt-1">{errors.endTime}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="timePeriod">
+                  時間區段<span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.locationId}
+                  value={formData.timePeriodId}
                   onValueChange={(value) =>
-                    handleInputChange('locationId', value)
+                    handleInputChange('timePeriodId', value)
                   }
                 >
                   <SelectTrigger
-                    className={errors.locationId ? 'border-red-500' : ''}
+                    className={errors.timePeriodId ? 'border-red-500' : ''}
                   >
-                    <SelectValue placeholder="請選擇地點" />
+                    <SelectValue placeholder="請選擇時間區段" />
                   </SelectTrigger>
                   <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                      >
-                        {location.name}
+                    {timePeriods.map((period) => (
+                      <SelectItem key={period.id} value={period.id.toString()}>
+                        {period.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.locationId && (
+                {errors.timePeriodId && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.locationId}
+                    {errors.timePeriodId}
                   </p>
                 )}
               </div>
             </div>
-
             <div className="flex justify-end space-x-4 pt-4">
               <Button
                 type="button"
@@ -433,8 +467,8 @@ export default function CenterPage() {
                     ? '編輯中...'
                     : '新增中...'
                   : isEditMode
-                    ? '編輯中心'
-                    : '新增中心'}
+                    ? '編輯時段'
+                    : '新增時段'}
               </Button>
             </div>
           </form>
@@ -454,7 +488,9 @@ export default function CenterPage() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除
-              <strong className="text-red-600">"{centerToDelete?.name}"</strong>
+              <strong className="text-red-600">
+                "{timeSlotToDelete?.startTime} - {timeSlotToDelete?.endTime}"
+              </strong>
               嗎？
               <br />
               <span className="text-sm text-gray-500 mt-2 block">
@@ -491,14 +527,14 @@ export default function CenterPage() {
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除以下
               <strong className="text-red-600">
-                {centersToDelete.length} 項資料
+                {timeSlotsToDelete.length} 項資料
               </strong>
               嗎？
             </AlertDialogDescription>
             <div className="mt-3 max-h-32 overflow-y-auto">
-              {centersToDelete.map((center, index) => (
-                <div key={center.id} className="text-sm text-gray-700 py-1">
-                  {index + 1}. {center.name}
+              {timeSlotsToDelete.map((slot, index) => (
+                <div key={slot.id} className="text-sm text-gray-700 py-1">
+                  {index + 1}. {slot.startTime} - {slot.endTime}
                 </div>
               ))}
             </div>
