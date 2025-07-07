@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import Image from 'next/image'
 import {
   IconCamera,
   IconChartBar,
@@ -182,9 +183,13 @@ export function AppSidebar({ ...props }) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+              <a href="/admin">
+                <Image
+                  src="/sportify-logo-sm.png"
+                  alt="sportify logo"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
