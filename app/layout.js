@@ -1,5 +1,12 @@
 import './globals.css'
 import { Toaster } from 'sonner'
+import { Noto_Sans_TC } from 'next/font/google'
+
+const notoSansTC = Noto_Sans_TC({
+  subsets: ['traditional-chinese'],
+  weight: ['400', '700'],
+  display: 'swap',
+})
 
 export const metadata = {
   title: 'Sportify Frontend',
@@ -8,8 +15,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="zh-Hant">
+      <body className={notoSansTC.className}>
         {children}
         <Toaster position="top-right" richColors />
       </body>

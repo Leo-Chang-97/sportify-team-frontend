@@ -63,10 +63,10 @@ export function DataTable({
   onEdit,
   onDelete,
   onBulkDelete,
-  onSearch, // 新增搜尋事件
-  initialKeyword = '', // 可選，初始搜尋字
-  onOrderBy, // 新增排序事件
-  initialOrderBy = '', // 初始排序
+  onSearch,
+  initialKeyword = '',
+  onOrderBy,
+  initialOrderBy = '',
 }) {
   // ===== 狀態管理 =====
   const [pagination, setPagination] = React.useState({
@@ -157,15 +157,13 @@ export function DataTable({
 
   return (
     <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-      {/* ===== 搜尋框區域 ===== */}
-      <SearchForm
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        onSubmit={handleSearchSubmit}
-      />
       {/* ===== 按鈕區域 ===== */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onAddNew}>
+            <IconPlus />
+            <span className="hidden lg:inline">新增</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -179,17 +177,19 @@ export function DataTable({
             className="h-8 text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
           >
             <IconTrash />
-            Delete {Object.keys(rowSelection).length}
+            <span className="hidden lg:inline">
+              刪除 {Object.keys(rowSelection).length}
+            </span>
           </Button>
         </div>
 
         <div className="flex items-center justify-end gap-2">
+          {/* ===== 選項篩選框區域 ===== */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
+                <span className="hidden lg:inline">顯示欄位</span>
                 <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -198,7 +198,9 @@ export function DataTable({
                 .getAllColumns()
                 .filter(
                   (column) =>
-                    column.getCanHide() && column.columnDef.sortable === true
+                    column.id !== 'select' &&
+                    column.id !== 'actions' &&
+                    column.columnDef.accessorKey // 只顯示有 accessorKey 的資料欄位
                 )
                 .map((column) => {
                   return (
@@ -216,10 +218,13 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={onAddNew}>
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
+          {/* ===== 搜尋框區域 ===== */}
+          <SearchForm
+            className="self-center"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onSubmit={handleSearchSubmit}
+          />
         </div>
       </div>
 
