@@ -198,9 +198,7 @@ export function DataTable({
                 .getAllColumns()
                 .filter(
                   (column) =>
-                    typeof column.accessorFn !== 'undefined' &&
-                    column.getCanHide() &&
-                    column.columnDef.sortable !== false // 只有 sortable !== false 的欄位可自訂顯示
+                    column.getCanHide() && column.columnDef.sortable === true
                 )
                 .map((column) => {
                   return (
@@ -232,9 +230,7 @@ export function DataTable({
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id}>
                 {group.headers.map((header) => {
-                  // 只對有 accessorFn 的欄位啟用排序
-                  const canSort =
-                    header.column.accessorFn && header.id !== 'actions'
+                  const canSort = header.column.columnDef.sortable === true
                   const isSortedAsc = orderBy === `${header.id}_asc`
                   const isSortedDesc = orderBy === `${header.id}_desc`
                   return (
@@ -250,13 +246,14 @@ export function DataTable({
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                        {canSort && (
-                          isSortedAsc ? (
+                        {canSort &&
+                          (isSortedAsc ? (
                             <IconArrowBarUp size={16} />
                           ) : isSortedDesc ? (
                             <IconArrowBarDown size={16} />
-                          ) : null
-                        )}
+                          ) : (
+                            <IconArrowsSort size={16} />
+                          ))}
                       </span>
                     </TableHead>
                   )
