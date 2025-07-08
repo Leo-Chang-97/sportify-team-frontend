@@ -38,7 +38,7 @@ const data = {
   user: {
     name: 'shadcn',
     email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
+    avatar: '/vercel.svg',
   },
   navMain: [
     {
@@ -183,12 +183,14 @@ export function AppSidebar({ ...props }) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/admin">
+              <a href="/admin" className="relative">
                 <Image
                   src="/sportify-logo-sm.png"
                   alt="sportify logo"
+                  sizes="256px"
                   fill
                   style={{ objectFit: 'contain' }}
+                  priority
                 />
               </a>
             </SidebarMenuButton>

@@ -1,6 +1,7 @@
 import './globals.css'
 import { Toaster } from 'sonner'
 import { Noto_Sans_TC } from 'next/font/google'
+import { AuthProvider } from '@/contexts/auth-context'
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ['traditional-chinese'],
@@ -15,11 +16,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="zh-Hant">
-      <body className={notoSansTC.className}>
-        {children}
-        <Toaster position="top-right" richColors />
-      </body>
-    </html>
+    <AuthProvider>
+      <html lang="zh-Hant">
+        <body className={notoSansTC.className}>
+          {children}
+          <Toaster position="top-right" richColors />
+        </body>
+      </html>
+    </AuthProvider>
   )
 }

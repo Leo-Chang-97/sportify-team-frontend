@@ -310,12 +310,12 @@ export default function CenterPage() {
   if (error) return <p>載入錯誤：{error.message}</p>
 
   // ===== Debug 資料格式 =====
-  console.log('完整資料:', data)
+  /* console.log('完整資料:', data)
   console.log('資料結構:', JSON.stringify(data, null, 2))
   if (data?.rows && data.rows.length > 0) {
     console.log('第一筆資料:', data.rows[0])
     console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
-  }
+  } */
 
   // ===== 頁面渲染 =====
   return (
