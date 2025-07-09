@@ -10,62 +10,68 @@ const storageKey = 'sportify-auth'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-
+  const [isInitialized, setIsInitialized] = useState(false)
   useEffect(() => {
     const str = localStorage.getItem(storageKey)
     if (str) {
       try {
-        const result = JSON.parse(str)
-        setUser(result)
+        const userData = JSON.parse(str)
+        setUser(userData)
       } catch (ex) {
         // 忽略錯誤，可能是無效的 JSON
+        localStorage.removeItem(storageKey)
       }
     }
-    // 新增：同步 token
-    const token = localStorage.getItem(storageKey)
-    if (token) {
-      // 可選：你可以在 context value 加 token 欄位
-    }
+    // 無論是否有 token，都標記為已初始化
+    setIsInitialized(true)
   }, [])
 
-  const login = async ({ email, password }) => {
+  const handleLogin = async ({ email, password }) => {
     try {
       const res = await fetch(`${API_SERVER}/auth/login`, {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ email, password }),
       })
-
-      if (!res.ok) {
-        return false
-      }
 
       const result = await res.json()
 
-      if (result.success) {
-        // 存 token
-        localStorage.setItem(storageKey, result.token)
-        setUser(result.user)
+      if (res.ok && result.success) {
+        // 存 user 資料到 localStorage
+        localStorage.setItem(storageKey, JSON.stringify(result))
+        setUser(result)
+        // 回傳成功結果
+        return { success: true, user: result.data }
       } else {
-        const error = new Error('登入失敗')
-        error.issues = result.issues || []
-        throw error
+        // 回傳失敗結果，包含錯誤訊息
+        return {
+          success: false,
+          issues: result.issues || [],
+          message: result.message || '登入失敗',
+        }
       }
     } catch (error) {
       console.error('登入發生錯誤:', error)
-      throw error
+      // 網路錯誤或其他異常
+      return {
+        success: false,
+        issues: [],
+        message: '網路錯誤，請稍後再試',
+      }
     }
   }
 
-  const logout = () => {
+  const handleLogout = () => {
     setUser(null)
     localStorage.removeItem(storageKey)
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, handleLogin, handleLogout, isInitialized }}
+    >
       {children}
     </AuthContext.Provider>
   )
