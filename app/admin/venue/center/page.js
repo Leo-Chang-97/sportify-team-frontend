@@ -10,6 +10,8 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
 import { centerColumns } from './columns'
 import useSWR from 'swr'
+import useAuthGuard from '@/hooks/use-auth-guard.js'
+
 import {
   fetchCenters,
   createCenter,
@@ -51,6 +53,8 @@ import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 
 export default function CenterPage() {
+  useAuthGuard()
+
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()

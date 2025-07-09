@@ -47,8 +47,6 @@ export function AuthProvider({ children }) {
       if (result.success) {
         // 存 token
         localStorage.setItem(storageKey, result.token)
-        // 只存 user
-        // localStorage.setItem(storageKey, JSON.stringify(result.user))
         setUser(result.user)
       } else {
         const error = new Error('登入失敗')
@@ -64,7 +62,6 @@ export function AuthProvider({ children }) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem(storageKey)
-    // localStorage.removeItem(storageKey)
   }
 
   return (
