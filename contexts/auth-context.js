@@ -1,6 +1,5 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { API_SERVER } from '@/config/api-path'
 
 const AuthContext = createContext()
@@ -11,21 +10,6 @@ const storageKey = 'sportify-auth'
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    try {
-      const str = localStorage.getItem(storageKey)
-      if (str) {
-        const userData = JSON.parse(str)
-        setUser(userData)
-      }
-    } catch (ex) {
-      console.error('AuthProvider: 解析用戶資料失敗', ex)
-      localStorage.removeItem(storageKey)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
 
   const login = async ({ email, password }) => {
     try {
@@ -40,13 +24,10 @@ export function AuthProvider({ children }) {
       const result = await res.json()
 
       if (res.ok && result.success) {
-        // 存 user 資料到 localStorage
-        localStorage.setItem(storageKey, JSON.stringify(result.token))
+        localStorage.setItem(storageKey, result.token)
         setUser(result.user)
-        // 回傳成功結果
         return { success: true, user: result.user }
       } else {
-        // 回傳失敗結果，包含錯誤訊息
         return {
           success: false,
           issues: result.issues || [],
@@ -55,7 +36,6 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       console.error('登入發生錯誤:', error)
-      // 網路錯誤或其他異常
       return {
         success: false,
         issues: [],
@@ -69,9 +49,58 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(storageKey)
   }
 
+  const getAuthHeader = () => {
+    let token = ''
+    try {
+      token = localStorage.getItem(storageKey) || ''
+    } catch (e) {
+      token = ''
+    }
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
+  const checkAuth = async () => {
+    setIsLoading(true)
+    const token = localStorage.getItem(storageKey)
+    if (!token) {
+      setUser(null)
+      setIsLoading(false)
+      return
+    }
+    try {
+      const res = await fetch(`${API_SERVER}/auth/verify`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const result = await res.json()
+      if (res.ok && result.success) {
+        setUser(result.user)
+      } else {
+        setUser(null)
+        localStorage.removeItem(storageKey)
+      }
+    } catch (error) {
+      setUser(null)
+      localStorage.removeItem(storageKey)
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated: !!user, isLoading }}
+      value={{
+        user,
+        login,
+        logout,
+        getAuthHeader,
+        isAuthenticated: !!user,
+        isLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>

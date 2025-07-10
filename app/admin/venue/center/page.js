@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function CenterPage() {
   // ===== 路由和搜尋參數處理 =====
@@ -80,20 +81,21 @@ export default function CenterPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
+  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
   } = useSWR(['centers', queryParams], async ([, params]) =>
-    fetchCenters(params)
+    fetchCenters(params, { headers: { ...getAuthHeader() } })
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadLocations = async () => {
       try {
-        const data = await fetchLocation()
+        const data = await fetchLocation({ headers: { ...getAuthHeader() } })
         setLocations(data.rows || [])
       } catch (error) {
         console.error('載入地點失敗:', error)
@@ -101,7 +103,7 @@ export default function CenterPage() {
       }
     }
     loadLocations()
-  }, [])
+  }, [getAuthHeader])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -148,6 +150,9 @@ export default function CenterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // Debug: 送出前 log formData
+    console.log('送出前 formData:', formData)
+
     // 清除之前的錯誤訊息
     setErrors({})
 
@@ -158,10 +163,14 @@ export default function CenterPage() {
 
       if (isEditMode && editingCenter) {
         // 編輯模式
-        result = await updateCenter(editingCenter.id, formData)
+        result = await updateCenter(editingCenter.id, formData, {
+          headers: { ...getAuthHeader() },
+        })
       } else {
         // 新增模式
-        result = await createCenter(formData)
+        result = await createCenter(formData, {
+          headers: { ...getAuthHeader() },
+        })
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -255,7 +264,9 @@ export default function CenterPage() {
     setIsDeleting(true)
     try {
       const checkedItems = centersToDelete.map((item) => item.id)
-      const result = await deleteMultipleCenters(checkedItems)
+      const result = await deleteMultipleCenters(checkedItems, {
+        headers: { ...getAuthHeader() },
+      })
 
       if (result.success) {
         toast.success(`成功刪除 ${centersToDelete.length} 個中心！`)
@@ -283,7 +294,9 @@ export default function CenterPage() {
 
     setIsDeleting(true)
     try {
-      const result = await deleteCenter(centerToDelete.id)
+      const result = await deleteCenter(centerToDelete.id, {
+        headers: { ...getAuthHeader() },
+      })
 
       if (result.success) {
         toast.success('刪除成功！')
