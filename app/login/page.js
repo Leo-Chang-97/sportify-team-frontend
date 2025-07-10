@@ -69,6 +69,7 @@ export default function Page() {
           onSubmit={handleSubmit}
           errors={errors}
           isLoading={isLoading}
+          handleLogin={handleLogin}
         />
       </div>
     </div>

@@ -15,6 +15,7 @@ import { useState } from 'react'
 export function LoginForm({
   className,
   onSubmit,
+  handleLogin,
   errors = {},
   isLoading = false,
   ...props
@@ -108,8 +109,14 @@ export function LoginForm({
                   variant="outline"
                   className="w-full"
                   disabled={isLoading}
+                  onClick={() => {
+                    handleLogin({
+                      email: 'admin@gmail.com',
+                      password: '123456',
+                    })
+                  }}
                 >
-                  Login with Google
+                  {isLoading ? 'Quick Logging in...' : 'Quick Login'}
                 </Button>
               </div>
             </div>

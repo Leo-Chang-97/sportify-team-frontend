@@ -33,6 +33,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { useAuth } from '@/contexts/auth-context'
 
 const data = {
   user: {
@@ -174,6 +175,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }) {
+  const { user } = useAuth()
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -203,7 +205,7 @@ export function AppSidebar({ ...props }) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user ? user.data : ''} />
       </SidebarFooter>
     </Sidebar>
   )
