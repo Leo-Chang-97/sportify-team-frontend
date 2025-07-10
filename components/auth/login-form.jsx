@@ -109,11 +109,14 @@ export function LoginForm({
                   variant="outline"
                   className="w-full"
                   disabled={isLoading}
+                  type="button"
                   onClick={() => {
-                    login({
-                      email: 'admin@gmail.com',
-                      password: '123456',
-                    })
+                    if (onSubmit) {
+                      onSubmit({
+                        email: 'admin@gmail.com',
+                        password: '123456',
+                      })
+                    }
                   }}
                 >
                   {isLoading ? 'Quick Logging in...' : 'Quick Login'}
