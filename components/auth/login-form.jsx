@@ -119,7 +119,23 @@ export function LoginForm({
                     }
                   }}
                 >
-                  {isLoading ? 'Quick Logging in...' : 'Quick Login'}
+                  {isLoading ? 'Quick Logging in...' : 'Quick Login admin'}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={isLoading}
+                  type="button"
+                  onClick={() => {
+                    if (onSubmit) {
+                      onSubmit({
+                        email: 'user@gmail.com',
+                        password: '123456',
+                      })
+                    }
+                  }}
+                >
+                  {isLoading ? 'Quick Logging in...' : 'Quick Login user'}
                 </Button>
               </div>
             </div>
