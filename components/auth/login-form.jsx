@@ -15,7 +15,7 @@ import { useState } from 'react'
 export function LoginForm({
   className,
   onSubmit,
-  handleLogin,
+  login,
   errors = {},
   isLoading = false,
   ...props
@@ -110,7 +110,7 @@ export function LoginForm({
                   className="w-full"
                   disabled={isLoading}
                   onClick={() => {
-                    handleLogin({
+                    login({
                       email: 'admin@gmail.com',
                       password: '123456',
                     })

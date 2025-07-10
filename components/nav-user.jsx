@@ -28,7 +28,7 @@ import { useAuth } from '@/contexts/auth-context'
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar()
-  const { handleLogout } = useAuth()
+  const { logout } = useAuth()
 
   return (
     <SidebarMenu>
@@ -88,7 +88,7 @@ export function NavUser({ user }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleLogout()}>
+            <DropdownMenuItem onClick={() => logout()}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

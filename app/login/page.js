@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { LoginForm } from '@/components/auth/login-form'
 
 export default function Page() {
-  const { user, handleLogin, isInitialized } = useAuth()
+  const { user, login, isAuthenticated } = useAuth()
   const searchParams = useSearchParams()
   const redirectPath = searchParams.get('redirect') || '/'
   const router = useRouter()
@@ -17,41 +17,17 @@ export default function Page() {
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    console.log('Login page: 狀態變更', { isInitialized, user, redirectPath })
-    if (isInitialized && user) {
-      console.log('Login page: 已登入，導向到', redirectPath)
+    if (isAuthenticated) {
       router.replace(redirectPath)
     }
-  }, [isInitialized, user, router, redirectPath])
-
-  // 尚未初始化時顯示載入狀態
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-        <div className="text-center">
-          <div className="mb-4">載入中...</div>
-        </div>
-      </div>
-    )
-  }
-
-  // 如果已登入，顯示導向狀態
-  if (user) {
-    return (
-      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-        <div className="text-center">
-          <div className="mb-4">正在導向...</div>
-        </div>
-      </div>
-    )
-  }
+  }, [isAuthenticated, user, router, redirectPath])
 
   // ===== 事件處理函數 =====
   const handleSubmit = async (formData) => {
     setErrors({})
     setIsLoading(true)
     try {
-      const result = await handleLogin(formData)
+      const result = await login(formData)
 
       if (!result.success) {
         const errs = {}
@@ -87,7 +63,7 @@ export default function Page() {
           onSubmit={handleSubmit}
           errors={errors}
           isLoading={isLoading}
-          handleLogin={handleLogin}
+          login={login}
         />
       </div>
     </div>
