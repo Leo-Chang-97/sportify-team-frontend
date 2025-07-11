@@ -10,14 +10,13 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
 import { centerColumns } from './columns'
 import useSWR from 'swr'
-
 import {
   fetchCenters,
   createCenter,
   updateCenter,
   deleteCenter,
   deleteMultipleCenters,
-  fetchLocation,
+  fetchLocationOptions,
 } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -95,7 +94,9 @@ export default function CenterPage() {
   useEffect(() => {
     const loadLocations = async () => {
       try {
-        const data = await fetchLocation({ headers: { ...getAuthHeader() } })
+        const data = await fetchLocationOptions({
+          headers: { ...getAuthHeader() },
+        })
         setLocations(data.rows || [])
       } catch (error) {
         console.error('載入地點失敗:', error)

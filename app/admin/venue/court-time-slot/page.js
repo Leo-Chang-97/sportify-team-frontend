@@ -1,4 +1,4 @@
-// app/admin/venue/time-slot/page.js
+// app/admin/venue/center/page.js
 'use client'
 
 // ===== 依賴項匯入 =====
@@ -8,17 +8,19 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
-import { timeSlotColumns } from './columns'
+import { courtTimeSlotColumns } from './columns'
 import useSWR from 'swr'
+
 import {
-  fetchTimeSlots,
-  createTimeSlot,
-  updateTimeSlot,
-  deleteTimeSlot,
-  deleteMultipleTimeSlots,
-  fetchTimePeriodOptions,
+  fetchCourtTimeSlots,
+  fetchCourtTimeSlot,
+  createCourtTimeSlot,
+  updateCourtTimeSlot,
+  deleteCourtTimeSlot,
+  deleteMultipleCourtTimeSlots,
+  fetchCourtOptions,
+  fetchTimeSlotOptions,
 } from '@/lib/api'
-import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,6 +37,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/sheet'
 import {
   AlertDialog,
@@ -45,11 +48,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/contexts/auth-context'
 
-export default function TimeSlotPage() {
+export default function CourtTimeSlotPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -57,19 +62,20 @@ export default function TimeSlotPage() {
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [timePeriods, setTimePeriods] = useState([])
+  const [courts, setCourts] = useState([])
+  const [timeSlots, setTimeSlots] = useState([])
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
-  const [editingTimeSlot, setEditingTimeSlot] = useState(null)
+  const [editingItem, setEditingItem] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [timeSlotToDelete, setTimeSlotToDelete] = useState(null)
+  const [itemToDelete, setItemToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
-  const [timeSlotsToDelete, setTimeSlotsToDelete] = useState([])
+  const [itemsToDelete, setItemsToDelete] = useState([])
   const [formData, setFormData] = useState({
-    startTime: '',
-    endTime: '',
-    timePeriodId: '',
+    courtId: '',
+    timeSlotId: '',
+    price: '',
   })
 
   // ===== URL 參數處理 =====
@@ -85,25 +91,29 @@ export default function TimeSlotPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['time-slots', queryParams], async ([, params]) =>
-    fetchTimeSlots(params, { headers: { ...getAuthHeader() } })
+  } = useSWR(['courtTimeSlots', queryParams], async ([, params]) =>
+    fetchCourtTimeSlots(params, { headers: { ...getAuthHeader() } })
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadTimePeriods = async () => {
+    const loadCourtsAndTimeSlots = async () => {
       try {
-        const data = await fetchTimePeriodOptions({
+        const courtData = await fetchCourtOptions({
           headers: { ...getAuthHeader() },
         })
-        setTimePeriods(data.rows || [])
+        setCourts(courtData.rows || [])
+        const timeSlotData = await fetchTimeSlotOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setTimeSlots(timeSlotData.rows || [])
       } catch (error) {
-        console.error('載入時間區段失敗:', error)
-        toast.error('載入時間區段失敗')
+        console.error('載入球場/時段失敗:', error)
+        toast.error('載入球場/時段失敗')
       }
     }
-    loadTimePeriods()
-  }, [])
+    loadCourtsAndTimeSlots()
+  }, [getAuthHeader])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -140,56 +150,41 @@ export default function TimeSlotPage() {
     setIsSheetOpen(true)
   }
 
-  // 根據 startTime 自動判斷時段名稱並對應 timePeriodId
-  const getTimePeriodIdByTime = (start, periods) => {
-    if (!start || !periods?.length) return ''
-    const [h] = start.split(':').map(Number)
-    let label = ''
-    if (h >= 8 && h < 12) label = '早上'
-    else if (h >= 12 && h < 18) label = '下午'
-    else if (h >= 18 && h < 22) label = '晚上'
-    const found = periods.find((p) => p.name === label)
-    return found ? String(found.id) : ''
-  }
-
   const handleInputChange = (name, value) => {
-    setFormData((prev) => {
-      let next = { ...prev, [name]: value }
-      // 自動判斷 timePeriodId
-      if (
-        (name === 'startTime' || name === 'endTime') &&
-        value &&
-        timePeriods.length
-      ) {
-        const autoId = getTimePeriodIdByTime(
-          name === 'startTime' ? value : next.startTime,
-          timePeriods
-        )
-        if (autoId) next.timePeriodId = autoId
-      }
-      return next
-    })
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Debug: 送出前 log formData
+    console.log('送出前 formData:', formData)
 
     // 清除之前的錯誤訊息
     setErrors({})
 
     setIsLoading(true)
 
+    // 將 price 轉為數字，若為空字串則設 undefined
+    const submitData = {
+      ...formData,
+      price: formData.price === '' ? undefined : Number(formData.price),
+    }
+
     try {
       let result
 
-      if (isEditMode && editingTimeSlot) {
+      if (isEditMode && editingItem) {
         // 編輯模式
-        result = await updateTimeSlot(editingTimeSlot.id, formData, {
+        result = await updateCourtTimeSlot(editingItem.id, submitData, {
           headers: { ...getAuthHeader() },
         })
       } else {
         // 新增模式
-        result = await createTimeSlot(formData, {
+        result = await createCourtTimeSlot(submitData, {
           headers: { ...getAuthHeader() },
         })
       }
@@ -199,9 +194,9 @@ export default function TimeSlotPage() {
       if (result.success) {
         toast.success(isEditMode ? '編輯時段成功！' : '新增時段成功！')
         setIsSheetOpen(false)
-        setFormData({ startTime: '', endTime: '', timePeriodId: '' })
+        setFormData({ courtId: '', timeSlotId: '', price: '' })
         setIsEditMode(false)
-        setEditingTimeSlot(null)
+        setEditingItem(null)
         mutate()
       } else {
         // 處理 zod 驗證錯誤
@@ -222,13 +217,13 @@ export default function TimeSlotPage() {
           toast.error(
             result.message ||
               (isEditMode
-                ? '編輯時段失敗，請稍後再試'
-                : '新增時段失敗，請稍後再試')
+                ? '編輯場地失敗，請稍後再試'
+                : '新增場地失敗，請稍後再試')
           )
         }
       }
     } catch (error) {
-      console.error(isEditMode ? '編輯時段失敗:' : '新增時段失敗:', error)
+      console.error(isEditMode ? '編輯場地失敗:' : '新增場地失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (
         error.message.includes('network') ||
@@ -252,48 +247,47 @@ export default function TimeSlotPage() {
 
   const handleCancel = () => {
     setIsSheetOpen(false)
-    setFormData({ startTime: '', endTime: '', timePeriodId: '' })
+    setFormData({ courtId: '', timeSlotId: '', price: '' })
     setErrors({}) // 清除錯誤訊息
     setIsEditMode(false)
-    setEditingTimeSlot(null)
+    setEditingItem(null)
   }
 
-  const handleEdit = (slot) => {
-    console.log('編輯時段 - 完整資料:', slot)
+  const handleEdit = (item) => {
     setIsEditMode(true)
-    setEditingTimeSlot(slot)
+    setEditingItem(item)
     setFormData({
-      startTime: slot.startTime || '',
-      endTime: slot.endTime || '',
-      timePeriodId: slot.timePeriodId ? String(slot.timePeriodId) : '',
+      courtId: item.court?.id?.toString() || item.courtId?.toString() || '',
+      timeSlotId:
+        item.timeSlot?.id?.toString() || item.timeSlotId?.toString() || '',
+      price: item.price?.toString() || '',
     })
     setIsSheetOpen(true)
   }
 
-  const handleDelete = (slot) => {
-    console.log('準備刪除時段 - 完整資料:', slot)
-    setTimeSlotToDelete(slot)
+  const handleDelete = (item) => {
+    setItemToDelete(item)
     setIsDeleteDialogOpen(true)
   }
 
-  const handleBulkDelete = (selectedData) => {
-    setTimeSlotsToDelete(selectedData)
+  const handleBulkDelete = async (selectedData) => {
+    setItemsToDelete(selectedData)
     setIsBulkDeleteDialogOpen(true)
   }
 
   const confirmBulkDelete = async () => {
     setIsDeleting(true)
     try {
-      const checkedItems = timeSlotsToDelete.map((item) => item.id)
-      const result = await deleteMultipleTimeSlots(checkedItems, {
+      const checkedItems = itemsToDelete.map((item) => item.id)
+      const result = await deleteMultipleCourtTimeSlots(checkedItems, {
         headers: { ...getAuthHeader() },
       })
 
       if (result.success) {
-        toast.success(`成功刪除 ${timeSlotsToDelete.length} 個時段！`)
+        toast.success(`成功刪除 ${itemsToDelete.length} 筆時段！`)
         mutate() // 重新載入資料
         setIsBulkDeleteDialogOpen(false)
-        setTimeSlotsToDelete([])
+        setItemsToDelete([])
       } else {
         toast.error(result.message || '批量刪除失敗')
       }
@@ -307,15 +301,15 @@ export default function TimeSlotPage() {
 
   const cancelBulkDelete = () => {
     setIsBulkDeleteDialogOpen(false)
-    setTimeSlotsToDelete([])
+    setItemsToDelete([])
   }
 
   const confirmDelete = async () => {
-    if (!timeSlotToDelete) return
+    if (!itemToDelete) return
 
     setIsDeleting(true)
     try {
-      const result = await deleteTimeSlot(timeSlotToDelete.id, {
+      const result = await deleteCourtTimeSlot(itemToDelete.id, {
         headers: { ...getAuthHeader() },
       })
 
@@ -323,7 +317,7 @@ export default function TimeSlotPage() {
         toast.success('刪除成功！')
         mutate() // 重新載入資料
         setIsDeleteDialogOpen(false)
-        setTimeSlotToDelete(null)
+        setItemToDelete(null)
       } else {
         toast.error(result.message || '刪除失敗')
       }
@@ -337,7 +331,7 @@ export default function TimeSlotPage() {
 
   const cancelDelete = () => {
     setIsDeleteDialogOpen(false)
-    setTimeSlotToDelete(null)
+    setItemToDelete(null)
   }
 
   // ===== 載入和錯誤狀態處理 =====
@@ -362,13 +356,13 @@ export default function TimeSlotPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="時段管理" />
+        <SiteHeader title="Court Time Slot" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <DataTable
                 data={data?.rows ?? []}
-                columns={timeSlotColumns}
+                columns={courtTimeSlotColumns}
                 totalRows={data?.totalRows}
                 totalPages={data?.totalPages}
                 onPaginationChange={handlePaginationChange}
@@ -403,69 +397,84 @@ export default function TimeSlotPage() {
           <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="startTime">
-                  開始時間<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) =>
-                    handleInputChange('startTime', e.target.value)
-                  }
-                  className={errors.startTime ? 'border-red-500' : ''}
-                />
-                {errors.startTime && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.startTime}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endTime">
-                  結束時間<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => handleInputChange('endTime', e.target.value)}
-                  className={errors.endTime ? 'border-red-500' : ''}
-                />
-                {errors.endTime && (
-                  <p className="text-sm text-red-500 mt-1">{errors.endTime}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="timePeriod">
-                  時間區段<span className="text-red-500">*</span>
+                <Label htmlFor="courtId">
+                  球場
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.timePeriodId}
-                  onValueChange={(value) =>
-                    handleInputChange('timePeriodId', value)
-                  }
+                  value={formData.courtId}
+                  onValueChange={(value) => handleInputChange('courtId', value)}
                 >
                   <SelectTrigger
-                    className={errors.timePeriodId ? 'border-red-500' : ''}
+                    className={errors.courtId ? 'border-red-500' : ''}
                   >
-                    <SelectValue placeholder="請選擇時間區段" />
+                    <SelectValue placeholder="請選擇球場" />
                   </SelectTrigger>
                   <SelectContent>
-                    {timePeriods.map((period) => (
-                      <SelectItem key={period.id} value={period.id.toString()}>
-                        {period.name}
+                    {courts.map((court) => (
+                      <SelectItem key={court.id} value={court.id.toString()}>
+                        {court.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.timePeriodId && (
+                {errors.courtId && (
+                  <p className="text-sm text-red-500 mt-1">{errors.courtId}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="timeSlotId">
+                  時段
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.timeSlotId}
+                  onValueChange={(value) =>
+                    handleInputChange('timeSlotId', value)
+                  }
+                >
+                  <SelectTrigger
+                    className={errors.timeSlotId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇時段" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((slot) => (
+                      <SelectItem key={slot.id} value={slot.id.toString()}>
+                        {slot.startTime}~{slot.endTime}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.timeSlotId && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.timePeriodId}
+                    {errors.timeSlotId}
                   </p>
                 )}
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="timeSlotId">
+                  價格
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={formData.price === undefined ? '' : formData.price}
+                  onChange={(e) => handleInputChange('price', e.target.value)}
+                  placeholder="請輸入價格"
+                  className={errors.price ? 'border-red-500' : ''}
+                  min="0"
+                  step="1"
+                />
+                {errors.price && (
+                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
+                )}
+              </div>
             </div>
+
             <div className="flex justify-end space-x-4 pt-4">
               <Button
                 type="button"
@@ -503,8 +512,7 @@ export default function TimeSlotPage() {
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除
               <strong className="text-red-500">
-                {timeSlotToDelete?.id}. {timeSlotToDelete?.startTime} -{' '}
-                {timeSlotToDelete?.endTime}
+                {itemToDelete?.id}. {itemToDelete?.name}
               </strong>
               嗎？
               <br />
@@ -542,14 +550,14 @@ export default function TimeSlotPage() {
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除以下
               <strong className="text-red-500">
-                {timeSlotsToDelete.length} 項資料
+                {itemsToDelete.length} 項資料
               </strong>
               嗎？
             </AlertDialogDescription>
             <div className="mt-3 max-h-32 overflow-y-auto">
-              {timeSlotsToDelete.map((slot, index) => (
-                <div key={slot.id} className="text-sm text-gray-700 py-1">
-                  {slot.id}. {slot.startTime} - {slot.endTime}
+              {itemsToDelete.map((court, index) => (
+                <div key={court.id} className="text-sm text-gray-700 py-1">
+                  {court.id}. {court.name}
                 </div>
               ))}
             </div>

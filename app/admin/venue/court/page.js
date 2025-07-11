@@ -1,4 +1,4 @@
-// app/admin/venue/time-slot/page.js
+// app/admin/venue/center/page.js
 'use client'
 
 // ===== 依賴項匯入 =====
@@ -8,17 +8,18 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
-import { timeSlotColumns } from './columns'
+import { courtColumns } from './columns'
 import useSWR from 'swr'
+
 import {
-  fetchTimeSlots,
-  createTimeSlot,
-  updateTimeSlot,
-  deleteTimeSlot,
-  deleteMultipleTimeSlots,
-  fetchTimePeriodOptions,
+  fetchCourts,
+  createCourt,
+  updateCourt,
+  deleteCourt,
+  deleteMultipleCourts,
+  fetchCenterOptions,
+  fetchSportOptions,
 } from '@/lib/api'
-import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,6 +36,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/sheet'
 import {
   AlertDialog,
@@ -45,11 +47,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/contexts/auth-context'
 
-export default function TimeSlotPage() {
+export default function CourtPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -57,19 +61,20 @@ export default function TimeSlotPage() {
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [timePeriods, setTimePeriods] = useState([])
+  const [centers, setCenters] = useState([])
+  const [sports, setSports] = useState([])
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
-  const [editingTimeSlot, setEditingTimeSlot] = useState(null)
+  const [editingCourt, setEditingCourt] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [timeSlotToDelete, setTimeSlotToDelete] = useState(null)
+  const [courtToDelete, setCourtToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
-  const [timeSlotsToDelete, setTimeSlotsToDelete] = useState([])
+  const [courtsToDelete, setCourtsToDelete] = useState([])
   const [formData, setFormData] = useState({
-    startTime: '',
-    endTime: '',
-    timePeriodId: '',
+    name: '',
+    centerId: '',
+    sportId: '',
   })
 
   // ===== URL 參數處理 =====
@@ -85,25 +90,29 @@ export default function TimeSlotPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['time-slots', queryParams], async ([, params]) =>
-    fetchTimeSlots(params, { headers: { ...getAuthHeader() } })
+  } = useSWR(['courts', queryParams], async ([, params]) =>
+    fetchCourts(params, { headers: { ...getAuthHeader() } })
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadTimePeriods = async () => {
+    const loadCentersAndSports = async () => {
       try {
-        const data = await fetchTimePeriodOptions({
+        const centerData = await fetchCenterOptions({
           headers: { ...getAuthHeader() },
         })
-        setTimePeriods(data.rows || [])
+        setCenters(centerData.rows || [])
+        const sportData = await fetchSportOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setSports(sportData.rows || [])
       } catch (error) {
-        console.error('載入時間區段失敗:', error)
-        toast.error('載入時間區段失敗')
+        console.error('載入中心/運動類型失敗:', error)
+        toast.error('載入中心/運動類型失敗')
       }
     }
-    loadTimePeriods()
-  }, [])
+    loadCentersAndSports()
+  }, [getAuthHeader])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -140,39 +149,18 @@ export default function TimeSlotPage() {
     setIsSheetOpen(true)
   }
 
-  // 根據 startTime 自動判斷時段名稱並對應 timePeriodId
-  const getTimePeriodIdByTime = (start, periods) => {
-    if (!start || !periods?.length) return ''
-    const [h] = start.split(':').map(Number)
-    let label = ''
-    if (h >= 8 && h < 12) label = '早上'
-    else if (h >= 12 && h < 18) label = '下午'
-    else if (h >= 18 && h < 22) label = '晚上'
-    const found = periods.find((p) => p.name === label)
-    return found ? String(found.id) : ''
-  }
-
   const handleInputChange = (name, value) => {
-    setFormData((prev) => {
-      let next = { ...prev, [name]: value }
-      // 自動判斷 timePeriodId
-      if (
-        (name === 'startTime' || name === 'endTime') &&
-        value &&
-        timePeriods.length
-      ) {
-        const autoId = getTimePeriodIdByTime(
-          name === 'startTime' ? value : next.startTime,
-          timePeriods
-        )
-        if (autoId) next.timePeriodId = autoId
-      }
-      return next
-    })
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Debug: 送出前 log formData
+    console.log('送出前 formData:', formData)
 
     // 清除之前的錯誤訊息
     setErrors({})
@@ -182,14 +170,14 @@ export default function TimeSlotPage() {
     try {
       let result
 
-      if (isEditMode && editingTimeSlot) {
+      if (isEditMode && editingCourt) {
         // 編輯模式
-        result = await updateTimeSlot(editingTimeSlot.id, formData, {
+        result = await updateCourt(editingCourt.id, formData, {
           headers: { ...getAuthHeader() },
         })
       } else {
         // 新增模式
-        result = await createTimeSlot(formData, {
+        result = await createCourt(formData, {
           headers: { ...getAuthHeader() },
         })
       }
@@ -197,11 +185,11 @@ export default function TimeSlotPage() {
       console.log('API 回應:', result) // Debug 用
 
       if (result.success) {
-        toast.success(isEditMode ? '編輯時段成功！' : '新增時段成功！')
+        toast.success(isEditMode ? '編輯場地成功！' : '新增場地成功！')
         setIsSheetOpen(false)
-        setFormData({ startTime: '', endTime: '', timePeriodId: '' })
+        setFormData({ name: '', centerId: '', sportId: '' })
         setIsEditMode(false)
-        setEditingTimeSlot(null)
+        setEditingCourt(null)
         mutate()
       } else {
         // 處理 zod 驗證錯誤
@@ -222,13 +210,13 @@ export default function TimeSlotPage() {
           toast.error(
             result.message ||
               (isEditMode
-                ? '編輯時段失敗，請稍後再試'
-                : '新增時段失敗，請稍後再試')
+                ? '編輯場地失敗，請稍後再試'
+                : '新增場地失敗，請稍後再試')
           )
         }
       }
     } catch (error) {
-      console.error(isEditMode ? '編輯時段失敗:' : '新增時段失敗:', error)
+      console.error(isEditMode ? '編輯場地失敗:' : '新增場地失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (
         error.message.includes('network') ||
@@ -241,7 +229,7 @@ export default function TimeSlotPage() {
         toast.error('伺服器錯誤，請稍後再試')
       } else {
         toast.error(
-          (isEditMode ? '編輯時段失敗：' : '新增時段失敗：') +
+          (isEditMode ? '編輯場地失敗：' : '新增場地失敗：') +
             (error.message || '未知錯誤')
         )
       }
@@ -252,48 +240,49 @@ export default function TimeSlotPage() {
 
   const handleCancel = () => {
     setIsSheetOpen(false)
-    setFormData({ startTime: '', endTime: '', timePeriodId: '' })
+    setFormData({ name: '', centerId: '', sportId: '' })
     setErrors({}) // 清除錯誤訊息
     setIsEditMode(false)
-    setEditingTimeSlot(null)
+    setEditingCourt(null)
   }
 
-  const handleEdit = (slot) => {
-    console.log('編輯時段 - 完整資料:', slot)
+  const handleEdit = (court) => {
+    console.log('編輯場地 - 完整資料:', court)
     setIsEditMode(true)
-    setEditingTimeSlot(slot)
+    setEditingCourt(court)
     setFormData({
-      startTime: slot.startTime || '',
-      endTime: slot.endTime || '',
-      timePeriodId: slot.timePeriodId ? String(slot.timePeriodId) : '',
+      name: court.name,
+      centerId:
+        court.center?.id?.toString() || court.centerId?.toString() || '',
+      sportId: court.sport?.id?.toString() || court.sportId?.toString() || '',
     })
     setIsSheetOpen(true)
   }
 
-  const handleDelete = (slot) => {
-    console.log('準備刪除時段 - 完整資料:', slot)
-    setTimeSlotToDelete(slot)
+  const handleDelete = (court) => {
+    console.log('準備刪除場地 - 完整資料:', court)
+    setCourtToDelete(court)
     setIsDeleteDialogOpen(true)
   }
 
-  const handleBulkDelete = (selectedData) => {
-    setTimeSlotsToDelete(selectedData)
+  const handleBulkDelete = async (selectedData) => {
+    setCourtsToDelete(selectedData)
     setIsBulkDeleteDialogOpen(true)
   }
 
   const confirmBulkDelete = async () => {
     setIsDeleting(true)
     try {
-      const checkedItems = timeSlotsToDelete.map((item) => item.id)
-      const result = await deleteMultipleTimeSlots(checkedItems, {
+      const checkedItems = courtsToDelete.map((item) => item.id)
+      const result = await deleteMultipleCourts(checkedItems, {
         headers: { ...getAuthHeader() },
       })
 
       if (result.success) {
-        toast.success(`成功刪除 ${timeSlotsToDelete.length} 個時段！`)
+        toast.success(`成功刪除 ${courtsToDelete.length} 個場地！`)
         mutate() // 重新載入資料
         setIsBulkDeleteDialogOpen(false)
-        setTimeSlotsToDelete([])
+        setCourtsToDelete([])
       } else {
         toast.error(result.message || '批量刪除失敗')
       }
@@ -307,15 +296,15 @@ export default function TimeSlotPage() {
 
   const cancelBulkDelete = () => {
     setIsBulkDeleteDialogOpen(false)
-    setTimeSlotsToDelete([])
+    setCourtsToDelete([])
   }
 
   const confirmDelete = async () => {
-    if (!timeSlotToDelete) return
+    if (!courtToDelete) return
 
     setIsDeleting(true)
     try {
-      const result = await deleteTimeSlot(timeSlotToDelete.id, {
+      const result = await deleteCourt(courtToDelete.id, {
         headers: { ...getAuthHeader() },
       })
 
@@ -323,7 +312,7 @@ export default function TimeSlotPage() {
         toast.success('刪除成功！')
         mutate() // 重新載入資料
         setIsDeleteDialogOpen(false)
-        setTimeSlotToDelete(null)
+        setCourtToDelete(null)
       } else {
         toast.error(result.message || '刪除失敗')
       }
@@ -337,7 +326,7 @@ export default function TimeSlotPage() {
 
   const cancelDelete = () => {
     setIsDeleteDialogOpen(false)
-    setTimeSlotToDelete(null)
+    setCourtToDelete(null)
   }
 
   // ===== 載入和錯誤狀態處理 =====
@@ -362,13 +351,13 @@ export default function TimeSlotPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="時段管理" />
+        <SiteHeader title="Court" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <DataTable
                 data={data?.rows ?? []}
-                columns={timeSlotColumns}
+                columns={courtColumns}
                 totalRows={data?.totalRows}
                 totalPages={data?.totalPages}
                 onPaginationChange={handlePaginationChange}
@@ -388,12 +377,12 @@ export default function TimeSlotPage() {
         </div>
       </SidebarInset>
 
-      {/* ===== 新增/編輯時段表單 ===== */}
+      {/* ===== 新增/編輯場地表單 ===== */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent>
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="text-xl text-primary">
-              {isEditMode ? '編輯時段' : '新增時段'}
+              {isEditMode ? '編輯場地' : '新增場地'}
             </SheetTitle>
             <SheetDescription className="text-gray-500">
               請填寫以下資訊
@@ -403,69 +392,126 @@ export default function TimeSlotPage() {
           <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="startTime">
-                  開始時間<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) =>
-                    handleInputChange('startTime', e.target.value)
-                  }
-                  className={errors.startTime ? 'border-red-500' : ''}
-                />
-                {errors.startTime && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.startTime}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endTime">
-                  結束時間<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => handleInputChange('endTime', e.target.value)}
-                  className={errors.endTime ? 'border-red-500' : ''}
-                />
-                {errors.endTime && (
-                  <p className="text-sm text-red-500 mt-1">{errors.endTime}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="timePeriod">
-                  時間區段<span className="text-red-500">*</span>
+                <Label htmlFor="centerId">
+                  所屬中心
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.timePeriodId}
-                  onValueChange={(value) =>
-                    handleInputChange('timePeriodId', value)
-                  }
+                  value={formData.centerId}
+                  onValueChange={(value) => {
+                    handleInputChange('centerId', value)
+                    // 自動組合名稱
+                    let centerName =
+                      centers.find((c) => c.id.toString() === value)?.name || ''
+                    centerName = centerName.slice(0, 2)
+                    const sportName =
+                      sports.find((s) => s.id.toString() === formData.sportId)
+                        ?.name || ''
+                    let count = 1
+                    if (data?.rows) {
+                      const same = data.rows.filter(
+                        (row) =>
+                          row.center?.id?.toString() === value &&
+                          row.sport?.id?.toString() === formData.sportId
+                      )
+                      count = same.length + 1
+                    }
+                    handleInputChange(
+                      'name',
+                      centerName && sportName
+                        ? `${centerName} ${sportName} ${count}`
+                        : ''
+                    )
+                  }}
                 >
                   <SelectTrigger
-                    className={errors.timePeriodId ? 'border-red-500' : ''}
+                    className={errors.centerId ? 'border-red-500' : ''}
                   >
-                    <SelectValue placeholder="請選擇時間區段" />
+                    <SelectValue placeholder="請選擇中心" />
                   </SelectTrigger>
                   <SelectContent>
-                    {timePeriods.map((period) => (
-                      <SelectItem key={period.id} value={period.id.toString()}>
-                        {period.name}
+                    {centers.map((center) => (
+                      <SelectItem key={center.id} value={center.id.toString()}>
+                        {center.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.timePeriodId && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.timePeriodId}
-                  </p>
+                {errors.centerId && (
+                  <p className="text-sm text-red-500 mt-1">{errors.centerId}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sportId">
+                  運動類型
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.sportId}
+                  onValueChange={(value) => {
+                    handleInputChange('sportId', value)
+                    // 自動組合名稱
+                    let centerName =
+                      centers.find((c) => c.id.toString() === formData.centerId)
+                        ?.name || ''
+                    centerName = centerName.slice(0, 2)
+                    const sportName =
+                      sports.find((s) => s.id.toString() === value)?.name || ''
+                    let count = 1
+                    if (data?.rows) {
+                      const same = data.rows.filter(
+                        (row) =>
+                          row.center?.id?.toString() === formData.centerId &&
+                          row.sport?.id?.toString() === value
+                      )
+                      count = same.length + 1
+                    }
+                    handleInputChange(
+                      'name',
+                      centerName && sportName
+                        ? `${centerName} ${sportName} ${count}`
+                        : ''
+                    )
+                  }}
+                >
+                  <SelectTrigger
+                    className={errors.sportId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇運動類型" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sports.map((sport) => (
+                      <SelectItem key={sport.id} value={sport.id.toString()}>
+                        {sport.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.sportId && (
+                  <p className="text-sm text-red-500 mt-1">{errors.sportId}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">
+                  場地名稱
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  readOnly
+                  placeholder="將自動產生場地名稱"
+                  className={errors.name ? 'border-red-500' : ''}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500 mt-1">{errors.name}</p>
                 )}
               </div>
             </div>
+
             <div className="flex justify-end space-x-4 pt-4">
               <Button
                 type="button"
@@ -481,8 +527,8 @@ export default function TimeSlotPage() {
                     ? '編輯中...'
                     : '新增中...'
                   : isEditMode
-                    ? '編輯時段'
-                    : '新增時段'}
+                    ? '編輯場地'
+                    : '新增場地'}
               </Button>
             </div>
           </form>
@@ -503,8 +549,7 @@ export default function TimeSlotPage() {
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除
               <strong className="text-red-500">
-                {timeSlotToDelete?.id}. {timeSlotToDelete?.startTime} -{' '}
-                {timeSlotToDelete?.endTime}
+                {courtToDelete?.id}. {courtToDelete?.name}
               </strong>
               嗎？
               <br />
@@ -542,14 +587,14 @@ export default function TimeSlotPage() {
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除以下
               <strong className="text-red-500">
-                {timeSlotsToDelete.length} 項資料
+                {courtsToDelete.length} 項資料
               </strong>
               嗎？
             </AlertDialogDescription>
             <div className="mt-3 max-h-32 overflow-y-auto">
-              {timeSlotsToDelete.map((slot, index) => (
-                <div key={slot.id} className="text-sm text-gray-700 py-1">
-                  {slot.id}. {slot.startTime} - {slot.endTime}
+              {courtsToDelete.map((court, index) => (
+                <div key={court.id} className="text-sm text-gray-700 py-1">
+                  {court.id}. {court.name}
                 </div>
               ))}
             </div>
