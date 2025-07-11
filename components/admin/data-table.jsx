@@ -79,6 +79,17 @@ export function DataTable({
   const [rowSelection, setRowSelection] = React.useState({})
   const [keyword, setKeyword] = React.useState(initialKeyword)
   const [orderBy, setOrderBy] = React.useState(initialOrderBy)
+  const [columnVisibility, setColumnVisibility] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('columnVisibility')
+        return stored ? JSON.parse(stored) : {}
+      } catch {
+        return {}
+      }
+    }
+    return {}
+  })
 
   // ===== 同步外部狀態變更 =====
   React.useEffect(() => {
@@ -88,7 +99,14 @@ export function DataTable({
     })
   }, [currentPage, pageSize])
 
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility))
+    } catch {}
+  }, [columnVisibility])
+
   // ===== 事件處理函數 =====
+  // 頁數改變事件
   const handlePaginationChange = (updater) => {
     const newPagination =
       typeof updater === 'function' ? updater(pagination) : updater
@@ -147,10 +165,12 @@ export function DataTable({
     state: {
       pagination, // 分頁狀態（目前頁碼、每頁筆數）
       rowSelection, // 列選取狀態（哪些 row 被選取）
+      columnVisibility, // 欄位選項篩選狀態
     },
 
     onPaginationChange: handlePaginationChange, // 當分頁狀態改變時呼叫的函式
     onRowSelectionChange: setRowSelection, // 當選取列改變時呼叫的函式
+    onColumnVisibilityChange: setColumnVisibility, // 當欄位選項篩選改變時呼叫的函式
 
     getCoreRowModel: getCoreRowModel(), // 產生最基礎的 row model（必要）
     getPaginationRowModel: getPaginationRowModel(), // 產生分頁後的 row model

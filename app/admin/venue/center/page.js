@@ -465,12 +465,14 @@ export default function CenterPage() {
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold my-2 flex items-baseline gap-2">
-              <IconTrash className="h-6 w-6 text-red-600 translate-y-0.5" />
+              <IconTrash className="h-6 w-6 text-red-500 translate-y-0.5" />
               確認刪除
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除
-              <strong className="text-red-600">"{centerToDelete?.name}"</strong>
+              <strong className="text-red-500">
+                {centerToDelete?.id}. {centerToDelete?.name}
+              </strong>
               嗎？
               <br />
               <span className="text-sm text-gray-500 mt-2 block">
@@ -485,7 +487,7 @@ export default function CenterPage() {
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-base"
+              className="bg-red-500 hover:bg-red-700 text-base"
             >
               {isDeleting ? '刪除中...' : '確定刪除'}
             </AlertDialogAction>
@@ -501,12 +503,12 @@ export default function CenterPage() {
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold my-2 flex items-baseline gap-2">
-              <IconTrash className="h-6 w-6 text-red-600 translate-y-0.5" />
+              <IconTrash className="h-6 w-6 text-red-500 translate-y-0.5" />
               確認批量刪除
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除以下
-              <strong className="text-red-600">
+              <strong className="text-red-500">
                 {centersToDelete.length} 項資料
               </strong>
               嗎？
@@ -514,7 +516,7 @@ export default function CenterPage() {
             <div className="mt-3 max-h-32 overflow-y-auto">
               {centersToDelete.map((center, index) => (
                 <div key={center.id} className="text-sm text-gray-700 py-1">
-                  {index + 1}. {center.name}
+                  {center.id}. {center.name}
                 </div>
               ))}
             </div>
@@ -527,7 +529,7 @@ export default function CenterPage() {
             <AlertDialogAction
               onClick={confirmBulkDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-base"
+              className="bg-red-500 hover:bg-red-700 text-base"
             >
               {isDeleting ? '刪除中...' : '確定刪除'}
             </AlertDialogAction>

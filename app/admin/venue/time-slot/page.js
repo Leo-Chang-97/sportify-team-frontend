@@ -495,13 +495,14 @@ export default function TimeSlotPage() {
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold my-2 flex items-baseline gap-2">
-              <IconTrash className="h-6 w-6 text-red-600 translate-y-0.5" />
+              <IconTrash className="h-6 w-6 text-red-500 translate-y-0.5" />
               確認刪除
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除
-              <strong className="text-red-600">
-                "{timeSlotToDelete?.startTime} - {timeSlotToDelete?.endTime}"
+              <strong className="text-red-500">
+                {timeSlotToDelete?.id}. {timeSlotToDelete?.startTime} -{' '}
+                {timeSlotToDelete?.endTime}
               </strong>
               嗎？
               <br />
@@ -517,7 +518,7 @@ export default function TimeSlotPage() {
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-base"
+              className="bg-red-500 hover:bg-red-700 text-base"
             >
               {isDeleting ? '刪除中...' : '確定刪除'}
             </AlertDialogAction>
@@ -533,12 +534,12 @@ export default function TimeSlotPage() {
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold my-2 flex items-baseline gap-2">
-              <IconTrash className="h-6 w-6 text-red-600 translate-y-0.5" />
+              <IconTrash className="h-6 w-6 text-red-500 translate-y-0.5" />
               確認批量刪除
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除以下
-              <strong className="text-red-600">
+              <strong className="text-red-500">
                 {timeSlotsToDelete.length} 項資料
               </strong>
               嗎？
@@ -546,7 +547,7 @@ export default function TimeSlotPage() {
             <div className="mt-3 max-h-32 overflow-y-auto">
               {timeSlotsToDelete.map((slot, index) => (
                 <div key={slot.id} className="text-sm text-gray-700 py-1">
-                  {index + 1}. {slot.startTime} - {slot.endTime}
+                  {slot.id}. {slot.startTime} - {slot.endTime}
                 </div>
               ))}
             </div>
@@ -559,7 +560,7 @@ export default function TimeSlotPage() {
             <AlertDialogAction
               onClick={confirmBulkDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-base"
+              className="bg-red-500 hover:bg-red-700 text-base"
             >
               {isDeleting ? '刪除中...' : '確定刪除'}
             </AlertDialogAction>
