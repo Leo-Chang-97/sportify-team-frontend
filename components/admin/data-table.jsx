@@ -59,6 +59,8 @@ export function DataTable({
   totalRows,
   totalPages,
   onPaginationChange,
+  currentPage = 1,
+  pageSize = 10,
   onAddNew,
   onEdit,
   onDelete,
@@ -70,13 +72,21 @@ export function DataTable({
 }) {
   // ===== 狀態管理 =====
   const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
+    pageIndex: currentPage - 1, // 轉換為 0-based index
+    pageSize: pageSize,
   })
 
   const [rowSelection, setRowSelection] = React.useState({})
   const [keyword, setKeyword] = React.useState(initialKeyword)
   const [orderBy, setOrderBy] = React.useState(initialOrderBy)
+
+  // ===== 同步外部狀態變更 =====
+  React.useEffect(() => {
+    setPagination({
+      pageIndex: currentPage - 1,
+      pageSize: pageSize,
+    })
+  }, [currentPage, pageSize])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (updater) => {
@@ -131,27 +141,34 @@ export function DataTable({
 
   // ===== TanStack Table 配置 =====
   const table = useReactTable({
-    data,
-    columns,
+    data, // 表格的資料來源（陣列）
+    columns, // 欄位定義（每個欄位的設定）
+
     state: {
-      pagination,
-      rowSelection,
-    },
-    onPaginationChange: handlePaginationChange,
-    onRowSelectionChange: setRowSelection,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    enableRowSelection: true,
-    getRowId: (row, index) => row.id || index,
-    meta: {
-      onEdit,
-      onDelete,
-      highlightKeyword,
+      pagination, // 分頁狀態（目前頁碼、每頁筆數）
+      rowSelection, // 列選取狀態（哪些 row 被選取）
     },
 
+    onPaginationChange: handlePaginationChange, // 當分頁狀態改變時呼叫的函式
+    onRowSelectionChange: setRowSelection, // 當選取列改變時呼叫的函式
+
+    getCoreRowModel: getCoreRowModel(), // 產生最基礎的 row model（必要）
+    getPaginationRowModel: getPaginationRowModel(), // 產生分頁後的 row model
+
+    enableRowSelection: true, // 啟用列選取功能（可多選 row）
+
+    getRowId: (row, index) => row.id || index, // 指定每一列的唯一 key（優先用 row.id，否則用 index）
+
+    meta: {
+      onEdit, // 傳遞編輯事件處理函式到 table meta
+      onDelete, // 傳遞刪除事件處理函式到 table meta
+      highlightKeyword, // 傳遞高亮關鍵字函式到 table meta
+    },
+
+    // 如果有 totalRows，啟用手動分頁，並指定總頁數
     ...(totalRows !== undefined && {
-      pageCount: totalPages || Math.ceil(totalRows / pagination.pageSize),
-      manualPagination: true,
+      pageCount: totalPages || Math.ceil(totalRows / pagination.pageSize), // 總頁數
+      manualPagination: true, // 啟用手動分頁（由外部控制資料分頁）
     }),
   })
 

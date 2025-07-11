@@ -18,6 +18,7 @@ import {
   deleteMultipleTimeSlots,
   fetchTimePeriod,
 } from '@/lib/api'
+import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -78,20 +79,21 @@ export default function TimeSlotPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
+  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
   } = useSWR(['time-slots', queryParams], async ([, params]) =>
-    fetchTimeSlots(params)
+    fetchTimeSlots(params, { headers: { ...getAuthHeader() } })
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadTimePeriods = async () => {
       try {
-        const data = await fetchTimePeriod()
+        const data = await fetchTimePeriod({ headers: { ...getAuthHeader() } })
         setTimePeriods(data.rows || [])
       } catch (error) {
         console.error('載入時間區段失敗:', error)
@@ -180,10 +182,14 @@ export default function TimeSlotPage() {
 
       if (isEditMode && editingTimeSlot) {
         // 編輯模式
-        result = await updateTimeSlot(editingTimeSlot.id, formData)
+        result = await updateTimeSlot(editingTimeSlot.id, formData, {
+          headers: { ...getAuthHeader() },
+        })
       } else {
         // 新增模式
-        result = await createTimeSlot(formData)
+        result = await createTimeSlot(formData, {
+          headers: { ...getAuthHeader() },
+        })
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -277,7 +283,9 @@ export default function TimeSlotPage() {
     setIsDeleting(true)
     try {
       const checkedItems = timeSlotsToDelete.map((item) => item.id)
-      const result = await deleteMultipleTimeSlots(checkedItems)
+      const result = await deleteMultipleTimeSlots(checkedItems, {
+        headers: { ...getAuthHeader() },
+      })
 
       if (result.success) {
         toast.success(`成功刪除 ${timeSlotsToDelete.length} 個時段！`)
@@ -305,7 +313,9 @@ export default function TimeSlotPage() {
 
     setIsDeleting(true)
     try {
-      const result = await deleteTimeSlot(timeSlotToDelete.id)
+      const result = await deleteTimeSlot(timeSlotToDelete.id, {
+        headers: { ...getAuthHeader() },
+      })
 
       if (result.success) {
         toast.success('刪除成功！')
@@ -360,6 +370,8 @@ export default function TimeSlotPage() {
                 totalRows={data?.totalRows}
                 totalPages={data?.totalPages}
                 onPaginationChange={handlePaginationChange}
+                currentPage={parseInt(queryParams.page) || 1}
+                pageSize={parseInt(queryParams.perPage) || 10}
                 onAddNew={handleAddNew}
                 onEdit={handleEdit}
                 onDelete={handleDelete}

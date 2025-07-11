@@ -351,6 +351,8 @@ export default function CenterPage() {
                 totalRows={data?.totalRows}
                 totalPages={data?.totalPages}
                 onPaginationChange={handlePaginationChange}
+                currentPage={parseInt(queryParams.page) || 1}
+                pageSize={parseInt(queryParams.perPage) || 10}
                 onAddNew={handleAddNew}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
