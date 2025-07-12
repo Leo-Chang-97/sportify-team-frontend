@@ -18,8 +18,13 @@ import {
   updateCourtTimeSlot,
   deleteCourtTimeSlot,
   deleteMultipleCourtTimeSlots,
+  fetchLocationOptions,
+  fetchTimePeriodOptions,
+  fetchCenterOptions,
+  fetchSportOptions,
   fetchCourtOptions,
   fetchTimeSlotOptions,
+  batchSetCourtTimeSlotPrice,
 } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,6 +55,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu'
 import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
@@ -61,9 +72,24 @@ export default function CourtTimeSlotPage() {
 
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isBatchSheetOpen, setIsBatchSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  const [locationId, setLocationId] = useState('')
+  const [centerId, setCenterId] = useState('')
+  const [sportId, setSportId] = useState('')
+  const [courtIds, setCourtIds] = useState([])
+  const [timePeriodId, setTimePeriodId] = useState('')
+  const [timeSlotIds, setTimeSlotIds] = useState([])
+
+  const [locations, setLocations] = useState([])
+  const [centers, setCenters] = useState([])
+  const [sports, setSports] = useState([])
   const [courts, setCourts] = useState([])
+  const [timePeriods, setTimePeriods] = useState([])
   const [timeSlots, setTimeSlots] = useState([])
+  const [price, setPrice] = useState('')
+
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
@@ -85,7 +111,6 @@ export default function CourtTimeSlotPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
-  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
@@ -96,13 +121,36 @@ export default function CourtTimeSlotPage() {
   )
 
   // ===== 副作用處理 =====
+  const { getAuthHeader } = useAuth()
+
   useEffect(() => {
-    const loadCourtsAndTimeSlots = async () => {
+    const loadData = async () => {
       try {
+        const locationData = await fetchLocationOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setLocations(locationData.rows || [])
+
+        const centerData = await fetchCenterOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setCenters(centerData.rows || [])
+
+        const sportData = await fetchSportOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setSports(sportData.rows || [])
+
         const courtData = await fetchCourtOptions({
           headers: { ...getAuthHeader() },
         })
         setCourts(courtData.rows || [])
+
+        const timePeriodData = await fetchTimePeriodOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setTimePeriods(timePeriodData.rows || [])
+
         const timeSlotData = await fetchTimeSlotOptions({
           headers: { ...getAuthHeader() },
         })
@@ -112,7 +160,7 @@ export default function CourtTimeSlotPage() {
         toast.error('載入球場/時段失敗')
       }
     }
-    loadCourtsAndTimeSlots()
+    loadData()
   }, [getAuthHeader])
 
   // ===== 事件處理函數 =====
@@ -152,6 +200,11 @@ export default function CourtTimeSlotPage() {
     setFormData({ courtId: '', timeSlotId: '', price: '' })
     setErrors({})
     setIsSheetOpen(true)
+  }
+
+  const handleBatch = () => {
+    setErrors({})
+    setIsBatchSheetOpen(true)
   }
 
   const handleInputChange = (name, value) => {
@@ -338,6 +391,52 @@ export default function CourtTimeSlotPage() {
     setItemToDelete(null)
   }
 
+  const handleBatchSubmit = async (e) => {
+    e.preventDefault()
+    setErrors('')
+    const data = {
+      locationId: locationId ? Number(locationId) : undefined,
+      centerId: centerId ? Number(centerId) : undefined,
+      sportId: sportId ? Number(sportId) : undefined,
+      courtIds: courtIds.length > 0 ? courtIds.map(Number) : undefined,
+      timePeriodId: timePeriodId ? Number(timePeriodId) : undefined,
+      timeSlotIds: timeSlotIds.length > 0 ? timeSlotIds.map(Number) : undefined,
+      price: price === '' ? undefined : Number(price),
+    }
+    try {
+      const result = await batchSetCourtTimeSlotPrice(data, {
+        headers: { ...getAuthHeader() },
+      })
+      if (result.success) {
+        toast.success(`成功批次設定 ${result.affectedRows} 筆價格！`)
+        setIsBatchSheetOpen(false)
+        setLocationId('')
+        setCenterId('')
+        setSportId('')
+        setCourtIds([])
+        setTimePeriodId('')
+        setTimeSlotIds([])
+        setPrice('')
+        mutate && mutate()
+      } else {
+        // 處理 zod 驗證錯誤
+        const errs = {}
+        const shown = {}
+
+        result.issues?.forEach((issue) => {
+          const field = issue.path[0]
+          if (shown[field]) return // 避免重複顯示同欄位錯誤
+          errs[field] = issue.message
+          shown[field] = true
+        })
+
+        setErrors(errs)
+      }
+    } catch (err) {
+      setErrors('批次設定失敗：' + (err.message || '未知錯誤'))
+    }
+  }
+
   // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
@@ -373,6 +472,7 @@ export default function CourtTimeSlotPage() {
                 currentPage={parseInt(queryParams.page) || 1}
                 pageSize={parseInt(queryParams.perPage) || 10}
                 onAddNew={handleAddNew}
+                onBatch={handleBatch}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onBulkDelete={handleBulkDelete}
@@ -386,7 +486,7 @@ export default function CourtTimeSlotPage() {
         </div>
       </SidebarInset>
 
-      {/* ===== 新增/編輯時段表單 ===== */}
+      {/* ===== 新增/編輯價錢表單 ===== */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent>
           <SheetHeader className="p-6 border-b">
@@ -459,7 +559,7 @@ export default function CourtTimeSlotPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="timeSlotId">
+                <Label htmlFor="pirce">
                   價格
                   <span className="text-red-500">*</span>
                 </Label>
@@ -496,6 +596,179 @@ export default function CourtTimeSlotPage() {
                   : isEditMode
                     ? '編輯時段'
                     : '新增時段'}
+              </Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      {/* ===== 批量設定價錢表單 ===== */}
+      <Sheet open={isBatchSheetOpen} onOpenChange={setIsBatchSheetOpen}>
+        <SheetContent>
+          <SheetHeader className="p-6 border-b">
+            <SheetTitle className="text-xl text-primary">
+              批量設定價格
+            </SheetTitle>
+            <SheetDescription className="text-gray-500">
+              請選擇條件與價格，未選的條件代表全部
+            </SheetDescription>
+          </SheetHeader>
+          <form className="space-y-6 mt-1 px-6" onSubmit={handleBatchSubmit}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>地區</Label>
+                <Select value={locationId} onValueChange={setLocationId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部地區" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations?.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id.toString()}>
+                        {loc.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>中心</Label>
+                <Select value={centerId} onValueChange={setCenterId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部中心" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {centers?.map((center) => (
+                      <SelectItem key={center.id} value={center.id.toString()}>
+                        {center.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>運動</Label>
+                <Select value={sportId} onValueChange={setSportId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部運動" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sports?.map((sport) => (
+                      <SelectItem key={sport.id} value={sport.id.toString()}>
+                        {sport.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>球場（可多選）</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      {courtIds.length === 0
+                        ? '全部球場'
+                        : `已選 ${courtIds.length} 項`}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {courts.map((court) => (
+                      <DropdownMenuCheckboxItem
+                        key={court.id}
+                        checked={courtIds.includes(court.id.toString())}
+                        onCheckedChange={(checked) => {
+                          setCourtIds((prev) =>
+                            checked
+                              ? [...prev, court.id.toString()]
+                              : prev.filter((id) => id !== court.id.toString())
+                          )
+                        }}
+                      >
+                        {court.name}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="space-y-2">
+                <Label>時段區段</Label>
+                <Select value={timePeriodId} onValueChange={setTimePeriodId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部時段區段" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timePeriods?.map((tp) => (
+                      <SelectItem key={tp.id} value={tp.id.toString()}>
+                        {tp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>時段（可多選）</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      {timeSlotIds.length === 0
+                        ? '全部球場'
+                        : `已選 ${timeSlotIds.length} 項`}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {timeSlots.map((timeSlot) => (
+                      <DropdownMenuCheckboxItem
+                        key={timeSlot.id}
+                        checked={timeSlotIds.includes(timeSlot.id.toString())}
+                        onCheckedChange={(checked) => {
+                          setTimeSlotIds((prev) =>
+                            checked
+                              ? [...prev, timeSlot.id.toString()]
+                              : prev.filter(
+                                  (id) => id !== timeSlot.id.toString()
+                                )
+                          )
+                        }}
+                      >
+                        {timeSlot.startTime}~{timeSlot.endTime}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  價格<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="請輸入價格"
+                  min="0"
+                  step="1"
+                  className={errors.price ? 'border-red-500' : ''}
+                />
+                {errors.price && (
+                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsBatchSheetOpen(false)}
+              >
+                取消
+              </Button>
+              <Button type="submit" variant="default">
+                批次設定
               </Button>
             </div>
           </form>

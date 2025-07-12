@@ -62,6 +62,7 @@ export function DataTable({
   currentPage = 1,
   pageSize = 10,
   onAddNew,
+  onBatch,
   onEdit,
   onDelete,
   onBulkDelete,
@@ -201,6 +202,12 @@ export function DataTable({
             <IconPlus />
             <span className="hidden lg:inline">新增</span>
           </Button>
+          {onBatch && (
+            <Button variant="outline" size="sm" onClick={onBatch}>
+              <IconPlus />
+              <span className="hidden lg:inline">批量設定</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

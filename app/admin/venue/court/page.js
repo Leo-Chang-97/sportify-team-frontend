@@ -17,6 +17,7 @@ import {
   updateCourt,
   deleteCourt,
   deleteMultipleCourts,
+  fetchLocationOptions,
   fetchCenterOptions,
   fetchSportOptions,
 } from '@/lib/api'
@@ -61,8 +62,10 @@ export default function CourtPage() {
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [locationId, setLocationId] = useState('')
   const [centers, setCenters] = useState([])
   const [sports, setSports] = useState([])
+  const [locations, setLocations] = useState([])
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingCourt, setEditingCourt] = useState(null)
@@ -98,6 +101,10 @@ export default function CourtPage() {
   useEffect(() => {
     const loadCentersAndSports = async () => {
       try {
+        const locationData = await fetchLocationOptions({
+          headers: { ...getAuthHeader() },
+        })
+        setLocations(locationData.rows || [])
         const centerData = await fetchCenterOptions({
           headers: { ...getAuthHeader() },
         })
@@ -113,6 +120,17 @@ export default function CourtPage() {
     }
     loadCentersAndSports()
   }, [getAuthHeader])
+
+  // locationId 變動時，載入對應 center
+  useEffect(() => {
+    if (locationId) {
+      fetchCenterOptions({ locationId: Number(locationId) }).then((data) =>
+        setCenters(data.rows || [])
+      )
+    } else {
+      setCenters([])
+    }
+  }, [locationId])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -395,6 +413,22 @@ export default function CourtPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
             <div className="space-y-4">
+              <Label htmlFor="courtId">
+                地區
+                <span className="text-red-500">*</span>
+              </Label>
+              <Select value={locationId} onValueChange={setLocationId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="請選擇地區" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id.toString()}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className="space-y-2">
                 <Label htmlFor="centerId">
                   所屬中心
