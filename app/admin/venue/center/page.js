@@ -80,23 +80,20 @@ export default function CenterPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
-  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
   } = useSWR(['centers', queryParams], async ([, params]) =>
-    fetchCenters(params, { headers: { ...getAuthHeader() } })
+    fetchCenters(params)
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadLocations = async () => {
       try {
-        const data = await fetchLocationOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const data = await fetchLocationOptions()
         setLocations(data.rows || [])
       } catch (error) {
         console.error('載入地點失敗:', error)
@@ -104,7 +101,7 @@ export default function CenterPage() {
       }
     }
     loadLocations()
-  }, [getAuthHeader])
+  }, [])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -168,14 +165,10 @@ export default function CenterPage() {
 
       if (isEditMode && editingCenter) {
         // 編輯模式
-        result = await updateCenter(editingCenter.id, formData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await updateCenter(editingCenter.id, formData)
       } else {
         // 新增模式
-        result = await createCenter(formData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await createCenter(formData)
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -269,9 +262,7 @@ export default function CenterPage() {
     setIsDeleting(true)
     try {
       const checkedItems = centersToDelete.map((item) => item.id)
-      const result = await deleteMultipleCenters(checkedItems, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteMultipleCenters(checkedItems)
 
       if (result.success) {
         toast.success(`成功刪除 ${centersToDelete.length} 個中心！`)
@@ -299,9 +290,7 @@ export default function CenterPage() {
 
     setIsDeleting(true)
     try {
-      const result = await deleteCenter(centerToDelete.id, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteCenter(centerToDelete.id)
 
       if (result.success) {
         toast.success('刪除成功！')

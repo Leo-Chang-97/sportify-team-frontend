@@ -72,27 +72,20 @@ export default function CourtTimeSlotPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
-  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
   } = useSWR(['courtTimeSlots', queryParams], async ([, params]) =>
-    fetchCourtTimeSlots(params, { headers: { ...getAuthHeader() } })
+    fetchCourtTimeSlots(params)
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadCourtsAndTimeSlots = async () => {
       try {
-        // const courtData = await fetchCourtOptions({
-        //   headers: { ...getAuthHeader() },
-        // })
-        // setCourts(courtData.rows || [])
-        const timeSlotData = await fetchTimeSlotOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const timeSlotData = await fetchTimeSlotOptions()
         setTimeSlots(timeSlotData.rows || [])
       } catch (error) {
         console.error('載入球場/時段失敗:', error)
@@ -100,7 +93,7 @@ export default function CourtTimeSlotPage() {
       }
     }
     loadCourtsAndTimeSlots()
-  }, [getAuthHeader])
+  }, [])
 
   // 載入地區、運動類型
   useEffect(() => {
@@ -163,14 +156,10 @@ export default function CourtTimeSlotPage() {
 
       if (isEditMode && editingItem) {
         // 編輯模式
-        result = await updateCourtTimeSlot(editingItem.id, submitData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await updateCourtTimeSlot(editingItem.id, submitData)
       } else {
         // 新增模式
-        result = await createCourtTimeSlot(submitData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await createCourtTimeSlot(submitData)
       }
 
       console.log('API 回應:', result) // Debug 用

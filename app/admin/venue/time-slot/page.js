@@ -79,23 +79,20 @@ export default function TimeSlotPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
-  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
   } = useSWR(['time-slots', queryParams], async ([, params]) =>
-    fetchTimeSlots(params, { headers: { ...getAuthHeader() } })
+    fetchTimeSlots(params)
   )
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadTimePeriods = async () => {
       try {
-        const data = await fetchTimePeriodOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const data = await fetchTimePeriodOptions()
         setTimePeriods(data.rows || [])
       } catch (error) {
         console.error('載入時間區段失敗:', error)
@@ -188,14 +185,10 @@ export default function TimeSlotPage() {
 
       if (isEditMode && editingTimeSlot) {
         // 編輯模式
-        result = await updateTimeSlot(editingTimeSlot.id, formData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await updateTimeSlot(editingTimeSlot.id, formData)
       } else {
         // 新增模式
-        result = await createTimeSlot(formData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await createTimeSlot(formData)
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -289,9 +282,7 @@ export default function TimeSlotPage() {
     setIsDeleting(true)
     try {
       const checkedItems = timeSlotsToDelete.map((item) => item.id)
-      const result = await deleteMultipleTimeSlots(checkedItems, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteMultipleTimeSlots(checkedItems)
 
       if (result.success) {
         toast.success(`成功刪除 ${timeSlotsToDelete.length} 個時段！`)
@@ -319,9 +310,7 @@ export default function TimeSlotPage() {
 
     setIsDeleting(true)
     try {
-      const result = await deleteTimeSlot(timeSlotToDelete.id, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteTimeSlot(timeSlotToDelete.id)
 
       if (result.success) {
         toast.success('刪除成功！')

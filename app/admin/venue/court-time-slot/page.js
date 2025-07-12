@@ -117,43 +117,29 @@ export default function CourtTimeSlotPage() {
     error,
     mutate,
   } = useSWR(['courtTimeSlots', queryParams], async ([, params]) =>
-    fetchCourtTimeSlots(params, { headers: { ...getAuthHeader() } })
+    fetchCourtTimeSlots(params)
   )
 
   // ===== 副作用處理 =====
-  const { getAuthHeader } = useAuth()
-
   useEffect(() => {
     const loadData = async () => {
       try {
-        const locationData = await fetchLocationOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const locationData = await fetchLocationOptions()
         setLocations(locationData.rows || [])
 
-        const centerData = await fetchCenterOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const centerData = await fetchCenterOptions()
         setCenters(centerData.rows || [])
 
-        const sportData = await fetchSportOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
 
-        const courtData = await fetchCourtOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const courtData = await fetchCourtOptions()
         setCourts(courtData.rows || [])
 
-        const timePeriodData = await fetchTimePeriodOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const timePeriodData = await fetchTimePeriodOptions()
         setTimePeriods(timePeriodData.rows || [])
 
-        const timeSlotData = await fetchTimeSlotOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const timeSlotData = await fetchTimeSlotOptions()
         setTimeSlots(timeSlotData.rows || [])
       } catch (error) {
         console.error('載入球場/時段失敗:', error)
@@ -161,7 +147,7 @@ export default function CourtTimeSlotPage() {
       }
     }
     loadData()
-  }, [getAuthHeader])
+  }, [])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -236,14 +222,10 @@ export default function CourtTimeSlotPage() {
 
       if (isEditMode && editingItem) {
         // 編輯模式
-        result = await updateCourtTimeSlot(editingItem.id, submitData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await updateCourtTimeSlot(editingItem.id, submitData)
       } else {
         // 新增模式
-        result = await createCourtTimeSlot(submitData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await createCourtTimeSlot(submitData)
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -336,9 +318,7 @@ export default function CourtTimeSlotPage() {
     setIsDeleting(true)
     try {
       const checkedItems = itemsToDelete.map((item) => item.id)
-      const result = await deleteMultipleCourtTimeSlots(checkedItems, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteMultipleCourtTimeSlots(checkedItems)
 
       if (result.success) {
         toast.success(`成功刪除 ${itemsToDelete.length} 筆時段！`)
@@ -366,9 +346,7 @@ export default function CourtTimeSlotPage() {
 
     setIsDeleting(true)
     try {
-      const result = await deleteCourtTimeSlot(itemToDelete.id, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteCourtTimeSlot(itemToDelete.id)
 
       if (result.success) {
         toast.success('刪除成功！')
@@ -404,9 +382,7 @@ export default function CourtTimeSlotPage() {
       price: price === '' ? undefined : Number(price),
     }
     try {
-      const result = await batchSetCourtTimeSlotPrice(data, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await batchSetCourtTimeSlotPrice(data)
       if (result.success) {
         toast.success(`成功批次設定 ${result.affectedRows} 筆價格！`)
         setIsBatchSheetOpen(false)

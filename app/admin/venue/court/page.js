@@ -87,31 +87,22 @@ export default function CourtPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
-  const { getAuthHeader } = useAuth()
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['courts', queryParams], async ([, params]) =>
-    fetchCourts(params, { headers: { ...getAuthHeader() } })
-  )
+  } = useSWR(['courts', queryParams], async ([, params]) => fetchCourts(params))
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadCentersAndSports = async () => {
       try {
-        const locationData = await fetchLocationOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const locationData = await fetchLocationOptions()
         setLocations(locationData.rows || [])
-        const centerData = await fetchCenterOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const centerData = await fetchCenterOptions()
         setCenters(centerData.rows || [])
-        const sportData = await fetchSportOptions({
-          headers: { ...getAuthHeader() },
-        })
+        const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
       } catch (error) {
         console.error('載入中心/運動類型失敗:', error)
@@ -119,7 +110,7 @@ export default function CourtPage() {
       }
     }
     loadCentersAndSports()
-  }, [getAuthHeader])
+  }, [])
 
   // locationId 變動時，載入對應 center
   useEffect(() => {
@@ -194,14 +185,10 @@ export default function CourtPage() {
 
       if (isEditMode && editingCourt) {
         // 編輯模式
-        result = await updateCourt(editingCourt.id, formData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await updateCourt(editingCourt.id, formData)
       } else {
         // 新增模式
-        result = await createCourt(formData, {
-          headers: { ...getAuthHeader() },
-        })
+        result = await createCourt(formData)
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -296,9 +283,7 @@ export default function CourtPage() {
     setIsDeleting(true)
     try {
       const checkedItems = courtsToDelete.map((item) => item.id)
-      const result = await deleteMultipleCourts(checkedItems, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteMultipleCourts(checkedItems)
 
       if (result.success) {
         toast.success(`成功刪除 ${courtsToDelete.length} 個場地！`)
@@ -326,9 +311,7 @@ export default function CourtPage() {
 
     setIsDeleting(true)
     try {
-      const result = await deleteCourt(courtToDelete.id, {
-        headers: { ...getAuthHeader() },
-      })
+      const result = await deleteCourt(courtToDelete.id)
 
       if (result.success) {
         toast.success('刪除成功！')

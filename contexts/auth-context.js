@@ -49,16 +49,6 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(storageKey)
   }
 
-  const getAuthHeader = () => {
-    let token = ''
-    try {
-      token = localStorage.getItem(storageKey) || ''
-    } catch (e) {
-      token = ''
-    }
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
   const checkAuth = async () => {
     setIsLoading(true)
     const token = localStorage.getItem(storageKey)
@@ -97,7 +87,6 @@ export function AuthProvider({ children }) {
         user,
         login,
         logout,
-        getAuthHeader,
         isAuthenticated: !!user,
         isLoading,
       }}
