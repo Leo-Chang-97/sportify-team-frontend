@@ -146,6 +146,10 @@ export default function CourtPage() {
   }
 
   const handleAddNew = () => {
+    setIsEditMode(false)
+    setEditingCourt(null)
+    setFormData({ name: '', centerId: '', sportId: '' })
+    setErrors({})
     setIsSheetOpen(true)
   }
 

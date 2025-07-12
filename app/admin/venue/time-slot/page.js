@@ -137,6 +137,10 @@ export default function TimeSlotPage() {
   }
 
   const handleAddNew = () => {
+    setIsEditMode(false)
+    setEditingTimeSlot(null)
+    setFormData({ startTime: '', endTime: '', timePeriodId: '' })
+    setErrors({})
     setIsSheetOpen(true)
   }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
-import { LoginForm } from '@/components/auth/login-form'
+import { LoginForm } from '@/app/login/_components/login-form'
 
 export default function Page() {
   const { user, login, isAuthenticated } = useAuth()

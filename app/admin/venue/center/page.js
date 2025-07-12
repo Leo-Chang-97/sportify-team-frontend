@@ -138,6 +138,10 @@ export default function CenterPage() {
   }
 
   const handleAddNew = () => {
+    setIsEditMode(false)
+    setEditingCenter(null)
+    setFormData({ name: '', locationId: '' })
+    setErrors({})
     setIsSheetOpen(true)
   }
 

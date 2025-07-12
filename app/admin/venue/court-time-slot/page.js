@@ -147,6 +147,10 @@ export default function CourtTimeSlotPage() {
   }
 
   const handleAddNew = () => {
+    setIsEditMode(false)
+    setEditingItem(null)
+    setFormData({ courtId: '', timeSlotId: '', price: '' })
+    setErrors({})
     setIsSheetOpen(true)
   }
 
