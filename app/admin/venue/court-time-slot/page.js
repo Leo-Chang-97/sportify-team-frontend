@@ -127,20 +127,11 @@ export default function CourtTimeSlotPage() {
         const locationData = await fetchLocationOptions()
         setLocations(locationData.rows || [])
 
-        const centerData = await fetchCenterOptions()
-        setCenters(centerData.rows || [])
-
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
 
-        const courtData = await fetchCourtOptions()
-        setCourts(courtData.rows || [])
-
         const timePeriodData = await fetchTimePeriodOptions()
         setTimePeriods(timePeriodData.rows || [])
-
-        const timeSlotData = await fetchTimeSlotOptions()
-        setTimeSlots(timeSlotData.rows || [])
       } catch (error) {
         console.error('載入球場/時段失敗:', error)
         toast.error('載入球場/時段失敗')
@@ -148,6 +139,56 @@ export default function CourtTimeSlotPage() {
     }
     loadData()
   }, [])
+
+  useEffect(() => {
+    const loadData = async () => {
+      let centerData
+      if (locationId) {
+        centerData = await fetchCenterOptions({
+          locationId: Number(locationId),
+        })
+      } else {
+        centerData = await fetchCenterOptions()
+      }
+      setCenters(centerData.rows || [])
+      if (
+        centerId &&
+        !centerData.rows?.some((center) => center.id.toString() === centerId)
+      ) {
+        setCenterId('')
+      }
+    }
+    loadData()
+  }, [locationId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (centerId || sportId) {
+        const courtData = await fetchCourtOptions({
+          centerId: centerId ? Number(centerId) : undefined,
+          sportId: sportId ? Number(sportId) : undefined,
+        })
+        setCourts(courtData.rows || [])
+      } else {
+        setCourts([])
+      }
+    }
+    loadData()
+  }, [centerId, sportId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (timePeriodId) {
+        const timeSlotData = await fetchTimeSlotOptions({
+          timePeriodId: Number(timePeriodId),
+        })
+        setTimeSlots(timeSlotData.rows || [])
+      } else {
+        setTimeSlots([])
+      }
+    }
+    loadData()
+  }, [timePeriodId])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -598,11 +639,17 @@ export default function CourtTimeSlotPage() {
                     <SelectValue placeholder="全部地區" />
                   </SelectTrigger>
                   <SelectContent>
-                    {locations?.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id.toString()}>
-                        {loc.name}
-                      </SelectItem>
-                    ))}
+                    {locations.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      locations.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.id.toString()}>
+                          {loc.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -613,11 +660,20 @@ export default function CourtTimeSlotPage() {
                     <SelectValue placeholder="全部中心" />
                   </SelectTrigger>
                   <SelectContent>
-                    {centers?.map((center) => (
-                      <SelectItem key={center.id} value={center.id.toString()}>
-                        {center.name}
-                      </SelectItem>
-                    ))}
+                    {centers.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      centers.map((center) => (
+                        <SelectItem
+                          key={center.id}
+                          value={center.id.toString()}
+                        >
+                          {center.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -628,11 +684,17 @@ export default function CourtTimeSlotPage() {
                     <SelectValue placeholder="全部運動" />
                   </SelectTrigger>
                   <SelectContent>
-                    {sports?.map((sport) => (
-                      <SelectItem key={sport.id} value={sport.id.toString()}>
-                        {sport.name}
-                      </SelectItem>
-                    ))}
+                    {sports.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      sports.map((sport) => (
+                        <SelectItem key={sport.id} value={sport.id.toString()}>
+                          {sport.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -650,21 +712,29 @@ export default function CourtTimeSlotPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    {courts.map((court) => (
-                      <DropdownMenuCheckboxItem
-                        key={court.id}
-                        checked={courtIds.includes(court.id.toString())}
-                        onCheckedChange={(checked) => {
-                          setCourtIds((prev) =>
-                            checked
-                              ? [...prev, court.id.toString()]
-                              : prev.filter((id) => id !== court.id.toString())
-                          )
-                        }}
-                      >
-                        {court.name}
-                      </DropdownMenuCheckboxItem>
-                    ))}
+                    {courts.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      courts.map((court) => (
+                        <DropdownMenuCheckboxItem
+                          key={court.id}
+                          checked={courtIds.includes(court.id.toString())}
+                          onCheckedChange={(checked) => {
+                            setCourtIds((prev) =>
+                              checked
+                                ? [...prev, court.id.toString()]
+                                : prev.filter(
+                                    (id) => id !== court.id.toString()
+                                  )
+                            )
+                          }}
+                        >
+                          {court.name}
+                        </DropdownMenuCheckboxItem>
+                      ))
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -675,11 +745,17 @@ export default function CourtTimeSlotPage() {
                     <SelectValue placeholder="全部時段區段" />
                   </SelectTrigger>
                   <SelectContent>
-                    {timePeriods?.map((tp) => (
-                      <SelectItem key={tp.id} value={tp.id.toString()}>
-                        {tp.name}
-                      </SelectItem>
-                    ))}
+                    {timePeriods.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      timePeriods.map((tp) => (
+                        <SelectItem key={tp.id} value={tp.id.toString()}>
+                          {tp.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -697,23 +773,29 @@ export default function CourtTimeSlotPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    {timeSlots.map((timeSlot) => (
-                      <DropdownMenuCheckboxItem
-                        key={timeSlot.id}
-                        checked={timeSlotIds.includes(timeSlot.id.toString())}
-                        onCheckedChange={(checked) => {
-                          setTimeSlotIds((prev) =>
-                            checked
-                              ? [...prev, timeSlot.id.toString()]
-                              : prev.filter(
-                                  (id) => id !== timeSlot.id.toString()
-                                )
-                          )
-                        }}
-                      >
-                        {timeSlot.startTime}~{timeSlot.endTime}
-                      </DropdownMenuCheckboxItem>
-                    ))}
+                    {timeSlots.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      timeSlots.map((timeSlot) => (
+                        <DropdownMenuCheckboxItem
+                          key={timeSlot.id}
+                          checked={timeSlotIds.includes(timeSlot.id.toString())}
+                          onCheckedChange={(checked) => {
+                            setTimeSlotIds((prev) =>
+                              checked
+                                ? [...prev, timeSlot.id.toString()]
+                                : prev.filter(
+                                    (id) => id !== timeSlot.id.toString()
+                                  )
+                            )
+                          }}
+                        >
+                          {timeSlot.startTime}~{timeSlot.endTime}
+                        </DropdownMenuCheckboxItem>
+                      ))
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
