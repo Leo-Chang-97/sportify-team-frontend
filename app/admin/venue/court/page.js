@@ -20,7 +20,7 @@ import {
   fetchLocationOptions,
   fetchCenterOptions,
   fetchSportOptions,
-} from '@/lib/api'
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -200,31 +200,29 @@ export default function CourtPage() {
         setIsEditMode(false)
         setEditingCourt(null)
         mutate()
-      } else {
-        // 處理 zod 驗證錯誤
+      }
+    } catch (error) {
+      // axios 400 驗證錯誤處理
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data
+      ) {
+        const result = error.response.data
         const errs = {}
         const shown = {}
-
         result.issues?.forEach((issue) => {
           const field = issue.path[0]
-          if (shown[field]) return // 避免重複顯示同欄位錯誤
+          if (shown[field]) return
           errs[field] = issue.message
           shown[field] = true
         })
-
         setErrors(errs)
-
-        // 如果沒有特定欄位錯誤，則顯示一般錯誤訊息
         if (Object.keys(errs).length === 0) {
-          toast.error(
-            result.message ||
-              (isEditMode
-                ? '編輯場地失敗，請稍後再試'
-                : '新增場地失敗，請稍後再試')
-          )
+          toast.error(result.message || '輸入資料有誤')
         }
+        return
       }
-    } catch (error) {
       console.error(isEditMode ? '編輯場地失敗:' : '新增場地失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (
@@ -396,10 +394,7 @@ export default function CourtPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
             <div className="space-y-4">
-              <Label htmlFor="courtId">
-                地區
-                <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="courtId">地區</Label>
               <Select value={locationId} onValueChange={setLocationId}>
                 <SelectTrigger>
                   <SelectValue placeholder="請選擇地區" />
@@ -414,8 +409,7 @@ export default function CourtPage() {
               </Select>
               <div className="space-y-2">
                 <Label htmlFor="centerId">
-                  所屬中心
-                  <span className="text-red-500">*</span>
+                  所屬中心<span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.centerId}

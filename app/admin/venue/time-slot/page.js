@@ -17,7 +17,7 @@ import {
   deleteTimeSlot,
   deleteMultipleTimeSlots,
   fetchTimePeriodOptions,
-} from '@/lib/api'
+} from '@/api'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -200,31 +200,29 @@ export default function TimeSlotPage() {
         setIsEditMode(false)
         setEditingTimeSlot(null)
         mutate()
-      } else {
-        // 處理 zod 驗證錯誤
+      }
+    } catch (error) {
+      // axios 400 驗證錯誤處理
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data
+      ) {
+        const result = error.response.data
         const errs = {}
         const shown = {}
-
         result.issues?.forEach((issue) => {
           const field = issue.path[0]
-          if (shown[field]) return // 避免重複顯示同欄位錯誤
+          if (shown[field]) return
           errs[field] = issue.message
           shown[field] = true
         })
-
         setErrors(errs)
-
-        // 如果沒有特定欄位錯誤，則顯示一般錯誤訊息
         if (Object.keys(errs).length === 0) {
-          toast.error(
-            result.message ||
-              (isEditMode
-                ? '編輯時段失敗，請稍後再試'
-                : '新增時段失敗，請稍後再試')
-          )
+          toast.error(result.message || '輸入資料有誤')
         }
+        return
       }
-    } catch (error) {
       console.error(isEditMode ? '編輯時段失敗:' : '新增時段失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (

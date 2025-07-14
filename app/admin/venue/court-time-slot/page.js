@@ -25,7 +25,7 @@ import {
   fetchCourtOptions,
   fetchTimeSlotOptions,
   batchSetCourtTimeSlotPrice,
-} from '@/lib/api'
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -142,20 +142,28 @@ export default function CourtTimeSlotPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      let centerData
-      if (locationId) {
-        centerData = await fetchCenterOptions({
-          locationId: Number(locationId),
-        })
-      } else {
-        centerData = await fetchCenterOptions()
-      }
-      setCenters(centerData.rows || [])
-      if (
-        centerId &&
-        !centerData.rows?.some((center) => center.id.toString() === centerId)
-      ) {
-        setCenterId('')
+      try {
+        let centerData
+        if (locationId) {
+          centerData = await fetchCenterOptions({
+            locationId: Number(locationId),
+          })
+        } else {
+          centerData = await fetchCenterOptions()
+        }
+        setCenters(centerData.rows || [])
+        if (
+          centerId &&
+          !centerData.rows?.some((center) => center.id.toString() === centerId)
+        ) {
+          setCenterId('')
+        }
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setCenters([])
+        } else {
+          setCenters([])
+        }
       }
     }
     loadData()
@@ -163,14 +171,23 @@ export default function CourtTimeSlotPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      if (centerId || sportId) {
-        const courtData = await fetchCourtOptions({
-          centerId: centerId ? Number(centerId) : undefined,
-          sportId: sportId ? Number(sportId) : undefined,
-        })
+      try {
+        let courtData
+        if (centerId || sportId) {
+          courtData = await fetchCourtOptions({
+            centerId: centerId ? Number(centerId) : undefined,
+            sportId: sportId ? Number(sportId) : undefined,
+          })
+        } else {
+          courtData = await fetchCourtOptions()
+        }
         setCourts(courtData.rows || [])
-      } else {
-        setCourts([])
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setCourts([])
+        } else {
+          setCourts([])
+        }
       }
     }
     loadData()
@@ -178,13 +195,22 @@ export default function CourtTimeSlotPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      if (timePeriodId) {
-        const timeSlotData = await fetchTimeSlotOptions({
-          timePeriodId: Number(timePeriodId),
-        })
+      try {
+        let timeSlotData
+        if (timePeriodId) {
+          timeSlotData = await fetchTimeSlotOptions({
+            timePeriodId: Number(timePeriodId),
+          })
+        } else {
+          timeSlotData = await fetchTimeSlotOptions()
+        }
         setTimeSlots(timeSlotData.rows || [])
-      } else {
-        setTimeSlots([])
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setTimeSlots([])
+        } else {
+          setTimeSlots([])
+        }
       }
     }
     loadData()
@@ -278,31 +304,29 @@ export default function CourtTimeSlotPage() {
         setIsEditMode(false)
         setEditingItem(null)
         mutate()
-      } else {
-        // 處理 zod 驗證錯誤
+      }
+    } catch (error) {
+      // axios 400 驗證錯誤處理
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data
+      ) {
+        const result = error.response.data
         const errs = {}
         const shown = {}
-
         result.issues?.forEach((issue) => {
           const field = issue.path[0]
-          if (shown[field]) return // 避免重複顯示同欄位錯誤
+          if (shown[field]) return
           errs[field] = issue.message
           shown[field] = true
         })
-
         setErrors(errs)
-
-        // 如果沒有特定欄位錯誤，則顯示一般錯誤訊息
         if (Object.keys(errs).length === 0) {
-          toast.error(
-            result.message ||
-              (isEditMode
-                ? '編輯場地失敗，請稍後再試'
-                : '新增場地失敗，請稍後再試')
-          )
+          toast.error(result.message || '輸入資料有誤')
         }
+        return
       }
-    } catch (error) {
       console.error(isEditMode ? '編輯場地失敗:' : '新增場地失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (
@@ -435,21 +459,29 @@ export default function CourtTimeSlotPage() {
         setTimeSlotIds([])
         setPrice('')
         mutate && mutate()
-      } else {
-        // 處理 zod 驗證錯誤
+      }
+    } catch (error) {
+      // axios 400 驗證錯誤處理
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data
+      ) {
+        const result = error.response.data
         const errs = {}
         const shown = {}
-
         result.issues?.forEach((issue) => {
           const field = issue.path[0]
-          if (shown[field]) return // 避免重複顯示同欄位錯誤
+          if (shown[field]) return
           errs[field] = issue.message
           shown[field] = true
         })
-
         setErrors(errs)
+        if (Object.keys(errs).length === 0) {
+          toast.error(result.message || '輸入資料有誤')
+        }
+        return
       }
-    } catch (err) {
       setErrors('批次設定失敗：' + (err.message || '未知錯誤'))
     }
   }
