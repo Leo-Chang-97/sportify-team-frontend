@@ -72,7 +72,6 @@ export default function CourtTimeSlotPage() {
 
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isBatchSheetOpen, setIsBatchSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const [locationId, setLocationId] = useState('')
@@ -92,17 +91,11 @@ export default function CourtTimeSlotPage() {
 
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
-  const [editingItem, setEditingItem] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [itemsToDelete, setItemsToDelete] = useState([])
-  const [formData, setFormData] = useState({
-    courtId: '',
-    timeSlotId: '',
-    price: '',
-  })
 
   // ===== URL 參數處理 =====
   const queryParams = useMemo(() => {
@@ -249,61 +242,42 @@ export default function CourtTimeSlotPage() {
 
   const handleAddNew = () => {
     setIsEditMode(false)
-    setEditingItem(null)
-    setFormData({ courtId: '', timeSlotId: '', price: '' })
+
+    // 清空所有欄位
+    setLocationId('')
+    setCenterId('')
+    setSportId('')
+    setCourtIds([])
+    setTimePeriodId('')
+    setTimeSlotIds([])
+    setPrice('')
+
     setErrors({})
     setIsSheetOpen(true)
   }
 
-  const handleBatch = () => {
-    setErrors({})
-    setIsBatchSheetOpen(true)
-  }
-
-  const handleInputChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // Debug: 送出前 log formData
-    console.log('送出前 formData:', formData)
-
-    // 清除之前的錯誤訊息
     setErrors({})
-
-    setIsLoading(true)
-
-    // 將 price 轉為數字，若為空字串則設 undefined
-    const submitData = {
-      ...formData,
-      price: formData.price === '' ? undefined : Number(formData.price),
+    const data = {
+      locationId: locationId ? Number(locationId) : undefined,
+      centerId: centerId ? Number(centerId) : undefined,
+      sportId: sportId ? Number(sportId) : undefined,
+      courtIds: courtIds.length > 0 ? courtIds.map(Number) : undefined,
+      timePeriodId: timePeriodId ? Number(timePeriodId) : undefined,
+      timeSlotIds: timeSlotIds.length > 0 ? timeSlotIds.map(Number) : undefined,
+      price: price === '' ? undefined : Number(price),
     }
-
     try {
-      let result
-
-      if (isEditMode && editingItem) {
-        // 編輯模式
-        result = await updateCourtTimeSlot(editingItem.id, submitData)
-      } else {
-        // 新增模式
-        result = await createCourtTimeSlot(submitData)
-      }
-
-      console.log('API 回應:', result) // Debug 用
-
+      const result = await batchSetCourtTimeSlotPrice(data)
       if (result.success) {
-        toast.success(isEditMode ? '編輯時段成功！' : '新增時段成功！')
-        setIsSheetOpen(false)
-        setFormData({ courtId: '', timeSlotId: '', price: '' })
-        setIsEditMode(false)
-        setEditingItem(null)
-        mutate()
+        toast.success(
+          isEditMode
+            ? '編輯價格成功！'
+            : `成功批次設定 ${result.affectedRows} 筆價格！`
+        )
+        handleCancel()
+        mutate && mutate()
       }
     } catch (error) {
       // axios 400 驗證錯誤處理
@@ -327,45 +301,38 @@ export default function CourtTimeSlotPage() {
         }
         return
       }
-      console.error(isEditMode ? '編輯場地失敗:' : '新增場地失敗:', error)
-      // 根據不同的錯誤類型顯示不同的訊息
-      if (
-        error.message.includes('network') ||
-        error.message.includes('fetch')
-      ) {
-        toast.error('網路連線錯誤，請檢查網路狀態')
-      } else if (error.message.includes('400')) {
-        toast.error('輸入資料有誤，請檢查後重試')
-      } else if (error.message.includes('500')) {
-        toast.error('伺服器錯誤，請稍後再試')
-      } else {
-        toast.error(
-          (isEditMode ? '編輯時段失敗：' : '新增時段失敗：') +
-            (error.message || '未知錯誤')
-        )
-      }
-    } finally {
-      setIsLoading(false)
+      setErrors('批次設定失敗：' + (error.message || '未知錯誤'))
     }
   }
 
   const handleCancel = () => {
     setIsSheetOpen(false)
-    setFormData({ courtId: '', timeSlotId: '', price: '' })
-    setErrors({}) // 清除錯誤訊息
     setIsEditMode(false)
-    setEditingItem(null)
+
+    setLocationId('')
+    setCenterId('')
+    setSportId('')
+    setCourtIds([])
+    setTimePeriodId('')
+    setTimeSlotIds([])
+    setPrice('')
+
+    setErrors({})
   }
 
   const handleEdit = (item) => {
+    console.log('編輯 item:', item) // 這行會在你點擊編輯時印出 item 結構
     setIsEditMode(true)
-    setEditingItem(item)
-    setFormData({
-      courtId: item.court?.id?.toString() || item.courtId?.toString() || '',
-      timeSlotId:
-        item.timeSlot?.id?.toString() || item.timeSlotId?.toString() || '',
-      price: item.price?.toString() || '',
-    })
+
+    // 帶入該筆資料
+    setCenterId(item.court?.centerId?.toString() || '')
+    setSportId(item.court?.sportId?.toString() || '')
+    setCourtIds(item.courtId ? [item.courtId.toString()] : [])
+    setTimePeriodId(item.timeSlot?.timePeriodId?.toString() || '')
+    setTimeSlotIds(item.timeSlotId ? [item.timeSlotId.toString()] : [])
+    setPrice(item.price?.toString() || '')
+    setErrors({})
+
     setIsSheetOpen(true)
   }
 
@@ -434,58 +401,6 @@ export default function CourtTimeSlotPage() {
     setItemToDelete(null)
   }
 
-  const handleBatchSubmit = async (e) => {
-    e.preventDefault()
-    setErrors('')
-    const data = {
-      locationId: locationId ? Number(locationId) : undefined,
-      centerId: centerId ? Number(centerId) : undefined,
-      sportId: sportId ? Number(sportId) : undefined,
-      courtIds: courtIds.length > 0 ? courtIds.map(Number) : undefined,
-      timePeriodId: timePeriodId ? Number(timePeriodId) : undefined,
-      timeSlotIds: timeSlotIds.length > 0 ? timeSlotIds.map(Number) : undefined,
-      price: price === '' ? undefined : Number(price),
-    }
-    try {
-      const result = await batchSetCourtTimeSlotPrice(data)
-      if (result.success) {
-        toast.success(`成功批次設定 ${result.affectedRows} 筆價格！`)
-        setIsBatchSheetOpen(false)
-        setLocationId('')
-        setCenterId('')
-        setSportId('')
-        setCourtIds([])
-        setTimePeriodId('')
-        setTimeSlotIds([])
-        setPrice('')
-        mutate && mutate()
-      }
-    } catch (error) {
-      // axios 400 驗證錯誤處理
-      if (
-        error.response &&
-        error.response.status === 400 &&
-        error.response.data
-      ) {
-        const result = error.response.data
-        const errs = {}
-        const shown = {}
-        result.issues?.forEach((issue) => {
-          const field = issue.path[0]
-          if (shown[field]) return
-          errs[field] = issue.message
-          shown[field] = true
-        })
-        setErrors(errs)
-        if (Object.keys(errs).length === 0) {
-          toast.error(result.message || '輸入資料有誤')
-        }
-        return
-      }
-      setErrors('批次設定失敗：' + (err.message || '未知錯誤'))
-    }
-  }
-
   // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
@@ -521,7 +436,6 @@ export default function CourtTimeSlotPage() {
                 currentPage={parseInt(queryParams.page) || 1}
                 pageSize={parseInt(queryParams.perPage) || 10}
                 onAddNew={handleAddNew}
-                onBatch={handleBatch}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onBulkDelete={handleBulkDelete}
@@ -535,134 +449,19 @@ export default function CourtTimeSlotPage() {
         </div>
       </SidebarInset>
 
-      {/* ===== 新增/編輯價錢表單 ===== */}
+      {/* ===== 批量設定價錢表單 ===== */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent>
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="text-xl text-primary">
-              {isEditMode ? '編輯時段' : '新增時段'}
-            </SheetTitle>
-            <SheetDescription className="text-gray-500">
-              請填寫以下資訊
-            </SheetDescription>
-          </SheetHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="courtId">
-                  球場
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.courtId}
-                  onValueChange={(value) => handleInputChange('courtId', value)}
-                >
-                  <SelectTrigger
-                    className={errors.courtId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="請選擇球場" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courts.map((court) => (
-                      <SelectItem key={court.id} value={court.id.toString()}>
-                        {court.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.courtId && (
-                  <p className="text-sm text-red-500 mt-1">{errors.courtId}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="timeSlotId">
-                  時段
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.timeSlotId}
-                  onValueChange={(value) =>
-                    handleInputChange('timeSlotId', value)
-                  }
-                >
-                  <SelectTrigger
-                    className={errors.timeSlotId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="請選擇時段" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map((slot) => (
-                      <SelectItem key={slot.id} value={slot.id.toString()}>
-                        {slot.startTime}~{slot.endTime}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.timeSlotId && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.timeSlotId}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pirce">
-                  價格
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price === undefined ? '' : formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="請輸入價格"
-                  className={errors.price ? 'border-red-500' : ''}
-                  min="0"
-                  step="1"
-                />
-                {errors.price && (
-                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
-              >
-                取消
-              </Button>
-              <Button type="submit" variant="default" disabled={isLoading}>
-                {isLoading
-                  ? isEditMode
-                    ? '編輯中...'
-                    : '新增中...'
-                  : isEditMode
-                    ? '編輯時段'
-                    : '新增時段'}
-              </Button>
-            </div>
-          </form>
-        </SheetContent>
-      </Sheet>
-
-      {/* ===== 批量設定價錢表單 ===== */}
-      <Sheet open={isBatchSheetOpen} onOpenChange={setIsBatchSheetOpen}>
-        <SheetContent>
-          <SheetHeader className="p-6 border-b">
-            <SheetTitle className="text-xl text-primary">
-              批量設定價格
+              {isEditMode ? '編輯價格' : '新增價格'}
             </SheetTitle>
             <SheetDescription className="text-gray-500">
               請選擇條件與價格，未選的條件代表全部
             </SheetDescription>
           </SheetHeader>
-          <form className="space-y-6 mt-1 px-6" onSubmit={handleBatchSubmit}>
+
+          <form className="space-y-6 mt-1 px-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>地區</Label>
@@ -853,12 +652,19 @@ export default function CourtTimeSlotPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsBatchSheetOpen(false)}
+                onClick={handleCancel}
+                disabled={isLoading}
               >
                 取消
               </Button>
-              <Button type="submit" variant="default">
-                批次設定
+              <Button type="submit" variant="default" disabled={isLoading}>
+                {isLoading
+                  ? isEditMode
+                    ? '編輯中...'
+                    : '新增中...'
+                  : isEditMode
+                    ? '編輯價格'
+                    : '新增價格'}
               </Button>
             </div>
           </form>
