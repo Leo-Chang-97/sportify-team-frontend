@@ -16,6 +16,16 @@ import {
   updateReservation,
   deleteReservation,
   deleteMultipleReservations,
+  fetchMemberOptions,
+  fetchLocationOptions,
+  fetchTimePeriodOptions,
+  fetchCenterOptions,
+  fetchSportOptions,
+  fetchCourtOptions,
+  fetchTimeSlotOptions,
+  fetchCourtTimeSlotOptions,
+  fetchStatusOptions,
+  batchSetCourtTimeSlotPrice,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -58,6 +68,29 @@ export default function ReservationPage() {
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  const [memberId, setMemberId] = useState('')
+  const [locationId, setLocationId] = useState('')
+  const [centerId, setCenterId] = useState('')
+  const [sportId, setSportId] = useState('')
+  const [courtId, setCourtIds] = useState('')
+  const [timePeriodId, setTimePeriodId] = useState('')
+  const [timeSlotId, setTimeSlotIds] = useState('')
+  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
+  const [statusId, setStatusId] = useState('')
+  const [date, setDate] = useState('')
+  const [price, setPrice] = useState('')
+
+  const [members, setMembers] = useState([])
+  const [locations, setLocations] = useState([])
+  const [centers, setCenters] = useState([])
+  const [sports, setSports] = useState([])
+  const [courts, setCourts] = useState([])
+  const [timePeriods, setTimePeriods] = useState([])
+  const [timeSlots, setTimeSlots] = useState([])
+  const [courtTimeSlots, setCourtTimeSlots] = useState([])
+  const [status, setStatus] = useState([])
+
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingReservation, setEditingReservation] = useState(null)
@@ -66,13 +99,6 @@ export default function ReservationPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [reservationsToDelete, setReservationsToDelete] = useState([])
-  const [formData, setFormData] = useState({
-    userId: '',
-    courtId: '',
-    date: '',
-    timeSlotId: '',
-    status: '',
-  })
 
   // ===== URL 參數處理 =====
   const queryParams = useMemo(() => {
@@ -91,7 +117,131 @@ export default function ReservationPage() {
   )
 
   // ===== 副作用處理 =====
-  // 若有需要載入其他選項資料，請於此 useEffect 補充
+  // ===== 載入下拉選單選項 =====
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const memberData = await fetchMemberOptions()
+        setMembers(memberData.rows || [])
+        console.log(memberData)
+        const locationData = await fetchLocationOptions()
+        setLocations(locationData.rows || [])
+
+        const sportData = await fetchSportOptions()
+        setSports(sportData.rows || [])
+
+        const timePeriodData = await fetchTimePeriodOptions()
+        setTimePeriods(timePeriodData.rows || [])
+
+        const statusData = await fetchStatusOptions()
+        setStatus(statusData.rows || [])
+      } catch (error) {
+        console.error('載入球場/時段失敗:', error)
+        toast.error('載入球場/時段失敗')
+      }
+    }
+    loadData()
+  }, [])
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let centerData
+        if (locationId) {
+          centerData = await fetchCenterOptions({
+            locationId: Number(locationId),
+          })
+        } else {
+          centerData = await fetchCenterOptions()
+        }
+        setCenters(centerData.rows || [])
+        if (
+          centerId &&
+          !centerData.rows?.some((center) => center.id.toString() === centerId)
+        ) {
+          setCenterId('')
+        }
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setCenters([])
+        } else {
+          setCenters([])
+        }
+      }
+    }
+    loadData()
+  }, [locationId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let courtData
+        if (centerId || sportId) {
+          courtData = await fetchCourtOptions({
+            centerId: centerId ? Number(centerId) : undefined,
+            sportId: sportId ? Number(sportId) : undefined,
+          })
+        } else {
+          courtData = await fetchCourtOptions()
+        }
+        setCourts(courtData.rows || [])
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setCourts([])
+        } else {
+          setCourts([])
+        }
+      }
+    }
+    loadData()
+  }, [centerId, sportId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let timeSlotData
+        if (timePeriodId) {
+          timeSlotData = await fetchTimeSlotOptions({
+            timePeriodId: Number(timePeriodId),
+          })
+        } else {
+          timeSlotData = await fetchTimeSlotOptions()
+        }
+        setTimeSlots(timeSlotData.rows || [])
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setTimeSlots([])
+        } else {
+          setTimeSlots([])
+        }
+      }
+    }
+    loadData()
+  }, [timePeriodId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let courtTimeSlotData
+        if (courtId || timeSlotId) {
+          courtTimeSlotData = await fetchCourtTimeSlotOptions({
+            courtId: courtId ? Number(courtId) : undefined,
+            timeSlotId: timeSlotId ? Number(timeSlotId) : undefined,
+          })
+        } else {
+          courtTimeSlotData = await fetchCourtTimeSlotOptions()
+        }
+        setCourtTimeSlots(courtTimeSlotData.rows || [])
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          setCourtTimeSlots([])
+        } else {
+          setCourtTimeSlots([])
+        }
+      }
+    }
+    loadData()
+  }, [courtId, timeSlotId])
 
   // ===== 事件處理函數 =====
   const handlePaginationChange = (paginationState) => {
@@ -127,45 +277,48 @@ export default function ReservationPage() {
   const handleAddNew = () => {
     setIsEditMode(false)
     setEditingReservation(null)
-    setFormData({
-      userId: '',
-      courtId: '',
-      date: '',
-      timeSlotId: '',
-      status: '',
-    })
+    setMemberId('')
+    setCourtIds('')
+    setDate('')
+    setTimeSlotIds('')
+    setStatusId('')
+    setLocationId('')
+    setCenterId('')
+    setSportId('')
+    setTimePeriodId('')
+    setPrice('')
     setErrors({})
     setIsSheetOpen(true)
-  }
-
-  const handleInputChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
     setIsLoading(true)
+    // 根據 courtId 和 timeSlotId 組合出 courtTimeSlotId
+    const selectedCourtTimeSlot = courtTimeSlots.find(
+      (cts) =>
+        cts.courtId?.toString() === courtId &&
+        cts.timeSlotId?.toString() === timeSlotId
+    )
+    const courtTimeSlotIdToSend = selectedCourtTimeSlot?.id?.toString() || ''
+    const submitData = {
+      memberId,
+      courtTimeSlotId: courtTimeSlotIdToSend,
+      date,
+      statusId,
+      price,
+    }
     try {
       let result
       if (isEditMode && editingReservation) {
-        result = await updateReservation(editingReservation.id, formData)
+        result = await updateReservation(editingReservation.id, submitData)
       } else {
-        result = await createReservation(formData)
+        result = await createReservation(submitData)
       }
       if (result.success) {
         toast.success(isEditMode ? '編輯預約成功！' : '新增預約成功！')
         setIsSheetOpen(false)
-        setFormData({
-          userId: '',
-          courtId: '',
-          date: '',
-          timeSlotId: '',
-          status: '',
-        })
         setIsEditMode(false)
         setEditingReservation(null)
         mutate()
@@ -202,13 +355,16 @@ export default function ReservationPage() {
 
   const handleCancel = () => {
     setIsSheetOpen(false)
-    setFormData({
-      userId: '',
-      courtId: '',
-      date: '',
-      timeSlotId: '',
-      status: '',
-    })
+    setMemberId('')
+    setCourtIds('')
+    setDate('')
+    setTimeSlotIds('')
+    setStatusId('')
+    setLocationId('')
+    setCenterId('')
+    setSportId('')
+    setTimePeriodId('')
+    setPrice('')
     setErrors({})
     setIsEditMode(false)
     setEditingReservation(null)
@@ -217,13 +373,16 @@ export default function ReservationPage() {
   const handleEdit = (reservation) => {
     setIsEditMode(true)
     setEditingReservation(reservation)
-    setFormData({
-      userId: reservation.userId?.toString() || '',
-      courtId: reservation.courtId?.toString() || '',
-      date: reservation.date || '',
-      timeSlotId: reservation.timeSlotId?.toString() || '',
-      status: reservation.status || '',
-    })
+    setMemberId(reservation.memberId?.toString() || '')
+    setCourtIds(reservation.courtId?.toString() || '')
+    setDate(reservation.date || '')
+    setTimeSlotIds(reservation.timeSlotId?.toString() || '')
+    setStatusId(reservation.status?.toString() || '')
+    setLocationId(reservation.locationId?.toString() || '')
+    setCenterId(reservation.centerId?.toString() || '')
+    setSportId(reservation.sportId?.toString() || '')
+    setTimePeriodId(reservation.timePeriodId?.toString() || '')
+    setPrice(reservation.price?.toString() || '')
     setIsSheetOpen(true)
   }
 
@@ -350,35 +509,128 @@ export default function ReservationPage() {
           <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="userId">
-                  使用者ID
+                <Label htmlFor="memberId">
+                  使用者
                   <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="userId"
-                  type="text"
-                  value={formData.userId}
-                  onChange={(e) => handleInputChange('userId', e.target.value)}
-                  placeholder="請輸入使用者ID"
-                  className={errors.userId ? 'border-red-500' : ''}
-                />
-                {errors.userId && (
-                  <p className="text-sm text-red-500 mt-1">{errors.userId}</p>
+                <Select value={memberId} onValueChange={setMemberId}>
+                  <SelectTrigger
+                    className={errors.memberId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇使用者" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members?.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      members.map((member) => (
+                        <SelectItem
+                          key={member.id}
+                          value={member.id.toString()}
+                        >
+                          {`${member.id}-${member.name}` || member.id}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {errors.memberId && (
+                  <p className="text-sm text-red-500 mt-1">{errors.memberId}</p>
                 )}
               </div>
               <div className="space-y-2">
+                <Label>地區</Label>
+                <Select value={locationId} onValueChange={setLocationId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部地區" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      locations.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.id.toString()}>
+                          {loc.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>中心</Label>
+                <Select value={centerId} onValueChange={setCenterId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部中心" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {centers.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      centers.map((center) => (
+                        <SelectItem
+                          key={center.id}
+                          value={center.id.toString()}
+                        >
+                          {center.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>運動</Label>
+                <Select value={sportId} onValueChange={setSportId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部運動" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sports.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      sports.map((sport) => (
+                        <SelectItem key={sport.id} value={sport.id.toString()}>
+                          {sport.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="courtId">
-                  球場ID
+                  球場
                   <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="courtId"
-                  type="text"
-                  value={formData.courtId}
-                  onChange={(e) => handleInputChange('courtId', e.target.value)}
-                  placeholder="請輸入球場ID"
-                  className={errors.courtId ? 'border-red-500' : ''}
-                />
+                <Select value={courtId} onValueChange={setCourtIds}>
+                  <SelectTrigger
+                    className={errors.courtId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇球場" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courts?.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      courts.map((court) => (
+                        <SelectItem key={court.id} value={court.id.toString()}>
+                          {court.name || court.id}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
                 {errors.courtId && (
                   <p className="text-sm text-red-500 mt-1">{errors.courtId}</p>
                 )}
@@ -391,8 +643,8 @@ export default function ReservationPage() {
                 <Input
                   id="date"
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   className={errors.date ? 'border-red-500' : ''}
                 />
                 {errors.date && (
@@ -400,20 +652,51 @@ export default function ReservationPage() {
                 )}
               </div>
               <div className="space-y-2">
+                <Label>時段區段</Label>
+                <Select value={timePeriodId} onValueChange={setTimePeriodId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="全部時段區段" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timePeriods.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      timePeriods.map((tp) => (
+                        <SelectItem key={tp.id} value={tp.id.toString()}>
+                          {tp.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="timeSlotId">
-                  時段ID
+                  時段
                   <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="timeSlotId"
-                  type="text"
-                  value={formData.timeSlotId}
-                  onChange={(e) =>
-                    handleInputChange('timeSlotId', e.target.value)
-                  }
-                  placeholder="請輸入時段ID"
-                  className={errors.timeSlotId ? 'border-red-500' : ''}
-                />
+                <Select value={timeSlotId} onValueChange={setTimeSlotIds}>
+                  <SelectTrigger
+                    className={errors.timeSlotId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇時段" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots?.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      timeSlots.map((ts) => (
+                        <SelectItem key={ts.id} value={ts.id.toString()}>
+                          {ts.label}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
                 {errors.timeSlotId && (
                   <p className="text-sm text-red-500 mt-1">
                     {errors.timeSlotId}
@@ -421,18 +704,41 @@ export default function ReservationPage() {
                 )}
               </div>
               <div className="space-y-2">
+                <Label>
+                  價格<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="請輸入價格"
+                  min="0"
+                  step="1"
+                  className={errors.price ? 'border-red-500' : ''}
+                />
+                {errors.price && (
+                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
+                )}
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="status">
                   狀態
                   <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="status"
-                  type="text"
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  placeholder="請輸入狀態"
-                  className={errors.status ? 'border-red-500' : ''}
-                />
+                <Select value={statusId} onValueChange={setStatusId}>
+                  <SelectTrigger
+                    className={errors.statusId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇狀態" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {status.map((sta) => (
+                      <SelectItem key={sta.id} value={sta.id.toString()}>
+                        {sta.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.status && (
                   <p className="text-sm text-red-500 mt-1">{errors.status}</p>
                 )}

@@ -29,10 +29,11 @@ export const reservationColumns = [
   },
   { accessorKey: 'id', header: '編號', sortable: true },
   {
-    accessorKey: 'account',
-    header: '會員帳號',
+    accessorKey: 'member',
+    header: '會員',
     cell: ({ row, table }) => {
-      const value = row.original.memberAccount ?? '—'
+      const value =
+        `${row.original.member.id}.${row.original.member.name}` ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
@@ -60,6 +61,15 @@ export const reservationColumns = [
     header: '時段',
     cell: ({ row, table }) => {
       const value = row.original.timeLabel
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'price',
+    header: '價格',
+    cell: ({ row, table }) => {
+      const value = row.original.price ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },

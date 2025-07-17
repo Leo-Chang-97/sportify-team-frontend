@@ -259,6 +259,7 @@ export default function CourtTimeSlotPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
+    setIsLoading(true)
     const data = {
       locationId: locationId ? Number(locationId) : undefined,
       centerId: centerId ? Number(centerId) : undefined,
@@ -301,7 +302,12 @@ export default function CourtTimeSlotPage() {
         }
         return
       }
-      setErrors('批次設定失敗：' + (error.message || '未知錯誤'))
+      toast.error(
+        (isEditMode ? '編輯預約失敗：' : '新增預約失敗：') +
+          (error.message || '未知錯誤')
+      )
+    } finally {
+      setIsLoading(false)
     }
   }
 
