@@ -75,6 +75,15 @@ export const reservationColumns = [
     },
   },
   {
+    accessorKey: 'createdAt',
+    header: '創建時間',
+    cell: ({ row, table }) => {
+      const value = row.original.createdAt ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
     accessorKey: 'status',
     header: '狀態',
     cell: ({ row, table }) => {
