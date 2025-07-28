@@ -1,0 +1,121 @@
+// reservation/columns.js
+import { Button } from '@/components/ui/button'
+import { IconTrash, IconEdit } from '@tabler/icons-react'
+import { Checkbox } from '@/components/ui/checkbox'
+
+export const reservationColumns = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <div className="pl-2">
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="pl-2">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  { accessorKey: 'id', header: '編號', sortable: true },
+  {
+    accessorKey: 'member',
+    header: '會員',
+    cell: ({ row, table }) => {
+      const value =
+        `${row.original.member.id}.${row.original.member.name}` ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'court',
+    header: '球場',
+    cell: ({ row, table }) => {
+      const value = row.original.courtName ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'date',
+    header: '日期',
+    cell: ({ row, table }) => {
+      const value = row.original.date
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'timeSlot',
+    header: '時段',
+    cell: ({ row, table }) => {
+      const value = row.original.timeLabel
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'price',
+    header: '價格',
+    cell: ({ row, table }) => {
+      const value = row.original.price ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'createdAt',
+    header: '創建時間',
+    cell: ({ row, table }) => {
+      const value = row.original.createdAt ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'status',
+    header: '狀態',
+    cell: ({ row, table }) => {
+      const value = row.original.statusName ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    id: 'actions',
+    header: '操作',
+    cell: ({ row, table }) => (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.options.meta?.onEdit?.(row.original)}
+          className="h-8 text-blue-500 border-blue-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+        >
+          <IconEdit />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.options.meta?.onDelete?.(row.original)}
+          className="h-8 text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
+        >
+          <IconTrash />
+        </Button>
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+]

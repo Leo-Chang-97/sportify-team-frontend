@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { getAuthHeader } from '@/lib/utils'
+import { API_SERVER, API_SERVER_ADMIN } from '@/lib/api-path'
 
-const API_SERVER = 'http://localhost:3005/api'
-const API_SERVER_ADMIN = 'http://localhost:3005/api/admin'
+/* const API_SERVER = 'http://localhost:3005/api'
+const API_SERVER_ADMIN = 'http://localhost:3005/api/admin' */
 
 // 前台 API
 export const apiClient = axios.create({
