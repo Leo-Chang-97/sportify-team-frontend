@@ -21,6 +21,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -35,11 +41,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ChevronDownIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function AddReservationPage() {
   const router = useRouter()
+  const [memberSearch, setMemberSearch] = useState('')
 
   // ===== 組件狀態管理 =====
   const [isLoading, setIsLoading] = useState(false)
@@ -53,7 +60,7 @@ export default function AddReservationPage() {
   const [timeSlotId, setTimeSlotIds] = useState('')
   const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
   const [statusId, setStatusId] = useState('')
-  const [date, setDate] = useState('')
+  const [date, setDate] = useState(null)
   const [price, setPrice] = useState('')
 
   const [members, setMembers] = useState([])
@@ -67,6 +74,7 @@ export default function AddReservationPage() {
   const [status, setStatus] = useState([])
 
   const [errors, setErrors] = useState({})
+  const [open, setOpen] = useState(false)
 
   // ===== 副作用處理 =====
   // ===== 載入下拉選單選項 =====
@@ -137,12 +145,10 @@ export default function AddReservationPage() {
           courtData = await fetchCourtOptions()
         }
         setCourts(courtData.rows || [])
+        setCourtIds('') // 條件變動時自動清空選擇
       } catch (err) {
-        if (err.response && err.response.status === 404) {
-          setCourts([])
-        } else {
-          setCourts([])
-        }
+        setCourts([])
+        setCourtIds('') // 條件變動時自動清空選擇
       }
     }
     loadData()
@@ -160,6 +166,14 @@ export default function AddReservationPage() {
           timeSlotData = await fetchTimeSlotOptions()
         }
         setTimeSlots(timeSlotData.rows || [])
+        if (
+          timeSlotId &&
+          !timeSlotData.rows?.some(
+            (timeSlot) => timeSlot.id.toString() === timeSlotId
+          )
+        ) {
+          setTimeSlotIds('')
+        }
       } catch (err) {
         if (err.response && err.response.status === 404) {
           setTimeSlots([])
@@ -212,7 +226,7 @@ export default function AddReservationPage() {
     const submitData = {
       memberId,
       courtTimeSlotId: courtTimeSlotIdToSend,
-      date,
+      date: date ? date.toISOString().slice(0, 10) : '',
       statusId,
       price,
     }
@@ -292,11 +306,19 @@ export default function AddReservationPage() {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* 使用者 */}
-                      <div className="space-y-2">
+                      <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="memberId">
                           使用者
                           <span className="text-red-500">*</span>
                         </Label>
+                        {/* 搜尋使用者 */}
+                        <Input
+                          type="text"
+                          value={memberSearch}
+                          onChange={(e) => setMemberSearch(e.target.value)}
+                          placeholder="搜尋使用者"
+                          className="w-auto"
+                        />
                         <Select value={memberId} onValueChange={setMemberId}>
                           <SelectTrigger
                             className={errors.memberId ? 'border-red-500' : ''}
@@ -309,14 +331,49 @@ export default function AddReservationPage() {
                                 沒有符合資料
                               </div>
                             ) : (
-                              members.map((member) => (
-                                <SelectItem
-                                  key={member.id}
-                                  value={member.id.toString()}
-                                >
-                                  {`${member.id}-${member.name}` || member.id}
-                                </SelectItem>
-                              ))
+                              (() => {
+                                const filtered = members.filter((member) =>
+                                  `${member.id}-${member.name}`
+                                    .toLowerCase()
+                                    .includes(memberSearch.toLowerCase())
+                                )
+                                const selectedMember = memberId
+                                  ? members.find(
+                                      (m) => m.id.toString() === memberId
+                                    )
+                                  : null
+                                const selectedInFiltered = filtered.some(
+                                  (m) => m.id.toString() === memberId
+                                )
+                                return (
+                                  <>
+                                    {/* 若目前選到的 memberId 不在篩選結果，額外顯示 */}
+                                    {selectedMember && !selectedInFiltered && (
+                                      <SelectItem
+                                        value={selectedMember.id.toString()}
+                                        disabled
+                                      >
+                                        {`${selectedMember.id}-${selectedMember.name}`}
+                                      </SelectItem>
+                                    )}
+                                    {filtered.length === 0 ? (
+                                      <div className="px-3 py-2 text-gray-400">
+                                        沒有符合資料
+                                      </div>
+                                    ) : (
+                                      filtered.map((member) => (
+                                        <SelectItem
+                                          key={member.id}
+                                          value={member.id.toString()}
+                                        >
+                                          {`${member.id}-${member.name}` ||
+                                            member.id}
+                                        </SelectItem>
+                                      ))
+                                    )}
+                                  </>
+                                )
+                              })()
                             )}
                           </SelectContent>
                         </Select>
@@ -386,11 +443,13 @@ export default function AddReservationPage() {
                       <div className="space-y-2">
                         <Label>運動</Label>
                         <Select value={sportId} onValueChange={setSportId}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="全部運動" />
+                          <SelectTrigger
+                            className={errors.sportId ? 'border-red-500' : ''}
+                          >
+                            <SelectValue placeholder="請選擇運動" />
                           </SelectTrigger>
                           <SelectContent>
-                            {sports.length === 0 ? (
+                            {sports?.length === 0 ? (
                               <div className="px-3 py-2 text-gray-400">
                                 沒有符合資料
                               </div>
@@ -400,7 +459,7 @@ export default function AddReservationPage() {
                                   key={sport.id}
                                   value={sport.id.toString()}
                                 >
-                                  {sport.name}
+                                  {sport.name || sport.id}
                                 </SelectItem>
                               ))
                             )}
@@ -445,18 +504,56 @@ export default function AddReservationPage() {
                       </div>
 
                       {/* 日期 */}
-                      <div className="space-y-2">
+                      <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="date">
                           日期
                           <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                          className={errors.date ? 'border-red-500' : ''}
-                        />
+                        <Popover open={open} onOpenChange={setOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              id="date"
+                              className={`w-48 justify-between font-normal${
+                                !date ? ' text-gray-500' : ''
+                              }`}
+                            >
+                              {date
+                                ? date.toLocaleDateString()
+                                : '請選擇預訂日期'}
+                              <ChevronDownIcon />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-auto overflow-hidden p-0"
+                            align="start"
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              captionLayout="dropdown"
+                              onSelect={(date) => {
+                                setDate(date)
+                                setOpen(false)
+                              }}
+                              className={
+                                errors.date
+                                  ? 'border border-red-500 rounded-md'
+                                  : ''
+                              }
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        {/* <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          className={
+                            errors.date
+                              ? 'border border-red-500 rounded-md'
+                              : ''
+                          }
+                        /> */}
                         {errors.date && (
                           <p className="text-sm text-red-500 mt-1">
                             {errors.date}
@@ -546,7 +643,7 @@ export default function AddReservationPage() {
                           placeholder="請輸入價格"
                           min="0"
                           step="1"
-                          className={errors.price ? 'border-red-500' : ''}
+                          className={`w-auto ${errors.price ? 'border-red-500' : ''}`}
                         />
                         {errors.price && (
                           <p className="text-sm text-red-500 mt-1">
