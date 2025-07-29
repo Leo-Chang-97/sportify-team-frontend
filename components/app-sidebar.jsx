@@ -70,6 +70,17 @@ const data = {
       ],
     },
     {
+      title: 'Shop',
+      url: '/admin/shop',
+      icon: IconInnerShadowTop,
+      items: [
+        {
+          title: 'Product',
+          url: '/admin/shop/product',
+        },
+      ],
+    },
+    {
       title: 'Lifecycle',
       url: '#',
       icon: IconListDetails,
