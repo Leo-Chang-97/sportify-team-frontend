@@ -1,4 +1,5 @@
 'use client'
+import '@/style/admin.css'
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
