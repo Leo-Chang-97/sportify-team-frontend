@@ -15,8 +15,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  fetchBrandData,
-  fetchSportData,
+  fetchSportOptions,
+  fetchBrandOptions,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -71,7 +71,6 @@ export default function ProductPage() {
     name: '',
     sport_id: '',
     brand_id: '',
-    style: '',
     price: '',
     stock: '',
     material: '',
@@ -98,20 +97,28 @@ export default function ProductPage() {
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadOptions = async () => {
+    const loadSportOptions = async () => {
       try {
-        const [brandsData, sportsData] = await Promise.all([
-          fetchBrandData(),
-          fetchSportData(),
-        ])
-        setBrands(brandsData.data || [])
-        setSports(sportsData.data || [])
+        const data = await fetchSportOptions()
+        setSports(data.rows || [])
       } catch (error) {
-        console.error('載入選項失敗:', error)
-        toast.error('載入選項失敗')
+        console.error('載入運動類別失敗:', error)
+        toast.error('載入運動類別失敗')
       }
     }
-    loadOptions()
+    loadSportOptions()
+  }, [])
+  useEffect(() => {
+    const loadBrandOptions = async () => {
+      try {
+        const data = await fetchBrandOptions()
+        setBrands(data.rows || [])
+      } catch (error) {
+        console.error('載入品牌失敗:', error)
+        toast.error('載入品牌失敗')
+      }
+    }
+    loadBrandOptions()
   }, [])
 
   // ===== 事件處理函數 =====
@@ -152,7 +159,6 @@ export default function ProductPage() {
       name: '',
       sport_id: '',
       brand_id: '',
-      style: '',
       price: '',
       stock: '',
       material: '',
@@ -202,7 +208,6 @@ export default function ProductPage() {
           name: '',
           sport_id: '',
           brand_id: '',
-          style: '',
           price: '',
           stock: '',
           material: '',
@@ -264,7 +269,6 @@ export default function ProductPage() {
       name: '',
       sport_id: '',
       brand_id: '',
-      style: '',
       price: '',
       stock: '',
       material: '',
@@ -287,7 +291,6 @@ export default function ProductPage() {
         product.sport?.id?.toString() || product.sport_id?.toString() || '',
       brand_id:
         product.brand?.id?.toString() || product.brand_id?.toString() || '',
-      style: product.style || '',
       price: product.price?.toString() || '',
       stock: product.stock?.toString() || '',
       material: product.material || '',
@@ -458,24 +461,6 @@ export default function ProductPage() {
                 </Select>
                 {errors.brand_id && (
                   <p className="text-sm text-red-500 mt-1">{errors.brand_id}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="style">
-                  款式
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="style"
-                  type="text"
-                  value={formData.style}
-                  onChange={(e) => handleInputChange('style', e.target.value)}
-                  placeholder="請輸入款式"
-                  className={errors.style ? 'border-red-500' : ''}
-                />
-                {errors.style && (
-                  <p className="text-sm text-red-500 mt-1">{errors.style}</p>
                 )}
               </div>
 
