@@ -38,8 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CenterCard } from '@/components/card/center-card'
-import { ChevronDownIcon, ArrowRight } from 'lucide-react'
+import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
@@ -106,11 +105,11 @@ export default function VenueListPage() {
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
-      label: '地區',
+      label: '運動',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
           <SelectTrigger className="w-full bg-white !h-10">
-            <SelectValue placeholder="請選擇地區" />
+            <SelectValue placeholder="請選運動" />
           </SelectTrigger>
           <SelectContent>
             {locations.length === 0 ? (
@@ -127,11 +126,11 @@ export default function VenueListPage() {
       ),
     },
     {
-      label: '運動',
+      label: '場館',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
           <SelectTrigger className="w-full bg-white !h-10">
-            <SelectValue placeholder="請選擇運動" />
+            <SelectValue placeholder="請選擇場館" />
           </SelectTrigger>
           <SelectContent>
             {sports?.length === 0 ? (
@@ -148,7 +147,7 @@ export default function VenueListPage() {
       ),
     },
     {
-      label: '日期',
+      label: '快速查詢',
       component: (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -188,8 +187,8 @@ export default function VenueListPage() {
       <Navbar />
       <BreadcrumbAuto />
       <HeroBanner
-        backgroundImage="/banner/venue-banner.jpg"
-        title="馬上預訂動起來"
+        backgroundImage="/banner/class-banner.jpg"
+        title="您的完美課程，就在這裡"
         overlayOpacity="bg-primary/50"
       >
         <SearchField
@@ -199,25 +198,7 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選場館</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <CenterCard />
-            <CenterCard />
-            <CenterCard />
-            <CenterCard />
-          </div>
-        </div>
-        <div className="mt-10 flex justify-center">
-          <Link href="/products">
-            <Button className="group h-12 px-8" size="lg" variant="secondary">
-              載入更多
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      <section></section>
       <Footer />
     </>
   )
