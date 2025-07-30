@@ -24,7 +24,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/ui/shadcn-io/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import HeroBanner, { SearchForm } from '@/components/hero-banner'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
   Popover,
@@ -192,7 +192,7 @@ export default function VenueListPage() {
         title="課程總覽"
         overlayOpacity="bg-primary/50"
       >
-        <SearchForm
+        <SearchField
           fields={searchFields}
           onSearch={handleSearch}
           searchButtonText="搜尋"
