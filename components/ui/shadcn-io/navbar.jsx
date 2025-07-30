@@ -109,9 +109,9 @@ const HamburgerIcon = ({ className, ...props }) => (
 // Default navigation links
 const defaultNavigationLinks = [
   { href: '/venue', label: '場地預訂' },
-  { href: '#features', label: '購物商城' },
+  { href: '/shop', label: '購物商城' },
   { href: '#pricing', label: '揪團組隊' },
-  { href: '#about', label: '課程報名' },
+  { href: '/course', label: '課程報名' },
 ]
 
 export const Navbar = React.forwardRef(
