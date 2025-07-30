@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card-product'
 import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
@@ -199,14 +198,7 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section>
-        <div className="container mx-auto flex max-w-screen-xl items-center justify-between gap-4">
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-        </div>
-      </section>
+      <section></section>
       <Footer />
     </>
   )

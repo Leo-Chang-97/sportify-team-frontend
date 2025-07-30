@@ -24,7 +24,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/ui/shadcn-io/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import HeroBanner, { SearchForm } from '@/components/hero-banner'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
   Popover,
@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card-product'
 import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
@@ -191,18 +190,14 @@ export default function VenueListPage() {
         title="馬上加入團隊"
         overlayOpacity="bg-primary/10"
       >
-        <SearchForm
+        <SearchField
           fields={searchFields}
           onSearch={handleSearch}
           searchButtonText="搜尋"
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section>
-        <div className="container mx-auto flex max-w-screen-xl items-center justify-between gap-4">
-          <ProductCard />
-        </div>
-      </section>
+      <section></section>
       <Footer />
     </>
   )

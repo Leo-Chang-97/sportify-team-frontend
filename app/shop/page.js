@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card-product'
+import { ProductCard } from '@/components/card/product-card'
 import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
@@ -199,12 +199,15 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section>
-        <div className="container mx-auto flex max-w-screen-xl items-center justify-between gap-4">
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
+      <section className="py-10">
+        <div className="container mx-auto max-w-screen-xl px-4">
+          <h3 className="text-lg text-primary">精選商品</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+          </div>
         </div>
       </section>
       <Footer />
