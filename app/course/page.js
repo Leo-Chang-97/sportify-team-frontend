@@ -189,7 +189,7 @@ export default function VenueListPage() {
       <BreadcrumbAuto />
       <HeroBanner
         backgroundImage="/banner/class-banner.jpg"
-        title="課程總覽"
+        title="您的完美課程，就在這裡"
         overlayOpacity="bg-primary/50"
       >
         <SearchField
