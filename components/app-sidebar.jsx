@@ -197,14 +197,32 @@ export function AppSidebar({ ...props }) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/admin" className="relative">
-                <Image
+                {/* <Image
                   src="/sportify-logo-sm.png"
                   alt="sportify logo"
                   sizes="256px"
                   fill
                   style={{ objectFit: 'contain' }}
                   priority
-                />
+                /> */}
+                <div className="flex items-center">
+                  <Image
+                    src="/title-primary.svg"
+                    alt="sportify title"
+                    width={200}
+                    height={32}
+                    style={{ objectFit: 'contain' }}
+                    priority
+                  />
+                  <Image
+                    src="/logo.svg"
+                    alt="sportify logo"
+                    width={40}
+                    height={40}
+                    style={{ objectFit: 'contain' }}
+                    priority
+                  />
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

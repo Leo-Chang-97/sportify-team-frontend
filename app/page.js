@@ -1,16 +1,17 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import Footer from '@/components/footer'
 
-export default function AppPage(props) {
+export default function HomePage() {
   return (
     <>
-      <div>App Page</div>
-      <Link href="/admin">
-        <Button variant="outline">admin</Button>
-      </Link>
+      <Navbar />
+      <Footer />
     </>
   )
 }
