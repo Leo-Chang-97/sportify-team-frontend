@@ -1,5 +1,6 @@
+// product/columns.js
 import { Button } from '@/components/ui/button'
-import { IconTrash, IconEdit, CiHeart } from '@tabler/icons-react'
+import { IconTrash, IconEdit } from '@tabler/icons-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
 export const productColumns = [
@@ -26,7 +27,7 @@ export const productColumns = [
     enableSorting: false,
     enableHiding: false,
   },
-  { accessorKey: 'id', header: '商品編號', sortable: true },
+  { accessorKey: 'id', header: '編號', sortable: true },
   {
     accessorKey: 'name',
     header: '商品名稱',
@@ -104,18 +105,6 @@ export const productColumns = [
     header: '操作',
     cell: ({ row, table }) => (
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => table.options.meta?.onToggleLike?.(row.original.id)}
-          className="h-8 w-8"
-        >
-          {row.original.isLiked ? (
-            <CiHeart className="h-5 w-5 text-red-500" fill="currentColor" />
-          ) : (
-            <CiHeart className="h-5 w-5 text-gray-400" />
-          )}
-        </Button>
         <Button
           variant="outline"
           size="sm"
