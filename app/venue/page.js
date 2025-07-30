@@ -24,7 +24,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/ui/shadcn-io/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import HeroBanner, { SearchForm } from '@/components/hero-banner'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
   Popover,
@@ -38,8 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card-product'
-import { ChevronDownIcon } from 'lucide-react'
+import { CenterCard } from '@/components/card/center-card'
+import { ChevronDownIcon, ArrowRight } from 'lucide-react'
 
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
@@ -192,19 +192,30 @@ export default function VenueListPage() {
         title="馬上預訂動起來"
         overlayOpacity="bg-primary/50"
       >
-        <SearchForm
+        <SearchField
           fields={searchFields}
           onSearch={handleSearch}
           searchButtonText="搜尋"
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section>
-        <div className="container mx-auto flex max-w-screen-xl items-center justify-between gap-4">
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
+      <section className="py-10">
+        <div className="container mx-auto max-w-screen-xl flex flex-col items-center justify-between px-4">
+          <h3 className="text-lg text-primary">精選場館</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <CenterCard />
+            <CenterCard />
+            <CenterCard />
+            <CenterCard />
+          </div>
+        </div>
+        <div className="mt-10 flex justify-center">
+          <Link href="/products">
+            <Button className="group h-12 px-8" size="lg" variant="secondary">
+              載入更多
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Button>
+          </Link>
         </div>
       </section>
       <Footer />

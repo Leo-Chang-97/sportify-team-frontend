@@ -35,7 +35,7 @@ export default function HeroBanner({
 }
 
 // 搜尋表單子元件
-export function SearchForm({
+export function SearchField({
   fields = [],
   onSearch,
   searchButtonText = '搜尋',
