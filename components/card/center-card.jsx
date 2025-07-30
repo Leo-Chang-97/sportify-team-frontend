@@ -138,9 +138,9 @@ export function CenterCard({
           {/* Category badge */}
           <Badge
             className={`
-                absolute top-2 left-2 bg-background/80 backdrop-blur-sm
+                absolute top-2 left-2 bg-white/30 backdrop-blur-sm
               `}
-            variant="outline"
+            variant="white"
           >
             {safeProduct.category}
           </Badge>
@@ -161,7 +161,7 @@ export function CenterCard({
           <Button
             className={cn(
               `
-                  absolute right-2 bottom-2 z-10 rounded-full bg-background/80
+                  absolute right-2 bottom-2 z-10 rounded-full bg-white/30
                   backdrop-blur-sm transition-opacity duration-300
                 `,
               !isHovered && !isInWishlist && 'opacity-0'
@@ -176,7 +176,7 @@ export function CenterCard({
                 'h-4 w-4',
                 isInWishlist
                   ? 'fill-destructive text-destructive'
-                  : 'text-muted-foreground'
+                  : 'text-primary'
               )}
             />
             <span className="sr-only">Add to wishlist</span>
@@ -203,15 +203,10 @@ export function CenterCard({
                   const IconComponent = item.icon
                   return (
                     <Link href="#" key={idx}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-primary"
-                      >
-                        <IconComponent className="!w-6 !h-6 text-secondary" />
-                        <span className="text-primary text-sm text-center">
-                          {item.label}
-                        </span>
+                      <Button variant="white" size="sm">
+                        <IconComponent className="!w-6 !h-6" />
+
+                        {item.label}
                       </Button>
                     </Link>
                   )
@@ -228,10 +223,7 @@ export function CenterCard({
               href={`/venue/center/1`}
               className="w-full flex-1"
             >
-              <Button
-                variant="outline"
-                className="w-full text-primary border-primary"
-              >
+              <Button variant="white" className="w-full">
                 詳細
                 <Eye />
               </Button>
@@ -249,7 +241,7 @@ export function CenterCard({
           <CardFooter className="p-4 pt-0">
             <Link href={`/venue/center/${safeProduct.id}`} className="flex-1">
               <Button
-                variant="outline"
+                variant="white"
                 className="w-full text-primary border-primary"
               >
                 詳細

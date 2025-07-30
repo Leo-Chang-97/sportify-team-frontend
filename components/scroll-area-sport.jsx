@@ -14,7 +14,7 @@ const sportItems = [
 ]
 export default function ScrollAreaSport() {
   return (
-    <div className="w-full bg-primary px-4 md:px-6">
+    <div className="w-full bg-background px-4 md:px-6">
       <div className="container mx-auto flex flex-col max-w-screen-xl items-center justify-between pt-10">
         <h3 className="text-lg text-white">探索各類運動</h3>
         <ScrollArea className="w-full whitespace-nowrap">

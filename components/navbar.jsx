@@ -123,10 +123,10 @@ export const Navbar = React.forwardRef(
       navigationLinks = defaultNavigationLinks,
       signInText = '登入',
       signInHref = '/login',
-      ctaText = '註冊',
-      ctaHref = '/register',
+      signUpText = '註冊',
+      signUpHref = '/register',
       onSignInClick,
-      onCtaClick,
+      onSignUpClick,
       ...props
     },
     ref
@@ -171,7 +171,7 @@ export const Navbar = React.forwardRef(
       <header
         ref={combinedRef}
         className={cn(
-          'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
+          'sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
           className
         )}
         {...props}
@@ -184,14 +184,17 @@ export const Navbar = React.forwardRef(
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
+                    className="group h-9 w-9 hover:bg-accent/10 hover:text-accent-foreground"
                     variant="ghost"
                     size="icon"
                   >
                     <HamburgerIcon />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-48 p-2">
+                <PopoverContent
+                  align="start"
+                  className="w-48 p-2 border shadow-md"
+                >
                   <NavigationMenu className="max-w-none">
                     <NavigationMenuList className="flex-col items-start gap-1">
                       {navigationLinks.map((link, index) => (
@@ -199,10 +202,10 @@ export const Navbar = React.forwardRef(
                           <Link
                             href={link.href}
                             className={cn(
-                              'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline',
+                              'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/10 hover:text-accent-foreground cursor-pointer no-underline',
                               link.active
-                                ? 'bg-accent text-accent-foreground'
-                                : 'text-foreground/80'
+                                ? 'bg-accent/10 text-accent-foreground'
+                                : 'text-primary hover:text-primary/80'
                             )}
                           >
                             {link.label}
@@ -218,7 +221,7 @@ export const Navbar = React.forwardRef(
             <div className="flex items-center gap-6">
               <Link
                 href={logoHref}
-                className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
+                className="flex items-center space-x-2 transition-colors cursor-pointer"
               >
                 <div className="text-2xl">{logo}</div>
               </Link>
@@ -231,9 +234,9 @@ export const Navbar = React.forwardRef(
                         <Link
                           href={link.href}
                           className={cn(
-                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
+                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
                             link.active
-                              ? 'bg-accent text-accent-foreground'
+                              ? 'bg-secondary text-accent-foreground'
                               : 'text-foreground/80 hover:text-foreground'
                           )}
                         >
@@ -251,17 +254,18 @@ export const Navbar = React.forwardRef(
             <Button
               variant="ghost"
               size="sm"
-              className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="text-sm font-medium hover:bg-white/10 hover:text-accent-foreground px-4 h-9 rounded-md shadow-sm"
               asChild
             >
               <Link href={signInHref}>{signInText}</Link>
             </Button>
             <Button
+              variant="secondary"
               size="sm"
               className="text-sm font-medium px-4 h-9 rounded-md shadow-sm"
               asChild
             >
-              <Link href={ctaHref}>{ctaText}</Link>
+              <Link href={signUpHref}>{signUpText}</Link>
             </Button>
           </div>
         </div>

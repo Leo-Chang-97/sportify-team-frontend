@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
@@ -155,8 +155,8 @@ export default function VenueListPage() {
             <Button
               variant="outline"
               id="date"
-              className={`w-full h-10 justify-between font-normal${
-                !date ? ' text-gray-500' : ''
+              className={`w-full h-10 bg-white justify-between font-normal${
+                !date ? ' text-gray-500' : ' text-primary'
               }`}
             >
               {date ? date.toLocaleDateString() : '請選擇預訂日期'}
@@ -201,7 +201,7 @@ export default function VenueListPage() {
       <ScrollAreaSport />
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選場館</h3>
+          <h3 className="text-lg text-forgeground">精選場館</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <CenterCard />
             <CenterCard />
