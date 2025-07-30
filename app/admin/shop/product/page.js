@@ -12,11 +12,12 @@ import { productColumns } from './columns'
 import useSWR from 'swr'
 import {
   fetchProducts,
+  fetchProduct,
   createProduct,
   updateProduct,
   deleteProduct,
-  fetchSportOptions,
-  fetchBrandOptions,
+  fetchBrandData,
+  fetchSportData,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -77,6 +78,8 @@ export default function ProductPage() {
     size: '',
     weight: '',
     origin: '',
+    images: [],
+    existingImages: [],
   })
 
   // ===== URL 參數處理 =====
@@ -97,28 +100,20 @@ export default function ProductPage() {
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadSportOptions = async () => {
+    const loadOptions = async () => {
       try {
-        const data = await fetchSportOptions()
-        setSports(data.rows || [])
+        const [brandsData, sportsData] = await Promise.all([
+          fetchBrandData(),
+          fetchSportData(),
+        ])
+        setBrands(brandsData.data || [])
+        setSports(sportsData.data || [])
       } catch (error) {
-        console.error('載入運動類別失敗:', error)
-        toast.error('載入運動類別失敗')
+        console.error('載入選項失敗:', error)
+        toast.error('載入選項失敗')
       }
     }
-    loadSportOptions()
-  }, [])
-  useEffect(() => {
-    const loadBrandOptions = async () => {
-      try {
-        const data = await fetchBrandOptions()
-        setBrands(data.rows || [])
-      } catch (error) {
-        console.error('載入品牌失敗:', error)
-        toast.error('載入品牌失敗')
-      }
-    }
-    loadBrandOptions()
+    loadOptions()
   }, [])
 
   // ===== 事件處理函數 =====
@@ -165,6 +160,8 @@ export default function ProductPage() {
       size: '',
       weight: '',
       origin: '',
+      images: [],
+      existingImages: [],
     })
     setErrors({})
     setIsSheetOpen(true)
@@ -175,6 +172,30 @@ export default function ProductPage() {
       ...prev,
       [name]: value,
     }))
+  }
+
+  // 處理圖片選擇
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files)
+
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...files],
+    }))
+  }
+
+  const handleRemoveImage = (index, isExisting = false) => {
+    if (isExisting) {
+      setFormData((prev) => ({
+        ...prev,
+        existingImages: prev.existingImages.filter((_, i) => i !== index),
+      }))
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index),
+      }))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -189,14 +210,41 @@ export default function ProductPage() {
     setIsLoading(true)
 
     try {
+      // 準備提交的表單數據
+      const submitData = new FormData()
+
+      // 添加表單欄位
+      Object.keys(formData).forEach((key) => {
+        if (
+          key !== 'images' &&
+          key !== 'existingImages' &&
+          formData[key] !== ''
+        ) {
+          submitData.append(key, formData[key])
+        }
+      })
+
+      // 添加圖片檔案
+      formData.images.forEach((image) => {
+        submitData.append('images', image)
+      })
+
+      // 編輯模式時添加現有圖片數量
+      if (isEditMode) {
+        submitData.append(
+          'existingImageCount',
+          formData.existingImages.length.toString()
+        )
+      }
+
       let result
 
       if (isEditMode && editingProduct) {
         // 編輯模式
-        result = await updateProduct(editingProduct.id, formData)
+        result = await updateProduct(editingProduct.id, submitData)
       } else {
         // 新增模式
-        result = await createProduct(formData)
+        result = await createProduct(submitData)
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -214,6 +262,8 @@ export default function ProductPage() {
           size: '',
           weight: '',
           origin: '',
+          images: [],
+          existingImages: [],
         })
         setIsEditMode(false)
         setEditingProduct(null)
@@ -275,29 +325,55 @@ export default function ProductPage() {
       size: '',
       weight: '',
       origin: '',
+      images: [],
+      existingImages: [],
     })
-    setErrors({}) // 清除錯誤訊息
+    setErrors({})
     setIsEditMode(false)
     setEditingProduct(null)
   }
 
-  const handleEdit = (product) => {
-    console.log('編輯商品 - 完整資料:', product)
+  const handleEdit = async (product) => {
     setIsEditMode(true)
     setEditingProduct(product)
-    setFormData({
-      name: product.name,
-      sport_id:
-        product.sport?.id?.toString() || product.sport_id?.toString() || '',
-      brand_id:
-        product.brand?.id?.toString() || product.brand_id?.toString() || '',
-      price: product.price?.toString() || '',
-      stock: product.stock?.toString() || '',
-      material: product.material || '',
-      size: product.size || '',
-      weight: product.weight?.toString() || '',
-      origin: product.origin || '',
-    })
+
+    try {
+      const productDetail = await fetchProduct(product.id)
+      if (productDetail.code === 200) {
+        const data = productDetail.data
+        setFormData({
+          name: data.name,
+          sport_id: data.sportId?.toString() || '',
+          brand_id: data.brandId?.toString() || '',
+          price: data.price?.toString() || '',
+          stock: data.stock?.toString() || '',
+          material: data.material || '',
+          size: data.size || '',
+          weight: data.weight?.toString() || '',
+          origin: data.origin || '',
+          images: [],
+          existingImages: data.images || [],
+        })
+      }
+    } catch (error) {
+      // 載入失敗時使用基本資料
+      setFormData({
+        name: product.name,
+        sport_id:
+          product.sport?.id?.toString() || product.sport_id?.toString() || '',
+        brand_id:
+          product.brand?.id?.toString() || product.brand_id?.toString() || '',
+        price: product.price?.toString() || '',
+        stock: product.stock?.toString() || '',
+        material: product.material || '',
+        size: product.size || '',
+        weight: product.weight?.toString() || '',
+        origin: product.origin || '',
+        images: [],
+        existingImages: [],
+      })
+    }
+
     setIsSheetOpen(true)
   }
 
@@ -314,7 +390,7 @@ export default function ProductPage() {
     try {
       const result = await deleteProduct(productToDelete.id)
 
-      if (result.success) {
+      if (result.code === 200) {
         toast.success('刪除成功！')
         mutate() // 重新載入資料
         setIsDeleteDialogOpen(false)
@@ -338,6 +414,14 @@ export default function ProductPage() {
   // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
+
+  // ===== Debug 資料格式 =====
+  /* console.log('完整資料:', data)
+  console.log('資料結構:', JSON.stringify(data, null, 2))
+  if (data?.rows && data.rows.length > 0) {
+    console.log('第一筆資料:', data.rows[0])
+    console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
+  } */
 
   // ===== 頁面渲染 =====
   return (
@@ -559,6 +643,79 @@ export default function ProductPage() {
                 />
                 {errors.origin && (
                   <p className="text-sm text-red-500 mt-1">{errors.origin}</p>
+                )}
+              </div>
+
+              {/* 圖片上傳區域 */}
+              <div className="space-y-2">
+                <Label htmlFor="images">商品圖片</Label>
+                <div className="space-y-4">
+                  {/* 現有圖片顯示 */}
+                  {formData.existingImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {formData.existingImages.map((image, index) => (
+                        <div key={image.id || index} className="relative">
+                          <img
+                            src={`http://localhost:3005/product-imgs/${image.url}`}
+                            alt={`商品圖片 ${index + 1}`}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index, true)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 新選擇的圖片預覽 */}
+                  {formData.images.length > 0 && (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">新增圖片：</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {formData.images.map((image, index) => (
+                          <div key={index} className="relative">
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={`新圖片 ${index + 1}`}
+                              className="w-full h-24 object-cover rounded border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(index, false)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 圖片上傳按鈕 */}
+                  <div>
+                    <input
+                      id="images"
+                      type="file"
+                      multiple
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="images"
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 cursor-pointer"
+                    >
+                      選擇圖片
+                    </label>
+                  </div>
+                </div>
+                {errors.images && (
+                  <p className="text-sm text-red-500 mt-1">{errors.images}</p>
                 )}
               </div>
             </div>

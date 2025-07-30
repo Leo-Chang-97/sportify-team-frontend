@@ -70,24 +70,3 @@ export const fetchCourtTimeSlotOptions = async (params = {}) => {
   const res = await apiClient.get(url)
   return res.data
 }
-
-// ===== 商城相關選項 =====
-export const fetchBrandOptions = async () => {
-  const res = await apiClient.get('/common/brand')
-  return res.data
-}
-
-export const fetchOrderStatusOptions = async () => {
-  const res = await apiClient.get('/common/order-status')
-  return res.data
-}
-
-export const fetchPaymentOptions = async () => {
-  const res = await apiClient.get('/common/payment')
-  return res.data
-}
-
-export const fetchDeliveryOptions = async () => {
-  const res = await apiClient.get('/common/delivery')
-  return res.data
-}
