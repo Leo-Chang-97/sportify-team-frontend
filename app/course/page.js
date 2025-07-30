@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card/product-card'
 import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
@@ -108,30 +107,9 @@ export default function VenueListPage() {
     {
       label: '運動',
       component: (
-        <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
-            <SelectValue placeholder="請選擇運動" />
-          </SelectTrigger>
-          <SelectContent>
-            {sports?.length === 0 ? (
-              <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
-            ) : (
-              sports.map((sport) => (
-                <SelectItem key={sport.id} value={sport.id.toString()}>
-                  {sport.name || sport.id}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      label: '品牌',
-      component: (
         <Select value={locationId} onValueChange={setLocationId}>
           <SelectTrigger className="w-full bg-white !h-10">
-            <SelectValue placeholder="請選擇品牌" />
+            <SelectValue placeholder="請選運動" />
           </SelectTrigger>
           <SelectContent>
             {locations.length === 0 ? (
@@ -148,7 +126,28 @@ export default function VenueListPage() {
       ),
     },
     {
-      label: '日期',
+      label: '場館',
+      component: (
+        <Select value={sportId} onValueChange={setSportId}>
+          <SelectTrigger className="w-full bg-white !h-10">
+            <SelectValue placeholder="請選擇場館" />
+          </SelectTrigger>
+          <SelectContent>
+            {sports?.length === 0 ? (
+              <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
+            ) : (
+              sports.map((sport) => (
+                <SelectItem key={sport.id} value={sport.id.toString()}>
+                  {sport.name || sport.id}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      label: '快速查詢',
       component: (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -188,8 +187,8 @@ export default function VenueListPage() {
       <Navbar />
       <BreadcrumbAuto />
       <HeroBanner
-        backgroundImage="/banner/shop-banner.jpg"
-        title="探索您心儀的商品"
+        backgroundImage="/banner/class-banner.jpg"
+        title="您的完美課程，就在這裡"
         overlayOpacity="bg-primary/50"
       >
         <SearchField
@@ -199,17 +198,7 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選商品</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-          </div>
-        </div>
-      </section>
+      <section></section>
       <Footer />
     </>
   )

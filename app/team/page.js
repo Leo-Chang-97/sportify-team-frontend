@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card/product-card'
 import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
@@ -106,6 +105,27 @@ export default function VenueListPage() {
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
+      label: '地區',
+      component: (
+        <Select value={locationId} onValueChange={setLocationId}>
+          <SelectTrigger className="w-full bg-white !h-10">
+            <SelectValue placeholder="請選擇地區" />
+          </SelectTrigger>
+          <SelectContent>
+            {locations.length === 0 ? (
+              <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
+            ) : (
+              locations.map((loc) => (
+                <SelectItem key={loc.id} value={loc.id.toString()}>
+                  {loc.name}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
@@ -119,27 +139,6 @@ export default function VenueListPage() {
               sports.map((sport) => (
                 <SelectItem key={sport.id} value={sport.id.toString()}>
                   {sport.name || sport.id}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      label: '品牌',
-      component: (
-        <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-white !h-10">
-            <SelectValue placeholder="請選擇品牌" />
-          </SelectTrigger>
-          <SelectContent>
-            {locations.length === 0 ? (
-              <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
-            ) : (
-              locations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id.toString()}>
-                  {loc.name}
                 </SelectItem>
               ))
             )}
@@ -182,15 +181,14 @@ export default function VenueListPage() {
       ),
     },
   ]
-
   return (
     <>
       <Navbar />
       <BreadcrumbAuto />
       <HeroBanner
-        backgroundImage="/banner/shop-banner.jpg"
-        title="探索您心儀的商品"
-        overlayOpacity="bg-primary/50"
+        backgroundImage="/banner/team-banner.jpg"
+        title="馬上加入團隊"
+        overlayOpacity="bg-primary/10"
       >
         <SearchField
           fields={searchFields}
@@ -199,17 +197,7 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選商品</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-          </div>
-        </div>
-      </section>
+      <section></section>
       <Footer />
     </>
   )
