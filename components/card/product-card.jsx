@@ -29,7 +29,7 @@ export function ProductCard({
     name: 'Demo Product',
     originalPrice: 0,
     price: 0,
-    rating: 0,
+    rating: 5,
   }
   const [isHovered, setIsHovered] = React.useState(false)
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)

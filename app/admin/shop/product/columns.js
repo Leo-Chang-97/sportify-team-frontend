@@ -41,7 +41,7 @@ export const productColumns = [
     accessorKey: 'sport',
     header: '運動種類',
     cell: ({ row, table }) => {
-      const value = row.original.sport?.name ?? '—'
+      const value = row.original.sport_name ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
@@ -50,16 +50,7 @@ export const productColumns = [
     accessorKey: 'brand',
     header: '品牌',
     cell: ({ row, table }) => {
-      const value = row.original.brand?.name ?? '—'
-      const highlightKeyword = table.options.meta?.highlightKeyword
-      return highlightKeyword ? highlightKeyword(value) : value
-    },
-  },
-  {
-    accessorKey: 'style',
-    header: '款式',
-    cell: ({ row, table }) => {
-      const value = row.original.style ?? '—'
+      const value = row.original.brand_name ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
@@ -86,7 +77,7 @@ export const productColumns = [
     accessorKey: 'createdAt',
     header: '創建時間',
     cell: ({ row, table }) => {
-      const value = row.original.createdAt ?? '—'
+      const value = row.original.created_at ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
@@ -95,7 +86,7 @@ export const productColumns = [
     accessorKey: 'updatedAt',
     header: '更新時間',
     cell: ({ row, table }) => {
-      const value = row.original.updatedAt ?? '—'
+      const value = row.original.updated_at ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },

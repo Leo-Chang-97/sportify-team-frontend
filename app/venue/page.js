@@ -200,7 +200,7 @@ export default function VenueListPage() {
       </HeroBanner>
       <ScrollAreaSport />
       <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl flex flex-col items-center justify-between px-4">
+        <div className="container mx-auto max-w-screen-xl px-4">
           <h3 className="text-lg text-primary">精選場館</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <CenterCard />
