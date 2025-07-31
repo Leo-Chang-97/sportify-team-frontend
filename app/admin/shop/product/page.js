@@ -1,4 +1,4 @@
-// app/admin/venue/center/page.js
+// app/admin/shop/product/page.js
 'use client'
 
 // ===== 依賴項匯入 =====
@@ -8,15 +8,15 @@ import { AppSidebar } from '@/components/admin/app-sidebar'
 import { SiteHeader } from '@/components/admin/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
-import { centerColumns } from './columns'
+import { productColumns } from './columns'
 import useSWR from 'swr'
 import {
-  fetchCenters,
-  createCenter,
-  updateCenter,
-  deleteCenter,
-  deleteMultipleCenters,
-  fetchLocationOptions,
+  fetchProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  fetchSportOptions,
+  fetchBrandOptions,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,7 +51,7 @@ import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
 
-export default function CenterPage() {
+export default function ProductPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -59,18 +59,24 @@ export default function CenterPage() {
   // ===== 組件狀態管理 =====
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [locations, setLocations] = useState([])
+  const [brands, setBrands] = useState([])
+  const [sports, setSports] = useState([])
   const [errors, setErrors] = useState({})
   const [isEditMode, setIsEditMode] = useState(false)
-  const [editingCenter, setEditingCenter] = useState(null)
+  const [editingProduct, setEditingProduct] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [centerToDelete, setCenterToDelete] = useState(null)
+  const [productToDelete, setProductToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
-  const [centersToDelete, setCentersToDelete] = useState([])
   const [formData, setFormData] = useState({
     name: '',
-    locationId: '',
+    sport_id: '',
+    brand_id: '',
+    price: '',
+    stock: '',
+    material: '',
+    size: '',
+    weight: '',
+    origin: '',
   })
 
   // ===== URL 參數處理 =====
@@ -85,22 +91,34 @@ export default function CenterPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['centers', queryParams], async ([, params]) =>
-    fetchCenters(params)
-  )
+  } = useSWR(['products', queryParams], async ([, params]) => {
+    return fetchProducts(params)
+  })
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadLocations = async () => {
+    const loadSportOptions = async () => {
       try {
-        const data = await fetchLocationOptions()
-        setLocations(data.rows || [])
+        const data = await fetchSportOptions()
+        setSports(data.rows || [])
       } catch (error) {
-        console.error('載入地點失敗:', error)
-        toast.error('載入地點失敗')
+        console.error('載入運動類別失敗:', error)
+        toast.error('載入運動類別失敗')
       }
     }
-    loadLocations()
+    loadSportOptions()
+  }, [])
+  useEffect(() => {
+    const loadBrandOptions = async () => {
+      try {
+        const data = await fetchBrandOptions()
+        setBrands(data.rows || [])
+      } catch (error) {
+        console.error('載入品牌失敗:', error)
+        toast.error('載入品牌失敗')
+      }
+    }
+    loadBrandOptions()
   }, [])
 
   // ===== 事件處理函數 =====
@@ -136,8 +154,18 @@ export default function CenterPage() {
 
   const handleAddNew = () => {
     setIsEditMode(false)
-    setEditingCenter(null)
-    setFormData({ name: '', locationId: '' })
+    setEditingProduct(null)
+    setFormData({
+      name: '',
+      sport_id: '',
+      brand_id: '',
+      price: '',
+      stock: '',
+      material: '',
+      size: '',
+      weight: '',
+      origin: '',
+    })
     setErrors({})
     setIsSheetOpen(true)
   }
@@ -163,22 +191,32 @@ export default function CenterPage() {
     try {
       let result
 
-      if (isEditMode && editingCenter) {
+      if (isEditMode && editingProduct) {
         // 編輯模式
-        result = await updateCenter(editingCenter.id, formData)
+        result = await updateProduct(editingProduct.id, formData)
       } else {
         // 新增模式
-        result = await createCenter(formData)
+        result = await createProduct(formData)
       }
 
       console.log('API 回應:', result) // Debug 用
 
       if (result.success) {
-        toast.success(isEditMode ? '編輯中心成功！' : '新增中心成功！')
+        toast.success(isEditMode ? '編輯商品成功！' : '新增商品成功！')
         setIsSheetOpen(false)
-        setFormData({ name: '', locationId: '' })
+        setFormData({
+          name: '',
+          sport_id: '',
+          brand_id: '',
+          price: '',
+          stock: '',
+          material: '',
+          size: '',
+          weight: '',
+          origin: '',
+        })
         setIsEditMode(false)
-        setEditingCenter(null)
+        setEditingProduct(null)
         mutate()
       }
     } catch (error) {
@@ -203,7 +241,7 @@ export default function CenterPage() {
         }
         return
       }
-      console.error(isEditMode ? '編輯中心失敗:' : '新增中心失敗:', error)
+      console.error(isEditMode ? '編輯商品失敗:' : '新增商品失敗:', error)
       // 根據不同的錯誤類型顯示不同的訊息
       if (
         error.message.includes('network') ||
@@ -216,7 +254,7 @@ export default function CenterPage() {
         toast.error('伺服器錯誤，請稍後再試')
       } else {
         toast.error(
-          (isEditMode ? '編輯中心失敗：' : '新增中心失敗：') +
+          (isEditMode ? '編輯商品失敗：' : '新增商品失敗：') +
             (error.message || '未知錯誤')
         )
       }
@@ -227,74 +265,60 @@ export default function CenterPage() {
 
   const handleCancel = () => {
     setIsSheetOpen(false)
-    setFormData({ name: '', locationId: '' })
+    setFormData({
+      name: '',
+      sport_id: '',
+      brand_id: '',
+      price: '',
+      stock: '',
+      material: '',
+      size: '',
+      weight: '',
+      origin: '',
+    })
     setErrors({}) // 清除錯誤訊息
     setIsEditMode(false)
-    setEditingCenter(null)
+    setEditingProduct(null)
   }
 
-  const handleEdit = (center) => {
-    console.log('編輯中心 - 完整資料:', center)
+  const handleEdit = (product) => {
+    console.log('編輯商品 - 完整資料:', product)
     setIsEditMode(true)
-    setEditingCenter(center)
+    setEditingProduct(product)
     setFormData({
-      name: center.name,
-      locationId:
-        center.location?.id?.toString() || center.locationId?.toString() || '',
+      name: product.name,
+      sport_id:
+        product.sport?.id?.toString() || product.sport_id?.toString() || '',
+      brand_id:
+        product.brand?.id?.toString() || product.brand_id?.toString() || '',
+      price: product.price?.toString() || '',
+      stock: product.stock?.toString() || '',
+      material: product.material || '',
+      size: product.size || '',
+      weight: product.weight?.toString() || '',
+      origin: product.origin || '',
     })
     setIsSheetOpen(true)
   }
 
-  const handleDelete = (center) => {
-    console.log('準備刪除中心 - 完整資料:', center)
-    setCenterToDelete(center)
+  const handleDelete = (product) => {
+    console.log('準備刪除商品 - 完整資料:', product)
+    setProductToDelete(product)
     setIsDeleteDialogOpen(true)
   }
 
-  const handleBulkDelete = async (selectedData) => {
-    setCentersToDelete(selectedData)
-    setIsBulkDeleteDialogOpen(true)
-  }
-
-  const confirmBulkDelete = async () => {
-    setIsDeleting(true)
-    try {
-      const checkedItems = centersToDelete.map((item) => item.id)
-      const result = await deleteMultipleCenters(checkedItems)
-
-      if (result.success) {
-        toast.success(`成功刪除 ${centersToDelete.length} 個中心！`)
-        mutate() // 重新載入資料
-        setIsBulkDeleteDialogOpen(false)
-        setCentersToDelete([])
-      } else {
-        toast.error(result.message || '批量刪除失敗')
-      }
-    } catch (error) {
-      console.error('批量刪除失敗:', error)
-      toast.error('批量刪除失敗：' + (error.message || '未知錯誤'))
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  const cancelBulkDelete = () => {
-    setIsBulkDeleteDialogOpen(false)
-    setCentersToDelete([])
-  }
-
   const confirmDelete = async () => {
-    if (!centerToDelete) return
+    if (!productToDelete) return
 
     setIsDeleting(true)
     try {
-      const result = await deleteCenter(centerToDelete.id)
+      const result = await deleteProduct(productToDelete.id)
 
       if (result.success) {
         toast.success('刪除成功！')
         mutate() // 重新載入資料
         setIsDeleteDialogOpen(false)
-        setCenterToDelete(null)
+        setProductToDelete(null)
       } else {
         toast.error(result.message || '刪除失敗')
       }
@@ -308,20 +332,12 @@ export default function CenterPage() {
 
   const cancelDelete = () => {
     setIsDeleteDialogOpen(false)
-    setCenterToDelete(null)
+    setProductToDelete(null)
   }
 
   // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
-
-  // ===== Debug 資料格式 =====
-  /* console.log('完整資料:', data)
-  console.log('資料結構:', JSON.stringify(data, null, 2))
-  if (data?.rows && data.rows.length > 0) {
-    console.log('第一筆資料:', data.rows[0])
-    console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
-  } */
 
   // ===== 頁面渲染 =====
   return (
@@ -333,13 +349,13 @@ export default function CenterPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Center" />
+        <SiteHeader title="Product" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <DataTable
-                data={data?.rows ?? []}
-                columns={centerColumns}
+                data={data?.data ?? []}
+                columns={productColumns}
                 totalRows={data?.totalRows}
                 totalPages={data?.totalPages}
                 onPaginationChange={handlePaginationChange}
@@ -348,7 +364,6 @@ export default function CenterPage() {
                 onAddNew={handleAddNew}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                onBulkDelete={handleBulkDelete}
                 onSearch={handleSearch}
                 initialKeyword={queryParams.keyword || ''}
                 onOrderBy={handleOrderBy}
@@ -359,12 +374,12 @@ export default function CenterPage() {
         </div>
       </SidebarInset>
 
-      {/* ===== 新增/編輯中心表單 ===== */}
+      {/* ===== 新增/編輯商品表單 ===== */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent>
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="text-xl text-primary">
-              {isEditMode ? '編輯運動中心' : '新增運動中心'}
+              {isEditMode ? '編輯商品' : '新增商品'}
             </SheetTitle>
             <SheetDescription className="text-gray-500">
               請填寫以下資訊
@@ -375,7 +390,7 @@ export default function CenterPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  中心名稱
+                  商品名稱
                   <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -383,7 +398,7 @@ export default function CenterPage() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="請輸入中心名稱"
+                  placeholder="請輸入商品名稱"
                   className={errors.name ? 'border-red-500' : ''}
                 />
                 {errors.name && (
@@ -392,36 +407,158 @@ export default function CenterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="locationId">
-                  地點
+                <Label htmlFor="sport_id">
+                  運動種類
                   <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.locationId}
+                  value={formData.sport_id}
                   onValueChange={(value) =>
-                    handleInputChange('locationId', value)
+                    handleInputChange('sport_id', value)
                   }
                 >
                   <SelectTrigger
-                    className={errors.locationId ? 'border-red-500' : ''}
+                    className={errors.sport_id ? 'border-red-500' : ''}
                   >
-                    <SelectValue placeholder="請選擇地點" />
+                    <SelectValue placeholder="請選擇運動種類" />
                   </SelectTrigger>
                   <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                      >
-                        {location.name}
+                    {sports.map((sport) => (
+                      <SelectItem key={sport.id} value={sport.id.toString()}>
+                        {sport.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.locationId && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.locationId}
-                  </p>
+                {errors.sport_id && (
+                  <p className="text-sm text-red-500 mt-1">{errors.sport_id}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="brand_id">
+                  品牌
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.brand_id}
+                  onValueChange={(value) =>
+                    handleInputChange('brand_id', value)
+                  }
+                >
+                  <SelectTrigger
+                    className={errors.brand_id ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇品牌" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id.toString()}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.brand_id && (
+                  <p className="text-sm text-red-500 mt-1">{errors.brand_id}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="price">
+                  單價
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => handleInputChange('price', e.target.value)}
+                  placeholder="請輸入單價"
+                  className={errors.price ? 'border-red-500' : ''}
+                />
+                {errors.price && (
+                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="stock">
+                  庫存
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  value={formData.stock}
+                  onChange={(e) => handleInputChange('stock', e.target.value)}
+                  placeholder="請輸入庫存"
+                  className={errors.stock ? 'border-red-500' : ''}
+                />
+                {errors.stock && (
+                  <p className="text-sm text-red-500 mt-1">{errors.stock}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="material">材質</Label>
+                <Input
+                  id="material"
+                  type="text"
+                  value={formData.material}
+                  onChange={(e) =>
+                    handleInputChange('material', e.target.value)
+                  }
+                  placeholder="請輸入材質"
+                  className={errors.material ? 'border-red-500' : ''}
+                />
+                {errors.material && (
+                  <p className="text-sm text-red-500 mt-1">{errors.material}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="size">尺寸</Label>
+                <Input
+                  id="size"
+                  type="text"
+                  value={formData.size}
+                  onChange={(e) => handleInputChange('size', e.target.value)}
+                  placeholder="請輸入尺寸"
+                  className={errors.size ? 'border-red-500' : ''}
+                />
+                {errors.size && (
+                  <p className="text-sm text-red-500 mt-1">{errors.size}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="weight">重量</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  value={formData.weight}
+                  onChange={(e) => handleInputChange('weight', e.target.value)}
+                  placeholder="請輸入重量"
+                  className={errors.weight ? 'border-red-500' : ''}
+                />
+                {errors.weight && (
+                  <p className="text-sm text-red-500 mt-1">{errors.weight}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="origin">產地</Label>
+                <Input
+                  id="origin"
+                  type="text"
+                  value={formData.origin}
+                  onChange={(e) => handleInputChange('origin', e.target.value)}
+                  placeholder="請輸入產地"
+                  className={errors.origin ? 'border-red-500' : ''}
+                />
+                {errors.origin && (
+                  <p className="text-sm text-red-500 mt-1">{errors.origin}</p>
                 )}
               </div>
             </div>
@@ -441,8 +578,8 @@ export default function CenterPage() {
                     ? '編輯中...'
                     : '新增中...'
                   : isEditMode
-                    ? '編輯中心'
-                    : '新增中心'}
+                    ? '編輯商品'
+                    : '新增商品'}
               </Button>
             </div>
           </form>
@@ -463,7 +600,7 @@ export default function CenterPage() {
             <AlertDialogDescription className="text-lg text-gray-600">
               您確定要刪除
               <strong className="text-red-500">
-                {centerToDelete?.id}. {centerToDelete?.name}
+                {productToDelete?.id}. {productToDelete?.name}
               </strong>
               嗎？
               <br />
@@ -478,48 +615,6 @@ export default function CenterPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              disabled={isDeleting}
-              className="bg-red-500 hover:bg-red-700 text-base"
-            >
-              {isDeleting ? '刪除中...' : '確定刪除'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* ===== 批量刪除確認對話框 ===== */}
-      <AlertDialog
-        open={isBulkDeleteDialogOpen}
-        onOpenChange={setIsBulkDeleteDialogOpen}
-      >
-        <AlertDialogContent className="sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-bold my-2 flex items-baseline gap-2">
-              <IconTrash className="h-6 w-6 text-red-500 translate-y-0.5" />
-              確認批量刪除
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-lg text-gray-600">
-              您確定要刪除以下
-              <strong className="text-red-500">
-                {centersToDelete.length} 項資料
-              </strong>
-              嗎？
-            </AlertDialogDescription>
-            <div className="mt-3 max-h-32 overflow-y-auto">
-              {centersToDelete.map((center, index) => (
-                <div key={center.id} className="text-sm text-gray-700 py-1">
-                  {center.id}. {center.name}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 mt-2">此操作無法復原。</p>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-3">
-            <AlertDialogCancel onClick={cancelBulkDelete} className="text-base">
-              取消
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmBulkDelete}
               disabled={isDeleting}
               className="bg-red-500 hover:bg-red-700 text-base"
             >

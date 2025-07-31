@@ -2,8 +2,8 @@
 
 // ===== 依賴項匯入 =====
 import { useRouter } from 'next/navigation'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SiteHeader } from '@/components/site-header'
+import { AppSidebar } from '@/components/admin/app-sidebar'
+import { SiteHeader } from '@/components/admin/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
