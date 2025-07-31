@@ -1,4 +1,4 @@
-import './globals.css'
+import '@/style/globals.css'
 import { Toaster } from 'sonner'
 import { Noto_Sans_TC } from 'next/font/google'
 import { AuthProvider } from '@/contexts/auth-context'

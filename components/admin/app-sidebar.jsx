@@ -20,10 +20,10 @@ import {
   IconUsers,
 } from '@tabler/icons-react'
 
-import { NavDocuments } from '@/components/nav-documents'
-import { NavMain } from '@/components/nav-main'
-import { NavSecondary } from '@/components/nav-secondary'
-import { NavUser } from '@/components/nav-user'
+import { NavDocuments } from '@/components/admin/nav-documents'
+import { NavMain } from '@/components/admin/nav-main'
+import { NavSecondary } from '@/components/admin/nav-secondary'
+import { NavUser } from '@/components/admin/nav-user'
 import {
   Sidebar,
   SidebarContent,
@@ -66,6 +66,17 @@ const data = {
         {
           title: 'Reservation',
           url: '/admin/venue/reservation',
+        },
+      ],
+    },
+    {
+      title: 'Shop',
+      url: '/admin/shop',
+      icon: IconInnerShadowTop,
+      items: [
+        {
+          title: 'Product',
+          url: '/admin/shop/product',
         },
       ],
     },
@@ -186,14 +197,32 @@ export function AppSidebar({ ...props }) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/admin" className="relative">
-                <Image
+                {/* <Image
                   src="/sportify-logo-sm.png"
                   alt="sportify logo"
                   sizes="256px"
                   fill
                   style={{ objectFit: 'contain' }}
                   priority
-                />
+                /> */}
+                <div className="flex items-center">
+                  <Image
+                    src="/title-primary.svg"
+                    alt="sportify title"
+                    width={200}
+                    height={32}
+                    style={{ objectFit: 'contain' }}
+                    priority
+                  />
+                  <Image
+                    src="/logo.svg"
+                    alt="sportify logo"
+                    width={40}
+                    height={40}
+                    style={{ objectFit: 'contain' }}
+                    priority
+                  />
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
