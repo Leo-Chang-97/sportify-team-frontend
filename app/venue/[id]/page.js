@@ -6,14 +6,21 @@ import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
+import dynamic from 'next/dynamic'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Footer from '@/components/footer'
 import { cn } from '@/lib/utils'
+
+// 使用 Map 提供互動式地圖功能
+const Map = dynamic(() => import('@/components/map'), {
+  ssr: false,
+})
 
 /* -------------------------------------------------------------------------- */
 /*                         Helpers (shared, memo-safe)                        */
@@ -54,7 +61,7 @@ const products = [
     ],
     id: '1',
     image:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1600621894267-8b39c5144709?q=80&w=1167&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     inStock: true,
     name: 'Premium Wireless Headphones',
     originalPrice: 249.99,
@@ -237,14 +244,6 @@ export default function ProductDetailPage() {
   /* ------------------------ Derive product object ------------------------ */
   const product = React.useMemo(() => products.find((p) => p.id === id), [id])
 
-  /* ----------------------- Derived/computed values ----------------------- */
-  const discountPercentage = React.useMemo(() => {
-    if (!product?.originalPrice) return 0
-    return Math.round(
-      ((product.originalPrice - product.price) / product.originalPrice) * 100
-    )
-  }, [product])
-
   /* ------------------------------ Handlers ------------------------------- */
   const handleQuantityChange = React.useCallback((newQty) => {
     setQuantity((prev) => (newQty >= 1 ? newQty : prev))
@@ -280,29 +279,29 @@ export default function ProductDetailPage() {
     )
   }
 
-  /* ------------------------------ Markup --------------------------------- */
+  const position = [25.116592439309592, 121.50983159645816]
+
+  /*  Markup  */
   return (
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <main className="px-4 md:px-6">
-        <div className="container mx-auto max-w-screen-xl">
-          <div className="flex min-h-screen flex-col">
-            <main className="flex-1 py-10">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                {/* Title & rating */}
-                <div>
-                  <h1 className="text-3xl font-bold">{product.name}</h1>
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+            {/* Title & rating */}
+            <div>
+              <h1 className="text-3xl font-bold">{product.name}</h1>
 
-                  <div className="mt-2 flex items-center gap-2">
-                    {/* Stars */}
-                    <div
-                      aria-label={`Rating ${product.rating} out of 5`}
-                      className="flex items-center"
-                    >
-                      {range(5).map((i) => (
-                        <Star
-                          className={`
+              <div className="mt-2 flex items-center gap-2">
+                {/* Stars */}
+                <div
+                  aria-label={`Rating ${product.rating} out of 5`}
+                  className="flex items-center"
+                >
+                  {range(5).map((i) => (
+                    <Star
+                      className={`
                           h-5 w-5
                           ${
                             i < Math.floor(product.rating)
@@ -312,191 +311,228 @@ export default function ProductDetailPage() {
                                 : 'text-muted-foreground'
                           }
                         `}
-                          key={`star-${i}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      ({product.rating.toFixed(1)})
-                    </span>
-                  </div>
+                      key={`star-${i}`}
+                    />
+                  ))}
                 </div>
-                {/* Buttons */}
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Link href={`/venue/center/1`} className="w-full sm:w-auto">
-                    <Button variant="white" size="lg" className="w-full">
-                      分享
-                      <Share />
-                    </Button>
-                  </Link>
-                  <Link href="#" className="w-full sm:w-auto">
-                    <Button variant="white" size="lg" className="w-full">
-                      收藏
-                      <Heart />
-                    </Button>
-                  </Link>
-                </div>
+                <span className="text-sm text-muted-foreground">
+                  ({product.rating.toFixed(1)})
+                </span>
               </div>
+            </div>
+            {/* Buttons */}
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Link href={`/venue/center/1`} className="w-full sm:w-auto">
+                <Button variant="white" size="lg" className="w-full">
+                  分享
+                  <Share />
+                </Button>
+              </Link>
+              <Link href="#" className="w-full sm:w-auto">
+                <Button variant="white" size="lg" className="w-full">
+                  收藏
+                  <Heart />
+                </Button>
+              </Link>
+            </div>
+          </div>
 
-              <Separator className="my-8" />
+          <Separator className="my-8" />
 
-              {/* Main grid */}
-              <div
-                className={`
-              grid grid-cols-1 gap-8
-              md:grid-cols-2
-            `}
-              >
-                {/* ------------------------ Product image ------------------------ */}
-                <div
-                  className={`
-                relative aspect-square overflow-hidden rounded-lg bg-muted
-              `}
-                >
+          {/* Image */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {/* Main image */}
+            <div className="overflow-hidden rounded-lg bg-muted">
+              <AspectRatio ratio={4 / 3} className="bg-muted">
+                <Image
+                  alt={product.name}
+                  className="object-cover"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  src={product.image}
+                />
+              </AspectRatio>
+            </div>
+            {/* 2x2 grid image */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
-                    alt={product.name}
+                    alt={`${product.name} - 圖片 1`}
                     className="object-cover"
                     fill
                     priority
-                    src={product.image}
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   />
-                  {discountPercentage > 0 && (
-                    <div
-                      className={`
-                    absolute top-2 left-2 rounded-full bg-red-500 px-2 py-1
-                    text-xs font-bold text-white
-                  `}
-                    >
-                      -{discountPercentage}%
-                    </div>
-                  )}
-                </div>
-
-                {/* ---------------------- Product info -------------------------- */}
-                <div className="flex flex-col">
-                  {/* Category & prices */}
-                  <div>
-                    <p className="text-lg font-medium text-muted-foreground">
-                      {product.category}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-3xl font-bold">
-                        {CURRENCY_FORMATTER.format(product.price)}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-xl text-muted-foreground line-through">
-                          {CURRENCY_FORMATTER.format(product.originalPrice)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-muted-foreground">{product.description}</p>
-
-                  {/* Stock */}
-                  <div aria-atomic="true" aria-live="polite">
-                    {product.inStock ? (
-                      <p className="text-sm font-medium text-green-600">
-                        In Stock
-                      </p>
-                    ) : (
-                      <p className="text-sm font-medium text-red-500">
-                        Out of Stock
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Quantity selector & View Details */}
-                  <div
-                    className={`
-                  flex flex-col gap-4
-                  sm:flex-row sm:items-center
-                `}
-                  >
-                    {/* Quantity */}
-                    <div className="flex items-center">
-                      <Button
-                        aria-label="Decrease quantity"
-                        disabled={quantity <= 1}
-                        onClick={() => handleQuantityChange(quantity - 1)}
-                        size="icon"
-                        variant="outline"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-
-                      <span className="w-12 text-center select-none">
-                        {quantity}
-                      </span>
-
-                      <Button
-                        aria-label="Increase quantity"
-                        onClick={() => handleQuantityChange(quantity + 1)}
-                        size="icon"
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* View Details Button */}
-                    <Button
-                      className="flex-1"
-                      disabled={!product.inStock}
-                      onClick={handleViewDetails}
-                    >
-                      查看詳細資訊
-                    </Button>
-                  </div>
-                </div>
+                </AspectRatio>
               </div>
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <Image
+                    alt={`${product.name} - 圖片 2`}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1708312604073-90639de903fc?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  />
+                </AspectRatio>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <Image
+                    alt={`${product.name} - 圖片 3`}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1708268418738-4863baa9cf72?q=80&w=1214&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  />
+                </AspectRatio>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <Image
+                    alt={`${product.name} - 圖片 4`}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1627314387807-df615e8567de?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  />
+                </AspectRatio>
+              </div>
+            </div>
+          </div>
 
-              <Separator className="my-8" />
+          <Separator className="my-8" />
 
-              {/* ---------------------- Features & Specs ------------------------ */}
-              <div
-                className={`
+          {/* ---------------------- Features & Specs ------------------------ */}
+          <div
+            className={`
               grid grid-cols-1 gap-8
               md:grid-cols-2
             `}
-              >
-                {/* Features */}
-                <section>
-                  <h2 className="mb-4 text-2xl font-bold">Features</h2>
-                  <ul className="space-y-2">
-                    {product.features.map((feature) => (
-                      <li
-                        className="flex items-start"
-                        key={`feature-${product.id}-${slugify(feature)}`}
-                      >
-                        <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-primary" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+          >
+            <section className="flex flex-col gap-6">
+              {/* Product info */}
+              <div className="flex flex-col">
+                <h2 className="mb-4 text-2xl font-bold">Features</h2>
 
-                {/* Specifications */}
-                <section>
-                  <h2 className="mb-4 text-2xl font-bold">Specifications</h2>
-                  <div className="space-y-2">
-                    {Object.entries(product.specs).map(([key, value]) => (
-                      <div
-                        className="flex justify-between border-b pb-2 text-sm"
-                        key={key}
-                      >
-                        <span className="font-medium capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
-                        </span>
-                        <span className="text-muted-foreground">{value}</span>
-                      </div>
-                    ))}
+                {/* Category & prices */}
+                <div>
+                  <p className="text-lg font-medium text-muted-foreground">
+                    {product.category}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-3xl font-bold">
+                      {CURRENCY_FORMATTER.format(product.price)}
+                    </span>
+                    {product.originalPrice && (
+                      <span className="text-xl text-muted-foreground line-through">
+                        {CURRENCY_FORMATTER.format(product.originalPrice)}
+                      </span>
+                    )}
                   </div>
-                </section>
+                </div>
+
+                {/* Description */}
+                <p className="text-muted-foreground">{product.description}</p>
+
+                {/* Stock */}
+                <div aria-atomic="true" aria-live="polite">
+                  {product.inStock ? (
+                    <p className="text-sm font-medium text-green-600">
+                      In Stock
+                    </p>
+                  ) : (
+                    <p className="text-sm font-medium text-red-500">
+                      Out of Stock
+                    </p>
+                  )}
+                </div>
+
+                {/* Quantity selector & View Details */}
+                <div
+                  className={`
+                  flex flex-col gap-4
+                  sm:flex-row sm:items-center
+                `}
+                >
+                  {/* Quantity */}
+                  <div className="flex items-center">
+                    <Button
+                      aria-label="Decrease quantity"
+                      disabled={quantity <= 1}
+                      onClick={() => handleQuantityChange(quantity - 1)}
+                      size="icon"
+                      variant="outline"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+
+                    <span className="w-12 text-center select-none">
+                      {quantity}
+                    </span>
+
+                    <Button
+                      aria-label="Increase quantity"
+                      onClick={() => handleQuantityChange(quantity + 1)}
+                      size="icon"
+                      variant="outline"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* View Details Button */}
+                  <Button
+                    className="flex-1"
+                    disabled={!product.inStock}
+                    onClick={handleViewDetails}
+                  >
+                    查看詳細資訊
+                  </Button>
+                </div>
               </div>
-            </main>
+              {/* Features */}
+              {/* <div className="flex flex-col">
+                <h2 className="mb-4 text-2xl font-bold">Features</h2>
+                <ul className="space-y-2">
+                  {product.features.map((feature) => (
+                    <li
+                      className="flex items-start"
+                      key={`feature-${product.id}-${slugify(feature)}`}
+                    >
+                      <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-primary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div> */}
+            </section>
+
+            {/* Specifications */}
+            <section>
+              <h2 className="mb-4 text-2xl font-bold">Specifications</h2>
+              <div className="space-y-2">
+                {Object.entries(product.specs).map(([key, value]) => (
+                  <div
+                    className="flex justify-between border-b pb-2 text-sm"
+                    key={key}
+                  >
+                    <span className="font-medium capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                    <span className="text-muted-foreground">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
+
+          <Separator className="my-8" />
+
+          <Map position={position} productName={product.name} />
         </div>
       </main>
       <Footer />
