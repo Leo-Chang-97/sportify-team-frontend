@@ -225,7 +225,7 @@ export function CenterCard({
                 <Eye />
               </Button>
             </Link>
-            <Link href="#" className="w-full flex-1">
+            <Link href="/venue/reservation" className="w-full flex-1">
               <Button className="w-full">
                 預訂
                 <ClipboardCheck />

@@ -43,7 +43,7 @@ const slugify = (str) =>
 /** Build an integer array `[0,…,length-1]` once */
 const range = (length) => Array.from({ length }, (_, i) => i)
 
-export default function dataDetailPage() {
+export default function CenterDetailPage() {
   /* Routing */
   const { id } = useParams()
   const router = useRouter()
