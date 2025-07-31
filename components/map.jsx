@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-export default function SimpleMap({ position, productName }) {
+export default function SimpleMap({ position, dataName }) {
   const mapRef = useRef(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState(null)
@@ -58,7 +58,7 @@ export default function SimpleMap({ position, productName }) {
         // 添加紅色標記
         L.marker(position, { icon: redIcon })
           .addTo(map)
-          .bindPopup(`📍 ${productName}`)
+          .bindPopup(`📍 ${dataName}`)
           .openPopup() // 自動打開彈出視窗
 
         if (mounted) {
@@ -77,7 +77,7 @@ export default function SimpleMap({ position, productName }) {
     return () => {
       mounted = false
     }
-  }, [position, productName])
+  }, [position, dataName])
 
   if (error) {
     return (

@@ -10,6 +10,7 @@ import {
   TennisRacketIcon,
   SoccerIcon,
   BaseballBatIcon,
+  BilliardBallIcon,
 } from '@/components/icons/sport-icons'
 // 定義 Scroll Area 欄位
 const sportItems = [
@@ -21,6 +22,7 @@ const sportItems = [
   { icon: TennisRacketIcon, label: '壁球' },
   { icon: SoccerIcon, label: '足球' },
   { icon: BaseballBatIcon, label: '棒球' },
+  { icon: BilliardBallIcon, label: '撞球' },
 ]
 export default function ScrollAreaSport() {
   return (
