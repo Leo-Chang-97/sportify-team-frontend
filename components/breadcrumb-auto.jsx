@@ -26,7 +26,7 @@ export default function BreadcrumbAuto() {
   return (
     <div
       className={cn(
-        'sticky top-16 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline'
+        'sticky top-16 z-50 w-full bg-background-dark/95 backdrop-blur supports-[backdrop-filter]:bg-background-dark/60 px-4 md:px-6 [&_*]:no-underline'
       )}
     >
       <div className="container mx-auto flex h-12 max-w-screen-xl items-center justify-between gap-4">

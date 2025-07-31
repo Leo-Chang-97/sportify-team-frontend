@@ -17,11 +17,12 @@ import {
   fetchCourtTimeSlotOptions,
   fetchStatusOptions,
 } from '@/api'
+import { TeamCard } from '@/components/card/team-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
@@ -197,7 +198,9 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section></section>
+      <section>
+        <TeamCard></TeamCard>
+      </section>
       <Footer />
     </>
   )

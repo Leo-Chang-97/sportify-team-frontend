@@ -4,8 +4,8 @@
 // ===== 依賴項匯入 =====
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SiteHeader } from '@/components/site-header'
+import { AppSidebar } from '@/components/admin/app-sidebar'
+import { SiteHeader } from '@/components/admin/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
 import { productColumns } from './columns'
