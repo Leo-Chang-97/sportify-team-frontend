@@ -16,6 +16,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
 } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,11 +34,24 @@ import {
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
+// 使用固定的初始值避免 hydration 錯誤
 const monthAtom = atom(new Date().getMonth())
 const yearAtom = atom(new Date().getFullYear())
 
 export const useCalendarMonth = () => useAtom(monthAtom)
 export const useCalendarYear = () => useAtom(yearAtom)
+
+// 初始化當前月份的 Hook
+export const useInitializeCurrentDate = () => {
+  const [, setMonth] = useCalendarMonth()
+  const [, setYear] = useCalendarYear()
+
+  useEffect(() => {
+    const now = new Date()
+    setMonth(now.getMonth())
+    setYear(now.getFullYear())
+  }, [setMonth, setYear])
+}
 
 const CalendarContext = createContext({
   locale: 'zh-TW',
@@ -214,9 +228,7 @@ export const CalendarBody = ({
             ? 'cursor-pointer hover:bg-gray-50'
             : 'cursor-not-allowed',
           isSelected && 'bg-blue-100 border-blue-500',
-          isToday
-            ? 'bg-primary/50 text-foreground font-bold'
-            : 'text-foreground'
+          isToday ? 'bg-primary text-foreground font-bold' : 'text-foreground'
         )}
         key={day}
         onClick={() => statusConfig.clickable && onDateSelect?.(date, dateInfo)}

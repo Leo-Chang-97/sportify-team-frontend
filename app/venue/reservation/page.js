@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import {
   CalendarMonthPicker,
   CalendarProvider,
   CalendarYearPicker,
+  useInitializeCurrentDate,
 } from '@/components/date-picker-calendar'
 
 const steps = [
@@ -53,7 +54,7 @@ const getRandomDate = (start, end) => {
   )
 }
 
-// 生成帶狀態的日期資料
+// 生成帶狀態的日期資料 (使用固定的模式避免hydration錯誤)
 const generateDateWithStatus = () => {
   const today = new Date()
   const dateData = {}
@@ -64,23 +65,32 @@ const generateDateWithStatus = () => {
     date.setDate(today.getDate() + i)
     const dateKey = date.toISOString().split('T')[0]
 
-    // 隨機分配狀態
-    const statusKeys = Object.keys(dateStatuses)
-    const randomStatus =
-      statusKeys[Math.floor(Math.random() * statusKeys.length)]
+    // 使用日期作為種子來決定狀態，確保每次都一樣
+    const dayOfMonth = date.getDate()
+    let status = 'available'
+    let availableSlots = 5
+
+    // 根據日期模式分配狀態
+    if (dayOfMonth % 7 === 0) {
+      status = 'closed'
+      availableSlots = 0
+    } else if (dayOfMonth % 5 === 0) {
+      status = 'full'
+      availableSlots = 0
+    } else {
+      status = 'available'
+      availableSlots = Math.max(1, dayOfMonth % 8)
+    }
 
     dateData[dateKey] = {
       date: date,
-      status: randomStatus,
-      availableSlots:
-        randomStatus === 'available' ? Math.floor(Math.random() * 10) + 1 : 0,
+      status: status,
+      availableSlots: availableSlots,
     }
   }
 
   return dateData
 }
-
-const dateData = generateDateWithStatus()
 
 // 計算年份範圍
 const currentYear = new Date().getFullYear()
@@ -89,6 +99,17 @@ const latestYear = currentYear + 2
 
 export default function ReservationPage() {
   const [selectedDate, setSelectedDate] = useState(null)
+  const [dateData, setDateData] = useState({})
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  // 初始化當前日期
+  useInitializeCurrentDate()
+
+  // 在客戶端生成資料，避免 hydration 錯誤
+  useEffect(() => {
+    setDateData(generateDateWithStatus())
+    setIsLoaded(true)
+  }, [])
 
   const handleDateSelect = (date, dateInfo) => {
     if (dateInfo && dateStatuses[dateInfo.status].clickable) {
@@ -112,27 +133,33 @@ export default function ReservationPage() {
           </section>
           <section>
             <h2 className="text-xl font-semibold mb-4">選擇預約日期</h2>
-            <CalendarProvider
-              dateData={dateData}
-              dateStatuses={dateStatuses}
-              selectedDate={selectedDate}
-              onDateSelect={handleDateSelect}
-            >
-              <CalendarDate>
-                <CalendarDatePicker>
-                  <CalendarMonthPicker />
-                  <CalendarYearPicker end={latestYear} start={earliestYear} />
-                </CalendarDatePicker>
-                <CalendarDatePagination />
-              </CalendarDate>
-              <CalendarHeader />
-              <CalendarBody
+            {isLoaded ? (
+              <CalendarProvider
                 dateData={dateData}
                 dateStatuses={dateStatuses}
                 selectedDate={selectedDate}
                 onDateSelect={handleDateSelect}
-              />
-            </CalendarProvider>
+              >
+                <CalendarDate>
+                  <CalendarDatePicker>
+                    <CalendarMonthPicker />
+                    <CalendarYearPicker end={latestYear} start={earliestYear} />
+                  </CalendarDatePicker>
+                  <CalendarDatePagination />
+                </CalendarDate>
+                <CalendarHeader />
+                <CalendarBody
+                  dateData={dateData}
+                  dateStatuses={dateStatuses}
+                  selectedDate={selectedDate}
+                  onDateSelect={handleDateSelect}
+                />
+              </CalendarProvider>
+            ) : (
+              <div className="bg-card border rounded-lg p-6 text-center">
+                <p className="text-muted-foreground">載入中...</p>
+              </div>
+            )}
           </section>
         </div>
       </main>
