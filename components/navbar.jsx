@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState, useRef } from 'react'
+import { useAuth } from '@/contexts/auth-context'
+import { ChevronDownIcon } from 'lucide-react'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -14,6 +16,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
 // Combined logo component using your SVG files
@@ -114,6 +125,58 @@ const defaultNavigationLinks = [
   { href: '/course', label: '課程報名' },
 ]
 
+// User Menu Component
+const UserMenu = ({
+  userName = 'User',
+  userEmail = 'user@example.com',
+  userAvatar,
+  onItemClick,
+  onLogout,
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        className="h-9 px-2 py-0 text-primary/70 hover:bg-accent-foreground/10 hover:text-primary"
+      >
+        <Avatar className="h-7 w-7">
+          <AvatarImage src={userAvatar} alt={userName} />
+          <AvatarFallback className="text-xs">
+            {userName
+              .split(' ')
+              .map((n) => n[0])
+              .join('')}
+          </AvatarFallback>
+        </Avatar>
+        <ChevronDownIcon className="h-3 w-3 ml-1 text-accent-foreground" />
+        <span className="sr-only">User menu</span>
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuLabel>
+        <div className="flex flex-col space-y-1">
+          <p className="text-sm font-medium leading-none">{userName}</p>
+          <p className="text-xs leading-none text-muted-foreground">
+            {userEmail}
+          </p>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={() => onItemClick?.('profile')}>
+        個人檔案
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onItemClick?.('settings')}>
+        會員中心
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
+        購物車
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={() => onLogout?.()}>登出</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+)
+
 export const Navbar = React.forwardRef(
   (
     {
@@ -123,16 +186,30 @@ export const Navbar = React.forwardRef(
       navigationLinks = defaultNavigationLinks,
       signInText = '登入',
       signInHref = '/login',
-      ctaText = '註冊',
-      ctaHref = '/register',
+      signUpText = '註冊',
+      signUpHref = '/register',
       onSignInClick,
-      onCtaClick,
+      onSignUpClick,
+      onUserItemClick,
       ...props
     },
     ref
   ) => {
     const [isMobile, setIsMobile] = useState(false)
     const containerRef = useRef(null)
+    const { user, isAuthenticated, logout } = useAuth()
+
+    const handleLogout = () => {
+      logout()
+    }
+
+    const handleUserItemClick = (action) => {
+      if (action === 'logout') {
+        handleLogout()
+      } else {
+        onUserItemClick?.(action)
+      }
+    }
 
     useEffect(() => {
       const checkWidth = () => {
@@ -171,7 +248,7 @@ export const Navbar = React.forwardRef(
       <header
         ref={combinedRef}
         className={cn(
-          'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
+          'sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
           className
         )}
         {...props}
@@ -184,14 +261,17 @@ export const Navbar = React.forwardRef(
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
+                    className="group h-9 w-9 hover:bg-accent/10 hover:text-accent-foreground"
                     variant="ghost"
                     size="icon"
                   >
                     <HamburgerIcon />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-48 p-2">
+                <PopoverContent
+                  align="start"
+                  className="w-48 p-2 border shadow-md"
+                >
                   <NavigationMenu className="max-w-none">
                     <NavigationMenuList className="flex-col items-start gap-1">
                       {navigationLinks.map((link, index) => (
@@ -199,10 +279,10 @@ export const Navbar = React.forwardRef(
                           <Link
                             href={link.href}
                             className={cn(
-                              'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline',
+                              'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/10 hover:text-accent-foreground cursor-pointer no-underline',
                               link.active
-                                ? 'bg-accent text-accent-foreground'
-                                : 'text-foreground/80'
+                                ? 'bg-accent/10 text-accent-foreground'
+                                : 'text-primary hover:text-primary/80'
                             )}
                           >
                             {link.label}
@@ -218,7 +298,7 @@ export const Navbar = React.forwardRef(
             <div className="flex items-center gap-6">
               <Link
                 href={logoHref}
-                className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
+                className="flex items-center space-x-2 transition-colors cursor-pointer"
               >
                 <div className="text-2xl">{logo}</div>
               </Link>
@@ -231,9 +311,9 @@ export const Navbar = React.forwardRef(
                         <Link
                           href={link.href}
                           className={cn(
-                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
+                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-accent-foreground focus:bg-secondary/80 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
                             link.active
-                              ? 'bg-accent text-accent-foreground'
+                              ? 'bg-secondary text-accent-foreground'
                               : 'text-foreground/80 hover:text-foreground'
                           )}
                         >
@@ -248,21 +328,33 @@ export const Navbar = React.forwardRef(
           </div>
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-              asChild
-            >
-              <Link href={signInHref}>{signInText}</Link>
-            </Button>
-            <Button
-              size="sm"
-              className="text-sm font-medium px-4 h-9 rounded-md shadow-sm"
-              asChild
-            >
-              <Link href={ctaHref}>{ctaText}</Link>
-            </Button>
+            {!isAuthenticated ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm font-medium hover:bg-white/10 hover:text-accent-foreground px-4 h-9 rounded-full shadow-sm"
+                  asChild
+                >
+                  <Link href={signInHref}>{signInText}</Link>
+                </Button>
+                <Link href={signUpHref}>
+                  <div className="p-[2px] bg-gradient-to-r from-secondary to-purple-600 rounded-full">
+                    <div className="bg-primary transition-colors  hover:bg-primary/80 px-4 py-2 rounded-full text-sm">
+                      {signUpText}
+                    </div>
+                  </div>
+                </Link>
+              </>
+            ) : (
+              <UserMenu
+                userName={user?.name || '使用者'}
+                userEmail={user?.email || 'user@example.com'}
+                userAvatar={user?.avatar}
+                onItemClick={handleUserItemClick}
+                onLogout={handleLogout}
+              />
+            )}
           </div>
         </div>
       </header>

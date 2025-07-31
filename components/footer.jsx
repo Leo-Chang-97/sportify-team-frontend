@@ -173,7 +173,7 @@ const footerNav = [
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t bg-background px-4 md:px-6 py-10 [&_*]:no-underline">
+    <footer className="w-full bg-background-dark px-4 md:px-6 py-10 [&_*]:no-underline">
       <div className="container mx-auto max-w-screen-xl flex flex-col">
         <section className="flex flex-col gap-10 lg:flex-row lg:gap-20">
           <section>

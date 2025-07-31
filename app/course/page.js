@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import CourseCard from '@/components/card/course-card'
 import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
@@ -198,7 +199,15 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section></section>
+      <section className="py-10">
+              <div className="container mx-auto max-w-screen-xl px-4">
+                <h3 className="text-lg text-primary">精選課程</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <CourseCard />
+                  <CourseCard />
+                </div>
+              </div>
+            </section>
       <Footer />
     </>
   )
