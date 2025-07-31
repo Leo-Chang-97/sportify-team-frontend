@@ -199,7 +199,54 @@ export default function VenueListPage() {
       </HeroBanner>
       <ScrollAreaSport />
       <section>
-        <TeamCard></TeamCard>
+        <div className="container mx-auto max-w-screen-xl px-4 gap-8">
+          <div className="self-stretch text-center justify-start text-white text-2xl font-normal font-['Noto_Sans_TC'] leading-loose tracking-[24px]">
+            推·薦·隊·伍
+          </div>
+          <div className="self-stretch inline-flex justify-between items-start">
+            <div
+              data-color="secondary"
+              data-icon="true"
+              data-radius="8px"
+              data-size="medium"
+              data-state="Default"
+              className="w-40 h-11 px-12 py-4 bg-gradient-to-r from-orange-500 to-blue-600 rounded-lg flex justify-center items-center gap-2 overflow-hidden"
+            >
+              <div className="justify-start text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7">
+                創建隊伍
+              </div>
+              <div className="w-6 h-6 relative">
+                <div className="w-3.5 h-3 left-[20px] top-[18px] absolute origin-top-left rotate-180 border-2 border-white" />
+              </div>
+            </div>
+            <div className="flex-1 h-9 flex justify-end items-center gap-2">
+              <div
+                data-color="white"
+                data-size="hug"
+                data-state="search"
+                className="inline-flex flex-col justify-start items-start"
+              />
+              <div
+                data-color="white"
+                data-size="hug"
+                data-state="select"
+                className="inline-flex flex-col justify-start items-start"
+              >
+                <div className="px-2 py-1 bg-white rounded-md outline-1 outline-offset-[-1px] outline-slate-900 inline-flex justify-start items-center">
+                  <div className="pl-4 pr-2 flex justify-start items-center gap-2">
+                    <div className="justify-start text-stone-300 text-base font-normal font-['Noto_Sans_TC'] leading-normal">
+                      請選擇排序
+                    </div>
+                    <div className="w-7 h-7 relative">
+                      <div className="w-2 h-3.5 left-[7.50px] top-[18.75px] absolute origin-top-left -rotate-90 border border-slate-900" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <TeamCard></TeamCard>
+        </div>
       </section>
       <Footer />
     </>
