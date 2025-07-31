@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState, useRef } from 'react'
+import { useAuth } from '@/contexts/auth-context'
+import { ChevronDownIcon } from 'lucide-react'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -14,6 +16,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
 // Combined logo component using your SVG files
@@ -114,6 +125,58 @@ const defaultNavigationLinks = [
   { href: '/course', label: '課程報名' },
 ]
 
+// User Menu Component
+const UserMenu = ({
+  userName = 'User',
+  userEmail = 'user@example.com',
+  userAvatar,
+  onItemClick,
+  onLogout,
+}) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        className="h-9 px-2 py-0 text-primary/70 hover:bg-accent-foreground/10 hover:text-primary"
+      >
+        <Avatar className="h-7 w-7">
+          <AvatarImage src={userAvatar} alt={userName} />
+          <AvatarFallback className="text-xs">
+            {userName
+              .split(' ')
+              .map((n) => n[0])
+              .join('')}
+          </AvatarFallback>
+        </Avatar>
+        <ChevronDownIcon className="h-3 w-3 ml-1 text-accent-foreground" />
+        <span className="sr-only">User menu</span>
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuLabel>
+        <div className="flex flex-col space-y-1">
+          <p className="text-sm font-medium leading-none">{userName}</p>
+          <p className="text-xs leading-none text-muted-foreground">
+            {userEmail}
+          </p>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={() => onItemClick?.('profile')}>
+        個人檔案
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onItemClick?.('settings')}>
+        會員中心
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
+        購物車
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={() => onLogout?.()}>登出</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+)
+
 export const Navbar = React.forwardRef(
   (
     {
@@ -127,12 +190,26 @@ export const Navbar = React.forwardRef(
       signUpHref = '/register',
       onSignInClick,
       onSignUpClick,
+      onUserItemClick,
       ...props
     },
     ref
   ) => {
     const [isMobile, setIsMobile] = useState(false)
     const containerRef = useRef(null)
+    const { user, isAuthenticated, logout } = useAuth()
+
+    const handleLogout = () => {
+      logout()
+    }
+
+    const handleUserItemClick = (action) => {
+      if (action === 'logout') {
+        handleLogout()
+      } else {
+        onUserItemClick?.(action)
+      }
+    }
 
     useEffect(() => {
       const checkWidth = () => {
@@ -234,7 +311,7 @@ export const Navbar = React.forwardRef(
                         <Link
                           href={link.href}
                           className={cn(
-                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
+                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-accent-foreground focus:bg-secondary/80 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
                             link.active
                               ? 'bg-secondary text-accent-foreground'
                               : 'text-foreground/80 hover:text-foreground'
@@ -251,22 +328,33 @@ export const Navbar = React.forwardRef(
           </div>
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-sm font-medium hover:bg-white/10 hover:text-accent-foreground px-4 h-9 rounded-md shadow-sm"
-              asChild
-            >
-              <Link href={signInHref}>{signInText}</Link>
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="text-sm font-medium px-4 h-9 rounded-md shadow-sm"
-              asChild
-            >
-              <Link href={signUpHref}>{signUpText}</Link>
-            </Button>
+            {!isAuthenticated ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm font-medium hover:bg-white/10 hover:text-accent-foreground px-4 h-9 rounded-full shadow-sm"
+                  asChild
+                >
+                  <Link href={signInHref}>{signInText}</Link>
+                </Button>
+                <Link href={signUpHref}>
+                  <div className="p-[2px] bg-gradient-to-r from-secondary to-purple-600 rounded-full">
+                    <div className="bg-primary transition-colors  hover:bg-primary/80 px-4 py-2 rounded-full text-sm">
+                      {signUpText}
+                    </div>
+                  </div>
+                </Link>
+              </>
+            ) : (
+              <UserMenu
+                userName={user?.name || '使用者'}
+                userEmail={user?.email || 'user@example.com'}
+                userAvatar={user?.avatar}
+                onItemClick={handleUserItemClick}
+                onLogout={handleLogout}
+              />
+            )}
           </div>
         </div>
       </header>
