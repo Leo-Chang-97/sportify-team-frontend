@@ -5,7 +5,7 @@
 <style type="text/css">
 	.st0{display:none;}
 	.st1{display:inline;}
-	.st2{fill:none;stroke:#000000;stroke-width:0.5;stroke-miterlimit:10;}
+	.st2{fill:none;stroke:#000000;strokeWidth:0.5;stroke-miterlimit:10;}
 	.st3{display:inline;fill:#EC7534;}
 	.st4{display:inline;fill:#1E3F92;}
 	.st5{display:inline;fill:#E3522A;}
