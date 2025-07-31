@@ -112,19 +112,19 @@ export function CenterCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
-          {/* {safeProduct.image && (
-              <Image
-                alt={safeProduct.name}
-                className={cn(
-                  'object-cover transition-transform duration-300 ease-in-out',
-                  isHovered && 'scale-105'
-                )}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                src={safeProduct.image}
-              />
-            )} */}
-          <Image
+          {safeProduct.image && (
+            <Image
+              alt={safeProduct.name}
+              className={cn(
+                'object-cover transition-transform duration-300 ease-in-out',
+                isHovered && 'scale-105'
+              )}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              src={safeProduct.image}
+            />
+          )}
+          {/* <Image
             alt="test"
             className={cn(
               'object-cover transition-transform duration-300 ease-in-out',
@@ -133,7 +133,7 @@ export function CenterCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             src="/product-pic/photo-1505740420928-5e560c06d30e.avif"
-          />
+          /> */}
 
           {/* Category badge */}
           <Badge
@@ -218,11 +218,7 @@ export function CenterCard({
 
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
-            <Link
-              // href={`/venue/center/${safeProduct.id}`}
-              href={`/venue/center/1`}
-              className="w-full flex-1"
-            >
+            <Link href={`/venue/${safeProduct.id}`} className="w-full flex-1">
               <Button variant="white" className="w-full">
                 詳細
                 <Eye />
