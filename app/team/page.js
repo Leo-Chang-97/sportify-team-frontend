@@ -17,6 +17,7 @@ import {
   fetchCourtTimeSlotOptions,
   fetchStatusOptions,
 } from '@/api'
+import { TeamCard } from '@/components/card/team-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -197,7 +198,9 @@ export default function VenueListPage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section></section>
+      <section>
+        <TeamCard></TeamCard>
+      </section>
       <Footer />
     </>
   )
