@@ -1,22 +1,10 @@
 'use client'
 
+import { Search } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import {
-  createReservation,
-  fetchReservation,
-  updateReservation,
-  fetchMemberOptions,
-  fetchLocationOptions,
-  fetchTimePeriodOptions,
-  fetchCenterOptions,
-  fetchSportOptions,
-  fetchCourtOptions,
-  fetchTimeSlotOptions,
-  fetchCourtTimeSlotOptions,
-  fetchStatusOptions,
-} from '@/api'
+import { fetchMemberOptions, fetchSportOptions, fetchBrandData } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,38 +27,38 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ProductCard } from '@/components/card/product-card'
-import { ChevronDownIcon } from 'lucide-react'
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
 
-export default function VenueListPage() {
+// 定義 Brand 欄位
+const brandItems = [
+  { img: '/brand-pic/Anta.svg', label: 'Anta' },
+  { img: '/brand-pic/Asics.svg', label: 'Asics' },
+  { img: '/brand-pic/Butterfly.svg', label: 'Butterfly' },
+  { img: '/brand-pic/Mizuno.svg', label: 'Mizuno' },
+  { img: '/brand-pic/Molten.svg', label: 'Molten' },
+  { img: '/brand-pic/Nike.svg', label: 'Nike' },
+  { img: '/brand-pic/Spalding.svg', label: 'Spalding' },
+  { img: '/brand-pic/VICTOR.svg', label: 'VICTOR' },
+  { img: '/brand-pic/Wilson.svg', label: 'Wilson' },
+  { img: '/brand-pic/Yonex.svg', label: 'Yonex' },
+]
+
+export default function ProductHomePage() {
   // ===== 組件狀態管理 =====
   const [isLoading, setIsLoading] = useState(false)
   // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
   const [isInitialDataSet, setIsInitialDataSet] = useState(false)
 
-  const [memberId, setMemberId] = useState('')
-  const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [courtId, setCourtIds] = useState('')
-  const [timePeriodId, setTimePeriodId] = useState('')
-  const [timeSlotId, setTimeSlotIds] = useState('')
-  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
-  const [statusId, setStatusId] = useState('')
-  const [date, setDate] = useState(null)
-  const [price, setPrice] = useState('')
-
-  const [members, setMembers] = useState([])
-  const [locations, setLocations] = useState([])
-  const [centers, setCenters] = useState([])
+  const [brandId, setBrandId] = useState('')
   const [sports, setSports] = useState([])
-  const [courts, setCourts] = useState([])
-  const [timePeriods, setTimePeriods] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
-  const [courtTimeSlots, setCourtTimeSlots] = useState([])
-  const [status, setStatus] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
+  const [brands, setBrands] = useState([])
 
   // ===== 載入下拉選單選項 =====
   useEffect(() => {
@@ -79,20 +67,14 @@ export default function VenueListPage() {
         const memberData = await fetchMemberOptions()
         setMembers(memberData.rows || [])
 
-        const locationData = await fetchLocationOptions()
-        setLocations(locationData.rows || [])
-
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
 
-        const timePeriodData = await fetchTimePeriodOptions()
-        setTimePeriods(timePeriodData.rows || [])
-
-        const statusData = await fetchStatusOptions()
-        setStatus(statusData.rows || [])
+        const brandData = await fetchBrandData()
+        setBrands(brandData.data || [])
       } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
+        console.error('載入失敗:', error)
+        toast.error('載入失敗')
       }
     }
     loadData()
@@ -100,7 +82,7 @@ export default function VenueListPage() {
 
   const handleSearch = () => {
     // 搜尋邏輯
-    console.log('搜尋:', { locationId, sportId, date })
+    console.log('搜尋:', { brandId, sportId })
   }
 
   // 定義 Hero Banner 搜尋欄位
@@ -129,17 +111,17 @@ export default function VenueListPage() {
     {
       label: '品牌',
       component: (
-        <Select value={locationId} onValueChange={setLocationId}>
+        <Select value={brandId} onValueChange={setBrandId}>
           <SelectTrigger className="w-full bg-white !h-10">
             <SelectValue placeholder="請選擇品牌" />
           </SelectTrigger>
           <SelectContent>
-            {locations.length === 0 ? (
+            {brands.length === 0 ? (
               <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
             ) : (
-              locations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id.toString()}>
-                  {loc.name}
+              brands.map((brand) => (
+                <SelectItem key={brand.id} value={brand.id.toString()}>
+                  {brand.name}
                 </SelectItem>
               ))
             )}
@@ -148,37 +130,16 @@ export default function VenueListPage() {
       ),
     },
     {
-      label: '日期',
+      label: '關鍵字',
       component: (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className={`w-full h-10 justify-between font-normal${
-                !date ? ' text-gray-500' : ''
-              }`}
-            >
-              {date ? date.toLocaleDateString() : '請選擇預訂日期'}
-              <ChevronDownIcon />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              captionLayout="dropdown"
-              onSelect={(date) => {
-                setDate(date)
-                setOpen(false)
-              }}
-              className={errors.date ? 'border border-red-500 rounded-md' : ''}
-            />
-          </PopoverContent>
-          {errors.date && (
-            <p className="text-sm text-red-500 mt-1">{errors.date}</p>
-          )}
-        </Popover>
+        <div className="relative flex items-center">
+          <Search className="absolute left-2" size={20} />
+          <Input
+            type="search"
+            className="w-full bg-white !h-10 pl-8"
+            placeholder="請輸入關鍵字"
+          />
+        </div>
       ),
     },
   ]
@@ -201,12 +162,48 @@ export default function VenueListPage() {
       <ScrollAreaSport />
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選商品</h3>
+          <h3 className="text-lg text-primary text-center">精選商品</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <ProductCard />
             <ProductCard />
             <ProductCard />
             <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+          </div>
+        </div>
+      </section>
+      <section>
+        <div className="w-full bg-primary px-4 md:px-6">
+          <div className="container mx-auto flex flex-col max-w-screen-xl items-center justify-between pt-10">
+            <h3 className="text-lg text-white">探索品牌</h3>
+            <Carousel
+              opts={{
+                align: 'start',
+              }}
+              className="w-full sm:max-w-xs md:max-w-md lg:max-w-2xl mx-auto"
+            >
+              <CarouselContent>
+                {brandItems.map((item, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="sm:basis-1/2 md:basis-1/3 lg:basis-1/5 flex flex-col items-center"
+                  >
+                    <div className="p-1 py-10 w-[200px] h-[200px]">
+                      <img
+                        src={item.img}
+                        alt={item.label}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         </div>
       </section>
