@@ -288,7 +288,7 @@ export default function ProductDetailPage() {
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <main>
+      <main className="bg-foreground">
         <div className="container mx-auto max-w-screen-xl">
           <div className="flex min-h-screen flex-col">
             <main className="flex-1 py-10">

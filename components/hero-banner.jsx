@@ -12,7 +12,7 @@ export default function HeroBanner({
   onSearch,
   className = '',
   containerClassName = '',
-  titleClassName = 'text-4xl text-white font-bold',
+  titleClassName = 'text-4xl text-accent font-bold',
   ...props
 }) {
   return (
@@ -50,7 +50,7 @@ export function SearchField({
         </div>
       ))}
       <Button
-        variant="secondary"
+        variant="highlight"
         className="w-full md:w-auto h-10"
         onClick={onSearch}
         {...searchButtonProps}
