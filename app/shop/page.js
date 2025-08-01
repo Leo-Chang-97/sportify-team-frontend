@@ -4,21 +4,15 @@ import { Search } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { fetchMemberOptions, fetchSportOptions, fetchBrandData } from '@/api'
+import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/ui/shadcn-io/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -54,7 +48,7 @@ export default function ProductHomePage() {
   const [isLoading, setIsLoading] = useState(false)
   // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
   const [isInitialDataSet, setIsInitialDataSet] = useState(false)
-
+  const [members, setMembers] = useState([])
   const [sportId, setSportId] = useState('')
   const [brandId, setBrandId] = useState('')
   const [sports, setSports] = useState([])
@@ -70,8 +64,8 @@ export default function ProductHomePage() {
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
 
-        const brandData = await fetchBrandData()
-        setBrands(brandData.data || [])
+        const brandData = await fetchBrandOptions()
+        setBrands(brandData.rows || [])
       } catch (error) {
         console.error('載入失敗:', error)
         toast.error('載入失敗')

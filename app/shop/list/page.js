@@ -4,11 +4,10 @@ import { Search, AlignLeft, Funnel } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { fetchMemberOptions, fetchSportOptions, fetchBrandData } from '@/api'
+import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/ui/shadcn-io/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
@@ -95,35 +94,10 @@ export default function ProductListPage() {
   const [isLoading, setIsLoading] = useState(false)
   // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
   const [isInitialDataSet, setIsInitialDataSet] = useState(false)
+  const [members, setMembers] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sportId, setSportId] = useState('')
-  const [brandId, setBrandId] = useState('')
-  const [sports, setSports] = useState([
-    { id: '1', name: '健身訓練' },
-    { id: '2', name: '籃球' },
-    { id: '3', name: '羽球' },
-    { id: '4', name: '足球' },
-    { id: '5', name: '棒球' },
-    { id: '6', name: '桌球' },
-    { id: '7', name: '網球' },
-    { id: '8', name: '排球' },
-    { id: '9', name: '瑜珈' },
-    { id: '10', name: '游泳' },
-    { id: '11', name: '拳擊' },
-  ])
-  const [brands, setBrands] = useState([
-    { id: '12', name: 'Decathlon' },
-    { id: '13', name: 'Mizuno' },
-    { id: '14', name: 'Butterfly' },
-    { id: '15', name: 'Wilson' },
-    { id: '16', name: 'Molten' },
-    { id: '17', name: 'Nike' },
-    { id: '18', name: 'Adidas' },
-    { id: '19', name: 'Asics' },
-    { id: '20', name: 'Yonex' },
-    { id: '21', name: 'Spalding' },
-    { id: '22', name: 'VICTOR' },
-  ])
+  const [sports, setSports] = useState([])
+  const [brands, setBrands] = useState([])
 
   // ===== 載入下拉選單選項 =====
   useEffect(() => {
@@ -135,8 +109,8 @@ export default function ProductListPage() {
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
 
-        const brandData = await fetchBrandData()
-        setBrands(brandData.data || [])
+        const brandData = await fetchBrandOptions()
+        setBrands(brandData.rows || [])
       } catch (error) {
         console.error('載入失敗:', error)
         toast.error('載入失敗')

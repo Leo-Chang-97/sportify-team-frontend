@@ -64,7 +64,8 @@ export function ProductCard({
 
   return (
     <div className={cn('group', className)} {...props}>
-      <Link href={`/products/${safeProduct.id}`}>
+      <Link href={`/shop/product/1`}>
+      {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
         <Card
           className={cn(
             `
