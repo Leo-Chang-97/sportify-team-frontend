@@ -18,17 +18,18 @@ import {
   TennisRacketIcon,
   SoccerIcon,
   BaseballBatIcon,
+  BilliardBallIcon,
 } from '@/components/icons/sport-icons'
 
 export function CenterCard({
   className,
   onAddToWishlist,
-  product,
+  data,
   variant = 'default',
   ...props
 }) {
-  // 防呆：如果沒傳 product，給預設值
-  const safeProduct = product || {
+  // 防呆：如果沒傳 data，給預設值
+  const safedata = data || {
     category: 'Demo',
     id: 'demo',
     image: '',
@@ -45,20 +46,19 @@ export function CenterCard({
     e.preventDefault()
     if (onAddToWishlist) {
       setIsInWishlist(!isInWishlist)
-      onAddToWishlist(safeProduct.id)
+      onAddToWishlist(safedata.id)
     }
   }
 
-  const discount = safeProduct.originalPrice
+  const discount = safedata.originalPrice
     ? Math.round(
-        ((safeProduct.originalPrice - safeProduct.price) /
-          safeProduct.originalPrice) *
+        ((safedata.originalPrice - safedata.price) / safedata.originalPrice) *
           100
       )
     : 0
 
   const renderStars = () => {
-    const rating = safeProduct.rating ?? 0
+    const rating = safedata.rating ?? 0
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 >= 0.5
 
@@ -74,7 +74,7 @@ export function CenterCard({
                   ? 'fill-yellow-400/50 text-yellow-400'
                   : 'stroke-muted/40 text-muted'
             )}
-            key={`star-${safeProduct.id}-position-${i + 1}`}
+            key={`star-${safedata.id}-position-${i + 1}`}
           />
         ))}
         {rating > 0 && (
@@ -95,6 +95,7 @@ export function CenterCard({
     { icon: TennisRacketIcon, label: '壁球' },
     { icon: SoccerIcon, label: '足球' },
     { icon: BaseballBatIcon, label: '棒球' },
+    { icon: BilliardBallIcon, label: '撞球' },
   ]
 
   return (
@@ -112,16 +113,16 @@ export function CenterCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
-          {safeProduct.image && (
+          {safedata.image && (
             <Image
-              alt={safeProduct.name}
+              alt={safedata.name}
               className={cn(
                 'object-cover transition-transform duration-300 ease-in-out',
                 isHovered && 'scale-105'
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src={safeProduct.image}
+              src={safedata.image}
             />
           )}
           {/* <Image
@@ -132,17 +133,17 @@ export function CenterCard({
             )}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            src="/product-pic/photo-1505740420928-5e560c06d30e.avif"
+            src="/data-pic/photo-1505740420928-5e560c06d30e.avif"
           /> */}
 
           {/* Category badge */}
           <Badge
             className={`
-                absolute top-2 left-2 bg-white/30 backdrop-blur-sm
+                absolute top-2 left-2 bg-background/80 backdrop-blur-sm
               `}
-            variant="white"
+            variant="outline"
           >
-            {safeProduct.category}
+            {safedata.category}
           </Badge>
 
           {/* Discount badge */}
@@ -161,7 +162,7 @@ export function CenterCard({
           <Button
             className={cn(
               `
-                  absolute right-2 bottom-2 z-10 rounded-full bg-white/30
+                  absolute right-2 bottom-2 z-10 rounded-full bg-background/80
                   backdrop-blur-sm transition-opacity duration-300
                 `,
               !isHovered && !isInWishlist && 'opacity-0'
@@ -176,7 +177,7 @@ export function CenterCard({
                 'h-4 w-4',
                 isInWishlist
                   ? 'fill-destructive text-destructive'
-                  : 'text-primary'
+                  : 'text-muted-foreground'
               )}
             />
             <span className="sr-only">Add to wishlist</span>
@@ -184,14 +185,14 @@ export function CenterCard({
         </div>
 
         <CardContent className="flex flex-col gap-2 p-4 pt-4">
-          {/* Product name with line clamp */}
+          {/* data name with line clamp */}
           <h3
             className={`
                 line-clamp-2 text-lg font-medium transition-colors
                 group-hover:text-primary
               `}
           >
-            {safeProduct.name}
+            {safedata.name}
           </h3>
 
           {variant === 'default' && (
@@ -203,9 +204,12 @@ export function CenterCard({
                   const IconComponent = item.icon
                   return (
                     <Link href="#" key={idx}>
-                      <Button variant="white" size="sm">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="hover:bg-primary/10"
+                      >
                         <IconComponent className="!w-6 !h-6" />
-
                         {item.label}
                       </Button>
                     </Link>
@@ -218,13 +222,16 @@ export function CenterCard({
 
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
-            <Link href={`/venue/${safeProduct.id}`} className="w-full flex-1">
-              <Button variant="white" className="w-full">
+            <Link href={`/venue/${safedata.id}`} className="w-full flex-1">
+              <Button
+                variant="secondary"
+                className="w-full hover:bg-primary/10"
+              >
                 詳細
                 <Eye />
               </Button>
             </Link>
-            <Link href="#" className="w-full flex-1">
+            <Link href="/venue/reservation" className="w-full flex-1">
               <Button className="w-full">
                 預訂
                 <ClipboardCheck />
@@ -235,9 +242,9 @@ export function CenterCard({
 
         {/* {variant === 'compact' && (
           <CardFooter className="p-4 pt-0">
-            <Link href={`/venue/center/${safeProduct.id}`} className="flex-1">
+            <Link href={`/venue/center/${safedata.id}`} className="flex-1">
               <Button
-                variant="white"
+                variant="outline"
                 className="w-full text-primary border-primary"
               >
                 詳細
@@ -253,7 +260,7 @@ export function CenterCard({
           </CardFooter>
         )} */}
 
-        {!safeProduct.inStock && (
+        {!safedata.inStock && (
           <div
             className={`
                 absolute inset-0 flex items-center justify-center

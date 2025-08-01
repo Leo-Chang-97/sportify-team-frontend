@@ -41,6 +41,8 @@ import {
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
 
+import datas from './datas.json'
+
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
   const [isLoading, setIsLoading] = useState(false)
@@ -98,75 +100,6 @@ export default function VenueListPage() {
     loadData()
   }, [])
 
-  const products = [
-    {
-      category: 'Audio',
-      id: '1',
-      image:
-        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      inStock: true,
-      name: 'Premium Wireless Headphones',
-      originalPrice: 249.99,
-      price: 199.99,
-      rating: 4.5,
-    },
-    {
-      category: 'Wearables',
-      id: '2',
-      image:
-        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      inStock: true,
-      name: 'Smart Watch Series 5',
-      originalPrice: 349.99,
-      price: 299.99,
-      rating: 4.2,
-    },
-    {
-      category: 'Photography',
-      id: '3',
-      image:
-        'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      inStock: true,
-      name: 'Professional Camera Kit',
-      originalPrice: 1499.99,
-      price: 1299.99,
-      rating: 4.8,
-    },
-    {
-      category: 'Furniture',
-      id: '4',
-      image:
-        'https://images.unsplash.com/photo-1506377295352-e3154d43ea9e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      inStock: true,
-      name: 'Ergonomic Office Chair',
-      originalPrice: 299.99,
-      price: 249.99,
-      rating: 4.6,
-    },
-    {
-      category: 'Electronics',
-      id: '5',
-      image:
-        'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      inStock: true,
-      name: 'Smartphone Pro Max',
-      originalPrice: 1099.99,
-      price: 999.99,
-      rating: 4.9,
-    },
-    {
-      category: 'Electronics',
-      id: '6',
-      image:
-        'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      inStock: true,
-      name: 'Ultra HD Smart TV 55"',
-      originalPrice: 899.99,
-      price: 799.99,
-      rating: 4.7,
-    },
-  ]
-
   const handleSearch = () => {
     // 搜尋邏輯
     console.log('搜尋:', { locationId, sportId, date })
@@ -178,7 +111,7 @@ export default function VenueListPage() {
       label: '地區',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -199,7 +132,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -224,8 +157,8 @@ export default function VenueListPage() {
             <Button
               variant="outline"
               id="date"
-              className={`w-full h-10 bg-white justify-between font-normal${
-                !date ? ' text-gray-500' : ' text-primary'
+              className={`w-full h-10 bg-accent justify-between font-normal${
+                !date ? ' text-gray-500' : ' text-accent-foreground'
               }`}
             >
               {date ? date.toLocaleDateString() : '請選擇預訂日期'}
@@ -251,7 +184,6 @@ export default function VenueListPage() {
       ),
     },
   ]
-
   return (
     <>
       <Navbar />
@@ -272,18 +204,18 @@ export default function VenueListPage() {
         <div className="container mx-auto max-w-screen-xl px-4">
           <h3 className="text-lg text-forgeground">精選場館</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {datas.map((data) => (
               <CenterCard
-                key={product.id}
+                key={data.id}
                 // onAddToCart={handleAddToCart}
                 // onAddToWishlist={handleAddToWishlist}
-                product={product}
+                data={data}
               />
             ))}
           </div>
         </div>
         <div className="mt-10 flex justify-center">
-          <Link href="/products">
+          <Link href="/datas">
             <Button className="group h-12 px-8" size="lg" variant="secondary">
               載入更多
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
