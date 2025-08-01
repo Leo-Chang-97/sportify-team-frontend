@@ -155,8 +155,8 @@ export default function VenueListPage() {
             <Button
               variant="outline"
               id="date"
-              className={`w-full h-10 justify-between font-normal${
-                !date ? ' text-gray-500' : ''
+              className={`w-full h-10 bg-white justify-between font-normal${
+                !date ? ' text-gray-500' : ' text-primary'
               }`}
             >
               {date ? date.toLocaleDateString() : '請選擇預訂日期'}
@@ -200,14 +200,16 @@ export default function VenueListPage() {
       </HeroBanner>
       <ScrollAreaSport />
       <section className="py-10">
-              <div className="container mx-auto max-w-screen-xl px-4">
-                <h3 className="text-lg text-primary">精選課程</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  <CourseCard />
-                  <CourseCard />
-                </div>
-              </div>
-            </section>
+        <div className="container mx-auto max-w-screen-xl px-4">
+          <h3 className="text-lg text-primary">精選課程</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <CourseCard />
+            <CourseCard />  
+            <CourseCard />
+            <CourseCard />
+          </div>
+        </div>
+      </section>
       <Footer />
     </>
   )
