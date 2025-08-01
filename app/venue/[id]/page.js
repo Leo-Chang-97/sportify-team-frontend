@@ -130,8 +130,8 @@ export default function CenterDetailPage() {
             </div>
             {/* Buttons */}
             <div className="flex flex-col md:flex-row gap-2 w-full sm:w-auto">
-              <Link href={`/venue/center/1`} className="w-full sm:w-auto">
-                <Button variant="secondary" size="lg" className="w-full">
+              <Link href={`/venue/reservation`} className="w-full sm:w-auto">
+                <Button variant="highlight" size="lg" className="w-full">
                   預訂
                   <ClipboardCheck />
                 </Button>
@@ -231,7 +231,7 @@ export default function CenterDetailPage() {
           >
             <section className="flex flex-col gap-6">
               {/* Description */}
-              <p className="text-muted">{data.description}</p>
+              <p className="text-muted-foreground">{data.description}</p>
               {/* data info */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-2xl font-bold">場館運動項目</h2>
@@ -244,7 +244,7 @@ export default function CenterDetailPage() {
                         <Button variant="outline" size="sm">
                           <IconComponent className="!w-6 !h-6" />
                           <span>{item.label}</span>
-                          <span className="text-primary/50">4個場地</span>
+                          <span className="text-muted-foreground">4個場地</span>
                         </Button>
                       </Link>
                     )

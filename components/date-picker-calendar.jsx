@@ -89,7 +89,7 @@ const Combobox = ({ value, setValue, data, labels, className }) => {
         <Button
           aria-expanded={open}
           className={cn('w-40 justify-between capitalize', className)}
-          variant="outline"
+          variant="secondary"
         >
           {value
             ? data.find((item) => item.value === value)?.label
@@ -110,7 +110,7 @@ const Combobox = ({ value, setValue, data, labels, className }) => {
             <CommandGroup>
               {data.map((item) => (
                 <CommandItem
-                  className="capitalize"
+                  className="capitalize text-accent-foreground"
                   key={item.value}
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? '' : currentValue)
@@ -136,7 +136,7 @@ const Combobox = ({ value, setValue, data, labels, className }) => {
 }
 
 const OutOfBoundsDay = ({ day }) => (
-  <div className="relative h-full w-full bg-gray-100 p-1 text-muted-foreground text-xs">
+  <div className="relative h-full w-full bg-gray-100 p-1 text-muted-foreground text-xs text-center">
     {day}
   </div>
 )
@@ -228,9 +228,7 @@ export const CalendarBody = ({
             ? 'cursor-pointer hover:bg-gray-50'
             : 'cursor-not-allowed',
           isSelected && 'bg-blue-100 border-blue-500',
-          isToday
-            ? 'bg-background text-foreground font-bold'
-            : 'text-foreground'
+          isToday ? 'bg-blue-50 text-blue-800 font-bold' : 'text-gray-800'
         )}
         key={day}
         onClick={() => statusConfig.clickable && onDateSelect?.(date, dateInfo)}
@@ -239,7 +237,7 @@ export const CalendarBody = ({
         {dateInfo && (
           <div
             className={cn(
-              'text-xs px-1 py-0.5 rounded text-center',
+              'text-[10px] md:text-sm px-1 py-0.5 rounded text-center',
               statusConfig.color
             )}
           >
@@ -268,7 +266,7 @@ export const CalendarBody = ({
       {days.map((day, index) => (
         <div
           className={cn(
-            'relative aspect-square overflow-hidden border-t border-r border-border',
+            'relative aspect-square md:aspect-2/1 overflow-hidden border-t border-r border-border',
             index % 7 === 6 && 'border-r-0'
           )}
           key={index}
@@ -281,7 +279,11 @@ export const CalendarBody = ({
 }
 
 export const CalendarDatePicker = ({ className, children }) => (
-  <div className={cn('flex items-center gap-1', className)}>{children}</div>
+  <div
+    className={cn('flex flex-col md:flex-row items-center gap-1', className)}
+  >
+    {children}
+  </div>
 )
 
 export const CalendarMonthPicker = ({ className }) => {
@@ -356,10 +358,10 @@ export const CalendarDatePagination = ({ className }) => {
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <Button onClick={handlePreviousMonth} size="icon" variant="ghost">
+      <Button onClick={handlePreviousMonth} size="icon" variant="secondary">
         <ChevronLeftIcon size={16} />
       </Button>
-      <Button onClick={handleNextMonth} size="icon" variant="ghost">
+      <Button onClick={handleNextMonth} size="icon" variant="secondary">
         <ChevronRightIcon size={16} />
       </Button>
     </div>
@@ -367,7 +369,7 @@ export const CalendarDatePagination = ({ className }) => {
 }
 
 export const CalendarDate = ({ children }) => (
-  <div className="flex items-center justify-between p-3">{children}</div>
+  <div className="flex items-start justify-between p-3">{children}</div>
 )
 
 export const CalendarHeader = ({ className }) => {
@@ -381,7 +383,10 @@ export const CalendarHeader = ({ className }) => {
   return (
     <div className={cn('grid flex-grow grid-cols-7', className)}>
       {daysData.map((day) => (
-        <div className="p-3 text-right text-muted-foreground text-xs" key={day}>
+        <div
+          className="p-3 text-center text-muted-foreground text-xs"
+          key={day}
+        >
           {day}
         </div>
       ))}
@@ -399,6 +404,7 @@ export const CalendarProvider = ({
   selectedDate,
   onDateSelect,
 }) => (
+  // CalendarProvider：日曆元件的最外層，提供 context 與主要結構
   <CalendarContext.Provider value={{ locale, startDay }}>
     <div
       className={cn(
@@ -406,23 +412,26 @@ export const CalendarProvider = ({
         className
       )}
     >
+      {/* children：日曆主體（標頭、天數格子等） */}
       {children}
 
-      {/* 選中的日期顯示 */}
+      {/* 選中的日期顯示區塊（如果有選擇日期才會顯示） */}
       {selectedDate && (
-        <div className="mx-3 mb-3 p-3 bg-blue-50 rounded">
+        <div className="mx-3 my-3 p-3 bg-blue-50 rounded">
           <p className="text-sm text-blue-800">
             已選擇：{selectedDate.toLocaleDateString('zh-TW')}
           </p>
         </div>
       )}
 
-      {/* 圖例 */}
-      <div className="mx-3 mb-3 flex flex-wrap gap-2 text-xs">
+      {/* 圖例區塊：顯示每種狀態的顏色與說明文字 */}
+      <div className="mx-3 mb-3 flex flex-wrap justify-center gap-2 text-xs">
         {Object.entries(dateStatuses).map(([key, status]) => (
           <div key={key} className="flex items-center gap-1">
+            {/* 狀態顏色圓點 */}
             <div className={cn('w-3 h-3 rounded', status.color)} />
-            <span>{status.label}</span>
+            {/* 狀態說明文字 */}
+            <span className="text-gray-800">{status.label}</span>
           </div>
         ))}
       </div>

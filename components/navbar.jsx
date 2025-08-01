@@ -137,7 +137,7 @@ const UserMenu = ({
     <DropdownMenuTrigger asChild>
       <Button
         variant="ghost"
-        className="h-9 px-2 py-0 text-primary/70 hover:bg-accent-foreground/10 hover:text-primary"
+        className="h-9 px-2 py-0 text-accent-foreground hover:bg-accent/50 hover:text-accent-foreground"
       >
         <Avatar className="h-7 w-7">
           <AvatarImage src={userAvatar} alt={userName} />
@@ -148,7 +148,7 @@ const UserMenu = ({
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <ChevronDownIcon className="h-3 w-3 ml-1 text-accent-foreground" />
+        <ChevronDownIcon className="h-3 w-3 ml-1" />
         <span className="sr-only">User menu</span>
       </Button>
     </DropdownMenuTrigger>
@@ -276,13 +276,14 @@ export const Navbar = React.forwardRef(
                     <NavigationMenuList className="flex-col items-start gap-1">
                       {navigationLinks.map((link, index) => (
                         <NavigationMenuItem key={index} className="w-full">
+                          {/* 手機版主導航選項 */}
                           <Link
                             href={link.href}
                             className={cn(
                               'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline',
                               link.active
                                 ? 'bg-accent text-accent-foreground'
-                                : 'text-foreground/80'
+                                : 'text-accent-foreground hover:text-accent-foreground'
                             )}
                           >
                             {link.label}
@@ -308,13 +309,14 @@ export const Navbar = React.forwardRef(
                   <NavigationMenuList className="gap-1">
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index}>
+                        {/* 電腦版主導航選項 */}
                         <Link
                           href={link.href}
                           className={cn(
-                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
+                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
                             link.active
                               ? 'bg-accent text-accent-foreground'
-                              : 'text-foreground/80 hover:text-foreground'
+                              : 'text-foreground hover:text-accent-foreground'
                           )}
                         >
                           {link.label}
@@ -333,14 +335,14 @@ export const Navbar = React.forwardRef(
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-sm font-medium hover:bg-white/10 hover:text-accent-foreground px-4 h-9 rounded-full shadow-sm"
+                  className="text-sm font-medium hover:bg-accent hover:text-accent-foreground px-4 h-9 rounded-full shadow-sm"
                   asChild
                 >
                   <Link href={signInHref}>{signInText}</Link>
                 </Button>
                 <Link href={signUpHref}>
                   <div className="p-[2px] bg-gradient-to-r from-orange-600 to-purple-600 rounded-full">
-                    <div className="bg-primary transition-colors  hover:bg-primary/80 px-4 py-2 rounded-full text-primary-foreground text-sm">
+                    <div className="bg-background transition-colors  hover:bg-background/50 px-4 py-2 rounded-full text-primary-foreground text-sm">
                       {signUpText}
                     </div>
                   </div>

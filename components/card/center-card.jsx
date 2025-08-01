@@ -204,9 +204,12 @@ export function CenterCard({
                   const IconComponent = item.icon
                   return (
                     <Link href="#" key={idx}>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="hover:bg-primary/10"
+                      >
                         <IconComponent className="!w-6 !h-6" />
-
                         {item.label}
                       </Button>
                     </Link>
@@ -220,7 +223,10 @@ export function CenterCard({
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
             <Link href={`/venue/${safedata.id}`} className="w-full flex-1">
-              <Button variant="outline" className="w-full">
+              <Button
+                variant="secondary"
+                className="w-full hover:bg-primary/10"
+              >
                 詳細
                 <Eye />
               </Button>

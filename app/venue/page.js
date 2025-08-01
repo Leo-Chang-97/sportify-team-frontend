@@ -111,7 +111,7 @@ export default function VenueListPage() {
       label: '地區',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -132,7 +132,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -157,8 +157,8 @@ export default function VenueListPage() {
             <Button
               variant="outline"
               id="date"
-              className={`w-full h-10 bg-white justify-between font-normal${
-                !date ? ' text-gray-500' : ' text-primary'
+              className={`w-full h-10 bg-accent justify-between font-normal${
+                !date ? ' text-gray-500' : ' text-accent-foreground'
               }`}
             >
               {date ? date.toLocaleDateString() : '請選擇預訂日期'}

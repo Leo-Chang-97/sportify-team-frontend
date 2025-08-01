@@ -19,6 +19,7 @@ import {
   CalendarYearPicker,
   useInitializeCurrentDate,
 } from '@/components/date-picker-calendar'
+import { TimeSlotTable } from '@/components/timeslot-table'
 
 const steps = [
   { id: 1, title: '選擇場館', completed: true },
@@ -133,33 +134,44 @@ export default function ReservationPage() {
           </section>
           <section>
             <h2 className="text-xl font-semibold mb-4">選擇預約日期</h2>
-            {isLoaded ? (
-              <CalendarProvider
-                dateData={dateData}
-                dateStatuses={dateStatuses}
-                selectedDate={selectedDate}
-                onDateSelect={handleDateSelect}
-              >
-                <CalendarDate>
-                  <CalendarDatePicker>
-                    <CalendarMonthPicker />
-                    <CalendarYearPicker end={latestYear} start={earliestYear} />
-                  </CalendarDatePicker>
-                  <CalendarDatePagination />
-                </CalendarDate>
-                <CalendarHeader />
-                <CalendarBody
+            <div className="px-none md:px-6">
+              {isLoaded ? (
+                <CalendarProvider
                   dateData={dateData}
                   dateStatuses={dateStatuses}
                   selectedDate={selectedDate}
                   onDateSelect={handleDateSelect}
-                />
-              </CalendarProvider>
-            ) : (
-              <div className="bg-card border rounded-lg p-6 text-center">
-                <p className="text-muted-foreground">載入中...</p>
-              </div>
-            )}
+                >
+                  <CalendarDate>
+                    <CalendarDatePicker>
+                      <CalendarYearPicker
+                        end={latestYear}
+                        start={earliestYear}
+                      />
+                      <CalendarMonthPicker />
+                    </CalendarDatePicker>
+                    <CalendarDatePagination />
+                  </CalendarDate>
+                  <CalendarHeader />
+                  <CalendarBody
+                    dateData={dateData}
+                    dateStatuses={dateStatuses}
+                    selectedDate={selectedDate}
+                    onDateSelect={handleDateSelect}
+                  />
+                </CalendarProvider>
+              ) : (
+                <div className="bg-card border rounded-lg p-6 text-center">
+                  <p className="text-muted-foreground">載入中...</p>
+                </div>
+              )}
+            </div>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold mb-4">選擇預約日期</h2>
+            <div className="px-none md:px-6">
+              <TimeSlotTable />
+            </div>
           </section>
         </div>
       </main>

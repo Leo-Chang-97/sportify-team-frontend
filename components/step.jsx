@@ -55,7 +55,7 @@ export function Step({
               className={cn(
                 'flex items-center justify-center rounded-full transition-colors',
                 step.completed || step.active
-                  ? 'bg-secondary text-primary-foreground'
+                  ? 'bg-highlight text-highlight-foreground'
                   : 'bg-muted text-muted-foreground',
                 'w-8 h-8 text-sm font-medium'
               )}
