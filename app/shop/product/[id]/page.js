@@ -8,7 +8,7 @@ import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import {
