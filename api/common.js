@@ -70,3 +70,7 @@ export const fetchCourtTimeSlotOptions = async (params = {}) => {
   const res = await apiClient.get(url)
   return res.data
 }
+export const fetchBrandOptions = async () => {
+  const res = await apiClient.get('/common/brand')
+  return res.data
+}

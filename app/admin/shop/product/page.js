@@ -16,8 +16,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  fetchBrandData,
-  fetchSportData,
+  fetchBrandOptions,
+  fetchSportOptions,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -100,20 +100,19 @@ export default function ProductPage() {
 
   // ===== 副作用處理 =====
   useEffect(() => {
-    const loadOptions = async () => {
+    const loadData = async () => {
       try {
-        const [brandsData, sportsData] = await Promise.all([
-          fetchBrandData(),
-          fetchSportData(),
-        ])
-        setBrands(brandsData.data || [])
-        setSports(sportsData.data || [])
+        const brandData = await fetchBrandOptions()
+        setBrands(brandData.rows || [])
+
+        const sportData = await fetchSportOptions()
+        setSports(sportData.rows || [])
       } catch (error) {
         console.error('載入選項失敗:', error)
         toast.error('載入選項失敗')
       }
     }
-    loadOptions()
+    loadData()
   }, [])
 
   // ===== 事件處理函數 =====
@@ -507,11 +506,17 @@ export default function ProductPage() {
                     <SelectValue placeholder="請選擇運動種類" />
                   </SelectTrigger>
                   <SelectContent>
-                    {sports.map((sport) => (
-                      <SelectItem key={sport.id} value={sport.id.toString()}>
-                        {sport.name}
-                      </SelectItem>
-                    ))}
+                    {sports.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      sports.map((sport) => (
+                        <SelectItem key={sport.id} value={sport.id.toString()}>
+                          {sport.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.sport_id && (
