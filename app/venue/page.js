@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
@@ -40,6 +40,8 @@ import {
 } from '@/components/ui/select'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
+
+import datas from './datas.json'
 
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
@@ -109,7 +111,7 @@ export default function VenueListPage() {
       label: '地區',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -130,7 +132,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -155,8 +157,8 @@ export default function VenueListPage() {
             <Button
               variant="outline"
               id="date"
-              className={`w-full h-10 justify-between font-normal${
-                !date ? ' text-gray-500' : ''
+              className={`w-full h-10 bg-accent justify-between font-normal${
+                !date ? ' text-gray-500' : ' text-accent-foreground'
               }`}
             >
               {date ? date.toLocaleDateString() : '請選擇預訂日期'}
@@ -182,7 +184,6 @@ export default function VenueListPage() {
       ),
     },
   ]
-
   return (
     <>
       <Navbar />
@@ -201,16 +202,20 @@ export default function VenueListPage() {
       <ScrollAreaSport />
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選場館</h3>
+          <h3 className="text-lg text-forgeground">精選場館</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <CenterCard />
-            <CenterCard />
-            <CenterCard />
-            <CenterCard />
+            {datas.map((data) => (
+              <CenterCard
+                key={data.id}
+                // onAddToCart={handleAddToCart}
+                // onAddToWishlist={handleAddToWishlist}
+                data={data}
+              />
+            ))}
           </div>
         </div>
         <div className="mt-10 flex justify-center">
-          <Link href="/products">
+          <Link href="/datas">
             <Button className="group h-12 px-8" size="lg" variant="secondary">
               載入更多
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

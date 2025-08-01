@@ -8,7 +8,7 @@ import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Navbar } from '@/components/ui/shadcn-io/navbar'
+import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import {
@@ -57,7 +57,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={sport.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base text-regular text-gray-800">
+                    <span className="text-base text-regular text-muted">
                       {sport.name}
                     </span>
                   </Label>
@@ -75,7 +75,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={brand.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base text-regular text-gray-800">
+                    <span className="text-base text-regular text-muted">
                       {brand.name}
                     </span>
                   </Label>
@@ -132,7 +132,7 @@ export default function ProductListPage() {
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex flex-col items-start justify-center gap-3 mb-8">
             <p className="text-2xl font-bold text-primary">籃球</p>
-            <p className="text-base font-regular text-gray-800">共有XX件商品</p>
+            <p className="text-base font-regular text-muted">共有XX件商品</p>
           </div>
           {/* 搜尋和排序區域 */}
           <div className="flex justify-center lg:justify-end items-center gap-4 mb-6 min-w-[300px] overflow-x-auto">
@@ -140,8 +140,9 @@ export default function ProductListPage() {
               {/* 手機側邊欄開啟按鈕*/}
               <div className="block md:hidden flex items-center">
                 <Button
+                  variant="secondary"
                   onClick={() => setSidebarOpen(true)}
-                  className="!h-10 rounded-md border flex items-center justify-center bg-transparent text-primary"
+                  className="!h-10"
                 >
                   <AlignLeft size={20} />
                 </Button>
@@ -192,7 +193,7 @@ export default function ProductListPage() {
                       key={sport.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base text-regular text-gray-800">
+                      <span className="text-base text-regular text-muted">
                         {sport.name}
                       </span>
                     </label>
@@ -207,7 +208,7 @@ export default function ProductListPage() {
                       key={brand.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base text-regular text-gray-800">
+                      <span className="text-base text-regular text-muted">
                         {brand.name}
                       </span>
                     </label>
