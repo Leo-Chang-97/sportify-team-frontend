@@ -1,6 +1,6 @@
 'use client'
 
-import { Heart, ShoppingCart, Star } from 'lucide-react'
+import { Heart, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
@@ -29,7 +29,6 @@ export function ProductCard({
     name: 'Demo Product',
     originalPrice: 0,
     price: 0,
-    rating: 5,
   }
   const [isHovered, setIsHovered] = React.useState(false)
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
@@ -63,38 +62,10 @@ export function ProductCard({
       )
     : 0
 
-  const renderStars = () => {
-    const rating = safeProduct.rating ?? 0
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 >= 0.5
-
-    return (
-      <div className="flex items-center">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star
-            className={cn(
-              'h-4 w-4',
-              i < fullStars
-                ? 'fill-yellow-400 text-yellow-400'
-                : i === fullStars && hasHalfStar
-                  ? 'fill-yellow-400/50 text-yellow-400'
-                  : 'stroke-muted/40 text-muted'
-            )}
-            key={`star-${safeProduct.id}-position-${i + 1}`}
-          />
-        ))}
-        {rating > 0 && (
-          <span className="ml-1 text-xs text-muted-foreground">
-            {rating.toFixed(1)}
-          </span>
-        )}
-      </div>
-    )
-  }
-
   return (
     <div className={cn('group', className)} {...props}>
-      <Link href={`/products/${safeProduct.id}`}>
+      <Link href={`/shop/product/1`}>
+      {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
         <Card
           className={cn(
             `
@@ -192,7 +163,6 @@ export function ProductCard({
 
             {variant === 'default' && (
               <>
-                <div className="mt-1.5">{renderStars()}</div>
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className="font-medium text-foreground">
                     ${safeProduct.price.toFixed(2)}
