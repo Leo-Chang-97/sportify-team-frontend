@@ -48,7 +48,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
           >
             {/* 運動類型 */}
             <AccordionItem value="sport-type" className="border-b-0">
-              <AccordionTrigger className="text-lg font-bold text-primary">
+              <AccordionTrigger className="text-lg font-bold text-foreground">
                 運動類型
               </AccordionTrigger>
               <AccordionContent className="p-2 space-y-2">
@@ -57,7 +57,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={sport.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base text-regular text-muted">
+                    <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                       {sport.name}
                     </span>
                   </Label>
@@ -66,7 +66,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
             </AccordionItem>
             {/* 品牌 */}
             <AccordionItem value="brand">
-              <AccordionTrigger className="text-lg font-bold text-primary">
+              <AccordionTrigger className="text-lg font-bold text-foreground">
                 品牌
               </AccordionTrigger>
               <AccordionContent className="p-2 space-y-2">
@@ -75,7 +75,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={brand.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base text-regular text-muted">
+                    <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                       {brand.name}
                     </span>
                   </Label>
@@ -131,8 +131,10 @@ export default function ProductListPage() {
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex flex-col items-start justify-center gap-3 mb-8">
-            <p className="text-2xl font-bold text-primary">籃球</p>
-            <p className="text-base font-regular text-muted">共有XX件商品</p>
+            <p className="text-2xl font-bold text-foreground">籃球</p>
+            <p className="text-base font-regular text-muted-foreground">
+              共有XX件商品
+            </p>
           </div>
           {/* 搜尋和排序區域 */}
           <div className="flex justify-center lg:justify-end items-center gap-4 mb-6 min-w-[300px] overflow-x-auto">
@@ -150,11 +152,11 @@ export default function ProductListPage() {
               <div className="relative flex items-center w-[180px]">
                 <Input
                   type="search"
-                  className="w-full bg-white !h-10 pr-10"
+                  className="w-full bg-accent text-accent-foreground !h-10 pr-10"
                   placeholder="請輸入關鍵字"
                 />
                 <Button
-                  type="button"
+                  variant={'outline'}
                   onClick={handleSearch}
                   className="h-8 w-8 absolute right-2 flex items-center justify-center"
                 >
@@ -163,7 +165,7 @@ export default function ProductListPage() {
               </div>
               <div className="hidden md:block">
                 <Select>
-                  <SelectTrigger className="bg-white !h-10 w-[150px]">
+                  <SelectTrigger className="bg-accent text-accent-foreground !h-10 w-[150px]">
                     <SelectValue placeholder="請選擇排序" />
                   </SelectTrigger>
                   <SelectContent>
@@ -174,8 +176,9 @@ export default function ProductListPage() {
               </div>
               <div className="block md:hidden flex items-center">
                 <Button
+                  variant="secondary"
                   onClick={() => setSidebarOpen(true)}
-                  className="!h-10 rounded-md border flex items-center justify-center bg-transparent text-primary"
+                  className="!h-10"
                 >
                   <Funnel size={20} />
                 </Button>
@@ -186,14 +189,16 @@ export default function ProductListPage() {
             {/* 桌機側邊欄 */}
             <div className="w-64 pr-8 hidden md:block">
               <div className="mb-8">
-                <p className="text-xl font-bold mb-4 text-primary">運動類型</p>
+                <p className="text-xl font-bold mb-4 text-foreground">
+                  運動類型
+                </p>
                 <div className="space-y-2">
                   {sports.map((sport) => (
                     <label
                       key={sport.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base text-regular text-muted">
+                      <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {sport.name}
                       </span>
                     </label>
@@ -201,14 +206,14 @@ export default function ProductListPage() {
                 </div>
               </div>
               <div className="mb-8">
-                <p className="text-xl font-bold mb-4 text-primary">品牌</p>
+                <p className="text-xl font-bold mb-4 text-foreground">品牌</p>
                 <div className="space-y-2">
                   {brands.map((brand) => (
                     <label
                       key={brand.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base text-regular text-muted">
+                      <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {brand.name}
                       </span>
                     </label>

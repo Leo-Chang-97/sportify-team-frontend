@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils'
 /*                         Helpers (shared, memo-safe)                        */
 /* -------------------------------------------------------------------------- */
 
-const CURRENCY_FORMATTER = new Intl.NumberFormat('en-US', {
-  currency: 'USD',
+const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
+  currency: 'TWD',
   style: 'currency',
 })
 
@@ -240,14 +240,6 @@ export default function ProductDetailPage() {
   /* ------------------------ Derive product object ------------------------ */
   const product = React.useMemo(() => products.find((p) => p.id === id), [id])
 
-  /* ----------------------- Derived/computed values ----------------------- */
-  const discountPercentage = React.useMemo(() => {
-    if (!product?.originalPrice) return 0
-    return Math.round(
-      ((product.originalPrice - product.price) / product.originalPrice) * 100
-    )
-  }, [product])
-
   /* ------------------------------ Handlers ------------------------------- */
   const handleQuantityChange = React.useCallback((newQty) => {
     setQuantity((prev) => (newQty >= 1 ? newQty : prev))
@@ -288,7 +280,7 @@ export default function ProductDetailPage() {
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <main className="bg-foreground">
+      <main className="bg-background">
         <div className="container mx-auto max-w-screen-xl">
           <div className="flex min-h-screen flex-col">
             <main className="flex-1 py-10">
@@ -305,7 +297,7 @@ export default function ProductDetailPage() {
                   onClick={() => router.push('/products')}
                   variant="ghost"
                 >
-                  ← Back to Products
+                  ← 回上一頁
                 </Button>
 
                 {/* Main grid */}
@@ -315,141 +307,53 @@ export default function ProductDetailPage() {
               md:grid-cols-2
             `}
                 >
-                  {/* ------------------------ Product image ------------------------ */}
-                  <div
-                    className={`
-                relative aspect-square overflow-hidden rounded-lg bg-muted
-              `}
-                  >
-                    <Image
-                      alt={product.name}
-                      className="object-cover"
-                      fill
-                      priority
-                      src={product.image}
-                    />
-                    {discountPercentage > 0 && (
-                      <div
-                        className={`
-                    absolute top-2 left-2 rounded-full bg-red-500 px-2 py-1
-                    text-xs font-bold text-white
-                  `}
-                      >
-                        -{discountPercentage}%
-                      </div>
-                    )}
-                  </div>
-
                   {/* ---------------------- Product info -------------------------- */}
                   <div className="flex flex-col">
-                    {/* Title & rating */}
+                    {/* Title*/}
                     <div className="mb-6">
                       <h1 className="text-3xl font-bold">{product.name}</h1>
-
-                      <div className="mt-2 flex items-center gap-2">
-                        {/* Stars */}
-                        <div
-                          aria-label={`Rating ${product.rating} out of 5`}
-                          className="flex items-center"
-                        >
-                          {range(5).map((i) => (
-                            <Star
-                              className={`
-                          h-5 w-5
-                          ${
-                            i < Math.floor(product.rating)
-                              ? 'fill-primary text-primary'
-                              : i < product.rating
-                                ? 'fill-primary/50 text-primary'
-                                : 'text-muted-foreground'
-                          }
-                        `}
-                              key={`star-${i}`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          ({product.rating.toFixed(1)})
-                        </span>
-                      </div>
                     </div>
 
                     {/* Category & prices */}
                     <div className="mb-6">
                       <p className="text-lg font-medium text-muted-foreground">
-                        {product.category}
+                        {product.sport_name}/{product.brand_name}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <span className="text-3xl font-bold">
                           {CURRENCY_FORMATTER.format(product.price)}
                         </span>
-                        {product.originalPrice && (
-                          <span className="text-xl text-muted-foreground line-through">
-                            {CURRENCY_FORMATTER.format(product.originalPrice)}
-                          </span>
-                        )}
                       </div>
                     </div>
 
-                    {/* Description */}
-                    <p className="mb-6 text-muted-foreground">
-                      {product.description}
-                    </p>
-
-                    {/* Stock */}
-                    <div aria-atomic="true" aria-live="polite" className="mb-6">
-                      {product.inStock ? (
-                        <p className="text-sm font-medium text-green-600">
-                          In Stock
-                        </p>
-                      ) : (
-                        <p className="text-sm font-medium text-red-500">
-                          Out of Stock
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Quantity selector & View Details */}
-                    <div
-                      className={`
-                  mb-6 flex flex-col gap-4
-                  sm:flex-row sm:items-center
-                `}
-                    >
-                      {/* Quantity */}
-                      <div className="flex items-center">
-                        <Button
-                          aria-label="Decrease quantity"
-                          disabled={quantity <= 1}
-                          onClick={() => handleQuantityChange(quantity - 1)}
-                          size="icon"
-                          variant="outline"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-
-                        <span className="w-12 text-center select-none">
-                          {quantity}
-                        </span>
-
-                        <Button
-                          aria-label="Increase quantity"
-                          onClick={() => handleQuantityChange(quantity + 1)}
-                          size="icon"
-                          variant="outline"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {/* View Details Button */}
+                    {/* Quantity */}
+                    <div className="flex items-center w-full gap-2">
                       <Button
-                        className="flex-1"
-                        disabled={!product.inStock}
-                        onClick={handleViewDetails}
+                        aria-label="Decrease quantity"
+                        disabled={quantity <= 1}
+                        onClick={() => handleQuantityChange(quantity - 1)}
+                        size="icon"
+                        variant="outline"
                       >
-                        查看詳細資訊
+                        <Minus className="h-4 w-4" />
                       </Button>
+
+                      <span className="w-12 text-center select-none">
+                        {quantity}
+                      </span>
+
+                      <Button
+                        aria-label="Increase quantity"
+                        onClick={() => handleQuantityChange(quantity + 1)}
+                        size="icon"
+                        variant="outline"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 w-full">
+                      <Button className="">加入最愛</Button>
+                      <Button className="">加入購物車</Button>
                     </div>
                   </div>
                 </div>
@@ -463,22 +367,6 @@ export default function ProductDetailPage() {
               md:grid-cols-2
             `}
                 >
-                  {/* Features */}
-                  <section>
-                    <h2 className="mb-4 text-2xl font-bold">Features</h2>
-                    <ul className="space-y-2">
-                      {product.features.map((feature) => (
-                        <li
-                          className="flex items-start"
-                          key={`feature-${product.id}-${slugify(feature)}`}
-                        >
-                          <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-primary" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-
                   {/* Specifications */}
                   <section>
                     <h2 className="mb-4 text-2xl font-bold">Specifications</h2>

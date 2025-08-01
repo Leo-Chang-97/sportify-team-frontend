@@ -86,7 +86,7 @@ export default function ProductHomePage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -107,7 +107,7 @@ export default function ProductHomePage() {
       label: '品牌',
       component: (
         <Select value={brandId} onValueChange={setBrandId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇品牌" />
           </SelectTrigger>
           <SelectContent>
@@ -128,10 +128,10 @@ export default function ProductHomePage() {
       label: '關鍵字',
       component: (
         <div className="relative flex items-center">
-          <Search className="absolute left-2" size={20} />
+          <Search className="absolute left-2 text-accent-foreground" size={20} />
           <Input
             type="search"
-            className="w-full bg-white !h-10 pl-8"
+            className="w-full bg-accent text-accent-foreground !h-10 pl-8"
             placeholder="請輸入關鍵字"
           />
         </div>
@@ -157,7 +157,7 @@ export default function ProductHomePage() {
       <ScrollAreaSport />
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary text-center">精選商品</h3>
+          <h3 className="text-lg text-foreground text-center pb-10">精選商品</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <ProductCard />
             <ProductCard />
@@ -171,9 +171,9 @@ export default function ProductHomePage() {
         </div>
       </section>
       <section>
-        <div className="w-full bg-primary px-4 md:px-6">
+        <div className="w-full bg-background px-4 md:px-6">
           <div className="container mx-auto flex flex-col max-w-screen-xl items-center justify-between pt-10">
-            <h3 className="text-lg text-white">探索品牌</h3>
+            <h3 className="text-lg text-foreground text-center">探索品牌</h3>
             <Carousel
               opts={{
                 align: 'start',
