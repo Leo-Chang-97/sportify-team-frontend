@@ -248,7 +248,7 @@ export const Navbar = React.forwardRef(
       <header
         ref={combinedRef}
         className={cn(
-          'sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
+          'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
           className
         )}
         {...props}
@@ -261,7 +261,7 @@ export const Navbar = React.forwardRef(
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    className="group h-9 w-9 hover:bg-accent/10 hover:text-accent-foreground"
+                    className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
                     variant="ghost"
                     size="icon"
                   >
@@ -279,10 +279,10 @@ export const Navbar = React.forwardRef(
                           <Link
                             href={link.href}
                             className={cn(
-                              'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/10 hover:text-accent-foreground cursor-pointer no-underline',
+                              'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline',
                               link.active
-                                ? 'bg-accent/10 text-accent-foreground'
-                                : 'text-primary hover:text-primary/80'
+                                ? 'bg-accent text-accent-foreground'
+                                : 'text-foreground/80'
                             )}
                           >
                             {link.label}
@@ -311,9 +311,9 @@ export const Navbar = React.forwardRef(
                         <Link
                           href={link.href}
                           className={cn(
-                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-accent-foreground focus:bg-secondary/80 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
+                            'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
                             link.active
-                              ? 'bg-secondary text-accent-foreground'
+                              ? 'bg-accent text-accent-foreground'
                               : 'text-foreground/80 hover:text-foreground'
                           )}
                         >
@@ -339,8 +339,8 @@ export const Navbar = React.forwardRef(
                   <Link href={signInHref}>{signInText}</Link>
                 </Button>
                 <Link href={signUpHref}>
-                  <div className="p-[2px] bg-gradient-to-r from-secondary to-purple-600 rounded-full">
-                    <div className="bg-primary transition-colors  hover:bg-primary/80 px-4 py-2 rounded-full text-sm">
+                  <div className="p-[2px] bg-gradient-to-r from-orange-600 to-purple-600 rounded-full">
+                    <div className="bg-primary transition-colors  hover:bg-primary/80 px-4 py-2 rounded-full text-primary-foreground text-sm">
                       {signUpText}
                     </div>
                   </div>

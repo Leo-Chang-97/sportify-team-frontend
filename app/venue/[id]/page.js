@@ -138,13 +138,13 @@ export default function CenterDetailPage() {
               </Link>
               <div className="flex flex-row gap-2 w-full sm:w-auto">
                 <Link href={`/venue/center/1`} className="w-full sm:w-auto">
-                  <Button variant="white" size="lg" className="w-full">
+                  <Button variant="outline" size="lg" className="w-full">
                     分享
                     <Share />
                   </Button>
                 </Link>
                 <Link href="#" className="w-full sm:w-auto">
-                  <Button variant="white" size="lg" className="w-full">
+                  <Button variant="outline" size="lg" className="w-full">
                     收藏
                     <Heart />
                   </Button>
@@ -241,7 +241,7 @@ export default function CenterDetailPage() {
                     const IconComponent = item.icon
                     return (
                       <Link href="#" key={idx}>
-                        <Button variant="white" size="sm">
+                        <Button variant="outline" size="sm">
                           <IconComponent className="!w-6 !h-6" />
                           <span>{item.label}</span>
                           <span className="text-primary/50">4個場地</span>

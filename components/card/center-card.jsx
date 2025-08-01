@@ -139,9 +139,9 @@ export function CenterCard({
           {/* Category badge */}
           <Badge
             className={`
-                absolute top-2 left-2 bg-white/30 backdrop-blur-sm
+                absolute top-2 left-2 bg-background/80 backdrop-blur-sm
               `}
-            variant="white"
+            variant="outline"
           >
             {safedata.category}
           </Badge>
@@ -162,7 +162,7 @@ export function CenterCard({
           <Button
             className={cn(
               `
-                  absolute right-2 bottom-2 z-10 rounded-full bg-white/30
+                  absolute right-2 bottom-2 z-10 rounded-full bg-background/80
                   backdrop-blur-sm transition-opacity duration-300
                 `,
               !isHovered && !isInWishlist && 'opacity-0'
@@ -177,7 +177,7 @@ export function CenterCard({
                 'h-4 w-4',
                 isInWishlist
                   ? 'fill-destructive text-destructive'
-                  : 'text-primary'
+                  : 'text-muted-foreground'
               )}
             />
             <span className="sr-only">Add to wishlist</span>
@@ -204,7 +204,7 @@ export function CenterCard({
                   const IconComponent = item.icon
                   return (
                     <Link href="#" key={idx}>
-                      <Button variant="white" size="sm">
+                      <Button variant="outline" size="sm">
                         <IconComponent className="!w-6 !h-6" />
 
                         {item.label}
@@ -220,7 +220,7 @@ export function CenterCard({
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
             <Link href={`/venue/${safedata.id}`} className="w-full flex-1">
-              <Button variant="white" className="w-full">
+              <Button variant="outline" className="w-full">
                 詳細
                 <Eye />
               </Button>
@@ -238,7 +238,7 @@ export function CenterCard({
           <CardFooter className="p-4 pt-0">
             <Link href={`/venue/center/${safedata.id}`} className="flex-1">
               <Button
-                variant="white"
+                variant="outline"
                 className="w-full text-primary border-primary"
               >
                 詳細

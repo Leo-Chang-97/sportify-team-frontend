@@ -89,7 +89,7 @@ const Combobox = ({ value, setValue, data, labels, className }) => {
         <Button
           aria-expanded={open}
           className={cn('w-40 justify-between capitalize', className)}
-          variant="white"
+          variant="outline"
         >
           {value
             ? data.find((item) => item.value === value)?.label
@@ -136,7 +136,7 @@ const Combobox = ({ value, setValue, data, labels, className }) => {
 }
 
 const OutOfBoundsDay = ({ day }) => (
-  <div className="relative h-full w-full bg-muted p-1 text-muted-foreground text-xs">
+  <div className="relative h-full w-full bg-gray-100 p-1 text-muted-foreground text-xs">
     {day}
   </div>
 )
@@ -228,7 +228,9 @@ export const CalendarBody = ({
             ? 'cursor-pointer hover:bg-gray-50'
             : 'cursor-not-allowed',
           isSelected && 'bg-blue-100 border-blue-500',
-          isToday ? 'bg-primary text-foreground font-bold' : 'text-foreground'
+          isToday
+            ? 'bg-background text-foreground font-bold'
+            : 'text-foreground'
         )}
         key={day}
         onClick={() => statusConfig.clickable && onDateSelect?.(date, dateInfo)}
