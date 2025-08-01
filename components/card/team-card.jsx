@@ -29,7 +29,7 @@ export function TeamCard({
   time = '星期(一、三、六）  早上9點',
   skillLevel = '新手', // 新增技能等級 prop
   isNews = true, // 新增是否為新聞 prop
-  imageUrl, // 新增圖片 URL prop
+  imageUrl = '/product-pic/photo-1505740420928-5e560c06d30e.avif', // 新增圖片 URL prop
 }) {
   // 根據 skillLevel 決定標籤顏色和背景
   const getSkillBadgeStyles = (level) => {
@@ -187,9 +187,31 @@ export function TeamCard({
           <div className="justify-start text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7">
             詳細
           </div>
-          <div className="w-6 h-6 relative">
-            {/* 模板中的箭頭 SVG */}
-            <div className="w-3.5 h-3 left-[20px] top-[18px] absolute origin-top-left rotate-180 border-2 border-white" />
+          <div className="w-6 h-6 relative flex items-center justify-center">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-white"
+            >
+              {/* 這是標準的「向右箭頭」SVG 路徑 */}
+              <path
+                d="M14 5L21 12L14 19"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M3 12H21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         </Button>
       </div>
