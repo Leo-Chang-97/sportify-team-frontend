@@ -1,6 +1,21 @@
 'use client'
 
-import { Heart, Share, Minus, Plus, Star, ClipboardCheck } from 'lucide-react'
+import {
+  Heart,
+  Share,
+  Star,
+  ClipboardCheck,
+  CircleParking,
+  ShowerHead,
+} from 'lucide-react'
+import {
+  IconShoppingCart,
+  IconBarbell,
+  IconYoga,
+  IconBike,
+  IconTreadmill,
+  IconWifi,
+} from '@tabler/icons-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -87,6 +102,18 @@ export default function CenterDetailPage() {
     { icon: BaseballBatIcon, label: '棒球' },
     { icon: BilliardBallIcon, label: '撞球' },
   ]
+
+  const facilityItems = [
+    { icon: CircleParking, label: '停車場' },
+    { icon: ShowerHead, label: '淋浴間' },
+    { icon: IconShoppingCart, label: '運動用品店' },
+    { icon: IconBarbell, label: '健身房' },
+    { icon: IconYoga, label: '瑜珈教室' },
+    { icon: IconBike, label: '飛輪教室' },
+    { icon: IconTreadmill, label: '體適能教室' },
+    { icon: IconWifi, label: 'Wi-Fi' },
+  ]
+
   const position = [25.116592439309592, 121.50983159645816]
 
   /*  Markup  */
@@ -230,8 +257,6 @@ export default function CenterDetailPage() {
             `}
           >
             <section className="flex flex-col gap-6">
-              {/* Description */}
-              <p className="text-muted-foreground">{data.description}</p>
               {/* data info */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-2xl font-bold">場館運動項目</h2>
@@ -254,23 +279,23 @@ export default function CenterDetailPage() {
               {/* Features */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-2xl font-bold">場館設施</h2>
-                <ul className="space-y-2">
-                  {data.features.map((feature) => (
-                    <li
-                      className="flex items-start"
-                      key={`feature-${data.id}-${slugify(feature)}`}
-                    >
-                      <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-primary" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="flex flex-wrap gap-4">
+                  {facilityItems.map((item, idx) => {
+                    const IconComponent = item.icon
+                    return (
+                      <div className="flex gap-2" key={idx}>
+                        <IconComponent className="!w-6 !h-6" />
+                        <span>{item.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </section>
 
             {/* Specifications */}
             <section>
-              <h2 className="mb-4 text-2xl font-bold">資訊</h2>
+              <h2 className="mb-4 text-2xl font-bold">營業時間</h2>
               <div className="space-y-2">
                 {Object.entries(data.specs).map(([key, value]) => (
                   <div
@@ -280,7 +305,7 @@ export default function CenterDetailPage() {
                     <span className="font-medium capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
-                    <span className="text-muted-foreground">{value}</span>
+                    <span>{value}</span>
                   </div>
                 ))}
               </div>
