@@ -185,7 +185,7 @@ export default function VenueListPage() {
       ></HeroBannerMember>
       <ScrollAreaMember />
       <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
+        <div className="container flex justify-center mx-auto max-w-screen-xl px-4">
           <FormCard />
         </div>
       </section>
