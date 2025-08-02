@@ -301,8 +301,8 @@ export default function ProductHomePage() {
         />
       </HeroBanner>
       <ScrollAreaSport />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
+      <section className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <h3 className="text-lg text-foreground text-center pb-10">
             精選商品
           </h3>

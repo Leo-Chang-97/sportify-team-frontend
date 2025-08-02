@@ -111,131 +111,134 @@ export default function ProductListPage() {
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <section className="py-6 md:py-10">
-        <div className="flex flex-col lg:flex-row mx-auto max-w-screen-xl px-4 md:px-6 lg:px-8 gap-6 md:gap-8 lg:gap-10">
-          {/* 左側商品圖片區塊 */}
-          <div className="flex-1 flex flex-col items-center justify-center">
-            {/* 上方大圖 */}
-            <div className="w-full max-w-[400px] md:max-w-[450px] lg:max-w-[500px] flex items-center justify-center mb-4">
-              {product?.img ? (
-                <img
-                  src={product.img}
-                  alt={product.name}
-                  className="w-full h-full object-contain"
-                  key={selectedIndex}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                  無商品圖片
-                </div>
-              )}
-            </div>
-            {/* 下方小圖輪播（重複主圖） */}
-            <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px]">
-              <Carousel opts={{ align: 'start' }}>
-                <CarouselContent>
-                  {[...Array(totalImages)].map((_, idx) => (
-                    <CarouselItem
-                      key={idx}
-                      className="basis-1/5 flex justify-center"
-                    >
-                      <button
-                        onClick={() => setSelectedIndex(idx)}
-                        style={{
-                          border:
-                            selectedIndex === idx ? '1px solid gray' : 'none',
-                        }}
+      <section className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-4">
+            {/* 左側商品圖片區塊 */}
+            <div className="flex-1 flex flex-col items-center justify-center">
+              {/* 上方大圖 */}
+              <div className="w-full max-w-[400px] md:max-w-[450px] lg:max-w-[500px] flex items-center justify-center mb-4">
+                {product?.img ? (
+                  <img
+                    src={product.img}
+                    alt={product.name}
+                    className="w-full h-full object-contain"
+                    key={selectedIndex}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                    無商品圖片
+                  </div>
+                )}
+              </div>
+              {/* 下方小圖輪播（重複主圖） */}
+              <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px]">
+                <Carousel opts={{ align: 'start' }}>
+                  <CarouselContent>
+                    {[...Array(totalImages)].map((_, idx) => (
+                      <CarouselItem
+                        key={idx}
+                        className="basis-1/5 flex justify-center"
                       >
-                        <img
-                          src={product.img}
-                          alt={product.name}
-                          className="w-full h-full object-contain"
-                        />
-                      </button>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious
-                  onClick={handlePrev}
-                  className="hidden md:flex"
-                />
-                <CarouselNext onClick={handleNext} className="hidden md:flex" />
-              </Carousel>
+                        <button
+                          onClick={() => setSelectedIndex(idx)}
+                          style={{
+                            border:
+                              selectedIndex === idx ? '1px solid gray' : 'none',
+                          }}
+                        >
+                          <img
+                            src={product.img}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </button>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious
+                    onClick={handlePrev}
+                    className="hidden md:flex"
+                  />
+                  <CarouselNext
+                    onClick={handleNext}
+                    className="hidden md:flex"
+                  />
+                </Carousel>
+              </div>
             </div>
-          </div>
-          {/* 右側商品資訊區*/}
-          <div className="flex-1 flex flex-col md:items-start justify-start gap-6 md:gap-8 lg:gap-10 mt-6 lg:mt-0">
-            {/* Title*/}
-            <div className="flex flex-col gap-2 md:gap-3">
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
-                {product.name}
-              </h1>
-              <p className="text-base md:text-lg font-medium text-muted-foreground">
-                {product.sport_name}/{product.brand_name}
-              </p>
-              <div className="mt-1 md:mt-2 flex items-center gap-2">
-                <span className="text-lg md:text-xl lg:text-2xl font-bold text-destructive">
-                  NTD${CURRENCY_FORMATTER.format(product.price)}
+            {/* 右側商品資訊區*/}
+            <div className="flex-1 flex flex-col items-center md:items-start justify-start gap-6 md:gap-8 lg:gap-10 mt-6 lg:mt-0 w-full">
+              {/* Title*/}
+              <div className="flex flex-col gap-2 md:gap-3">
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
+                  {product.name}
+                </h1>
+                <p className="text-base md:text-lg font-medium text-muted-foreground">
+                  {product.sport_name}/{product.brand_name}
+                </p>
+                <div className="mt-1 md:mt-2 flex items-center gap-2">
+                  <span className="text-lg md:text-xl lg:text-2xl font-bold text-destructive">
+                    NTD${CURRENCY_FORMATTER.format(product.price)}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-base md:text-lg font-bold mb-2 md:mb-3">
+                  配送方式
+                </h1>
+                <div className="flex gap-2 mb-1">
+                  <p className="text-sm md:text-base font-regular">宅配</p>
+                  <p className="text-sm md:text-base font-regular text-muted-foreground">
+                    NTD$100
+                  </p>
+                </div>
+                <div className="flex gap-2 mb-1">
+                  <p className="text-sm md:text-base font-regular">7-11取貨</p>
+                  <p className="text-sm md:text-base font-regular text-muted-foreground">
+                    NTD$60
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <p className="text-sm md:text-base font-regular">全家取貨</p>
+                  <p className="text-sm md:text-base font-regular text-muted-foreground">
+                    NTD$60
+                  </p>
+                </div>
+              </div>
+              {/* Quantity */}
+              <div className="flex items-center justify-between rounded-sm gap-2 bg-foreground w-[300px] md:w-full">
+                <Button
+                  aria-label="Decrease quantity"
+                  disabled={quantity <= 1}
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                  size="icon"
+                  variant="secondary"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-12 text-center select-none text-muted-foreground">
+                  {quantity}
                 </span>
+                <Button
+                  aria-label="Increase quantity"
+                  onClick={() => handleQuantityChange(quantity + 1)}
+                  size="icon"
+                  variant="secondary"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-            </div>
-            <div>
-              <h1 className="text-base md:text-lg font-bold mb-2 md:mb-3">
-                配送方式
-              </h1>
-              <div className="flex gap-2 mb-1">
-                <p className="text-sm md:text-base font-regular">宅配</p>
-                <p className="text-sm md:text-base font-regular text-muted-foreground">
-                  NTD$100
-                </p>
+              <div className="flex flex-col md:flex-row items-center justify-between w-full gap-3 md:gap-4">
+                <Button className="w-[300px] md:w-auto flex-1 text-sm md:text-base">
+                  加入最愛
+                </Button>
+                <Button className="w-[300px] md:w-auto flex-1 text-sm md:text-base">
+                  加入購物車
+                </Button>
               </div>
-              <div className="flex gap-2 mb-1">
-                <p className="text-sm md:text-base font-regular">7-11取貨</p>
-                <p className="text-sm md:text-base font-regular text-muted-foreground">
-                  NTD$60
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <p className="text-sm md:text-base font-regular">全家取貨</p>
-                <p className="text-sm md:text-base font-regular text-muted-foreground">
-                  NTD$60
-                </p>
-              </div>
-            </div>
-            {/* Quantity */}
-            <div className="flex items-center justify-between rounded-sm gap-2 bg-foreground w-full max-w-full md:max-w-[250px] lg:max-w-[280px]">
-              <Button
-                aria-label="Decrease quantity"
-                disabled={quantity <= 1}
-                onClick={() => handleQuantityChange(quantity - 1)}
-                size="icon"
-                variant="secondary"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="w-12 text-center select-none text-muted-foreground">
-                {quantity}
-              </span>
-              <Button
-                aria-label="Increase quantity"
-                onClick={() => handleQuantityChange(quantity + 1)}
-                size="icon"
-                variant="secondary"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-full md:max-w-[250px] lg:max-w-[280px] gap-3 md:gap-4">
-              <Button className="w-full md:flex-1 text-sm md:text-base">
-                加入最愛
-              </Button>
-              <Button className="w-full md:flex-1 text-sm md:text-base">
-                加入購物車
-              </Button>
             </div>
           </div>
-        </div>
-        <div className="flex mx-auto max-w-screen-xl px-4 md:px-6 lg:px-8 items-center justify-center mt-8 md:mt-10 lg:mt-12">
           <Tabs defaultValue="imgs" className="w-full items-center">
             <TabsList className="mb-6 md:mb-8">
               <TabsTrigger value="imgs" className="text-sm md:text-base">
@@ -254,22 +257,22 @@ export default function ProductListPage() {
             </TabsContent>
             <TabsContent value="spec">
               <Table className="w-full table-fixed">
-                <TableBody>
+                <TableBody className="divide-y divide-foreground">
                   {Object.entries(product.specs).map(([key, value]) => (
-                    <tr key={key}>
-                      <td
-                        className="font-bold text-base md:text-lg capitalize border-b border-border py-2"
-                        style={{ width: '20%' }}
+                    <TableRow key={key} className="gap-2">
+                      <TableCell
+                        className="font-bold text-base md:text-lg py-2 whitespace-normal"
+                        style={{ width: '25%' }}
                       >
                         {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </td>
-                      <td
-                        className="text-base md:text-lg border-b border-border py-2"
-                        style={{ width: '80%' }}
+                      </TableCell>
+                      <TableCell
+                        className="text-base md:text-lg py-2 whitespace-normal"
+                        style={{ width: '75%' }}
                       >
                         {value}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>

@@ -129,8 +129,8 @@ export default function ProductListPage() {
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
+      <section className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <div className="flex flex-col items-start justify-center gap-3 mb-8">
             <p className="text-2xl font-bold text-foreground">籃球</p>
             <p className="text-base font-regular text-muted-foreground">
@@ -241,10 +241,8 @@ export default function ProductListPage() {
               </div>
             </div>
           </div>
+          <PaginationDemo />
         </div>
-      </section>
-      <section className="py-5">
-        <PaginationDemo />
       </section>
       <Footer />
     </>

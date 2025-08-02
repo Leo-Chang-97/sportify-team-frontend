@@ -6,7 +6,6 @@ import Link from 'next/link'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
 
