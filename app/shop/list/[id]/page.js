@@ -258,7 +258,7 @@ export default function ProductListPage() {
                   {Object.entries(product.specs).map(([key, value]) => (
                     <tr key={key}>
                       <td
-                        className="text-bold text-base md:text-lg capitalize border-b border-border py-2"
+                        className="font-bold text-base md:text-lg capitalize border-b border-border py-2"
                         style={{ width: '20%' }}
                       >
                         {key.replace(/([A-Z])/g, ' $1').trim()}

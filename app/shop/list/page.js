@@ -32,6 +32,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import products from '../datas.json'
 
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
   return (
@@ -57,7 +58,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={sport.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                       {sport.name}
                     </span>
                   </Label>
@@ -75,7 +76,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={brand.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                       {brand.name}
                     </span>
                   </Label>
@@ -133,7 +134,7 @@ export default function ProductListPage() {
           <div className="flex flex-col items-start justify-center gap-3 mb-8">
             <p className="text-2xl font-bold text-foreground">籃球</p>
             <p className="text-base font-regular text-muted-foreground">
-              共有XX件商品
+              共有16筆商品
             </p>
           </div>
           {/* 搜尋和排序區域 */}
@@ -198,7 +199,7 @@ export default function ProductListPage() {
                       key={sport.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {sport.name}
                       </span>
                     </label>
@@ -213,7 +214,7 @@ export default function ProductListPage() {
                       key={brand.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base text-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {brand.name}
                       </span>
                     </label>
@@ -230,14 +231,13 @@ export default function ProductListPage() {
 
             <div className="flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <ProductCard />
-                <ProductCard />
-                <ProductCard />
-                <ProductCard />
-                <ProductCard />
-                <ProductCard />
-                <ProductCard />
-                <ProductCard />
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    variant="compact"
+                  />
+                ))}
               </div>
             </div>
           </div>
