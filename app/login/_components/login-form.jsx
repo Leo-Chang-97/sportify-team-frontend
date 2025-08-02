@@ -106,7 +106,7 @@ export function LoginForm({
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
                 <Button
-                  variant="white"
+                  variant="secondary"
                   className="w-full"
                   disabled={isLoading}
                   type="button"
@@ -122,7 +122,7 @@ export function LoginForm({
                   {isLoading ? 'Quick Logging in...' : 'Quick Login admin'}
                 </Button>
                 <Button
-                  variant="white"
+                  variant="secondary"
                   className="w-full"
                   disabled={isLoading}
                   type="button"

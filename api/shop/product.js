@@ -15,13 +15,17 @@ export const fetchProduct = async (id) => {
 
 // 創建新產品
 export const createProduct = async (data) => {
-  const res = await adminApiClient.post('/shop/product', data)
+  const res = await adminApiClient.post('/shop/product', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
   return res.data
 }
 
 // 更新產品
 export const updateProduct = async (id, data) => {
-  const res = await adminApiClient.put(`/shop/product/${id}`, data)
+  const res = await adminApiClient.put(`/shop/product/${id}`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
   return res.data
 }
 
