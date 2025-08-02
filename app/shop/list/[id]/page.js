@@ -2,12 +2,7 @@
 
 import { Minus, Plus } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
@@ -36,10 +31,6 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
 })
 
 export default function ProductListPage() {
-  // ===== 組件狀態管理 =====
-  const [isLoading, setIsLoading] = useState(false)
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
-  const [members, setMembers] = useState([])
   // 新增：目前選中的大圖 index
   const [selectedIndex, setSelectedIndex] = useState(0)
   const totalImages = 10
@@ -49,33 +40,7 @@ export default function ProductListPage() {
   const handleNext = () => {
     setSelectedIndex((prev) => (prev + 1) % totalImages)
   }
-
-  // ===== 載入下拉選單選項 =====
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     try {
-  //       const memberData = await fetchMemberOptions()
-  //       setMembers(memberData.rows || [])
-
-  //       const sportData = await fetchSportOptions()
-  //       setSports(sportData.rows || [])
-
-  //       const brandData = await fetchBrandOptions()
-  //       setBrands(brandData.rows || [])
-  //     } catch (error) {
-  //       console.error('載入失敗:', error)
-  //       toast.error('載入失敗')
-  //     }
-  //   }
-  //   loadData()
-  // }, [])
-
-  const handleSearch = () => {
-    // 搜尋邏輯
-    console.log('搜尋:', { brandId, sportId })
-  }
   const { id } = useParams()
-  const router = useRouter()
   const [quantity, setQuantity] = React.useState(1)
   const product = React.useMemo(
     () => products.find((p) => String(p.id) === String(id)),
@@ -256,26 +221,28 @@ export default function ProductListPage() {
               {imageGroup}
             </TabsContent>
             <TabsContent value="spec">
-              <Table className="w-full table-fixed">
-                <TableBody className="divide-y divide-foreground">
-                  {Object.entries(product.specs).map(([key, value]) => (
-                    <TableRow key={key} className="gap-2">
-                      <TableCell
-                        className="font-bold text-base md:text-lg py-2 whitespace-normal"
-                        style={{ width: '25%' }}
+              <div className="bg-card rounded-lg p-5">
+                <Table className="w-full table-fixed">
+                  <TableBody className="divide-y divide-foreground">
+                    {Object.entries(product.specs).map(([key, value]) => (
+                      <TableRow
+                        key={key}
+                        className="border-b border-card-foreground"
                       >
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </TableCell>
-                      <TableCell
-                        className="text-base md:text-lg py-2 whitespace-normal"
-                        style={{ width: '75%' }}
-                      >
-                        {value}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </TableCell>
+                        <TableCell
+                          className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
+                          style={{ width: '100%' }}
+                        >
+                          {value}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

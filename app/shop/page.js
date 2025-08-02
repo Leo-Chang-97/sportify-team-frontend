@@ -188,10 +188,6 @@ const products = [
 
 
 export default function ProductHomePage() {
-  // ===== 組件狀態管理 =====
-  const [isLoading, setIsLoading] = useState(false)
-  // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
   const [members, setMembers] = useState([])
   const [sportId, setSportId] = useState('')
   const [brandId, setBrandId] = useState('')

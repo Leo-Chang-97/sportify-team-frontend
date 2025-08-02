@@ -2,8 +2,6 @@
 
 import { Search, AlignLeft, Funnel } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -58,7 +56,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={sport.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
                       {sport.name}
                     </span>
                   </Label>
@@ -76,7 +74,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                     key={brand.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
                       {brand.name}
                     </span>
                   </Label>
@@ -91,10 +89,6 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
 }
 
 export default function ProductListPage() {
-  // ===== 組件狀態管理 =====
-  const [isLoading, setIsLoading] = useState(false)
-  // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
   const [members, setMembers] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sports, setSports] = useState([])
@@ -133,7 +127,7 @@ export default function ProductListPage() {
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <div className="flex flex-col items-start justify-center gap-3 mb-8">
             <p className="text-2xl font-bold text-foreground">籃球</p>
-            <p className="text-base font-regular text-muted-foreground">
+            <p className="text-base font-regular text-foreground">
               共有16筆商品
             </p>
           </div>
@@ -199,7 +193,7 @@ export default function ProductListPage() {
                       key={sport.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {sport.name}
                       </span>
                     </label>
@@ -214,7 +208,7 @@ export default function ProductListPage() {
                       key={brand.id}
                       className="flex items-center space-x-2 cursor-pointer"
                     >
-                      <span className="text-base font-regular text-muted-foreground hover:text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {brand.name}
                       </span>
                     </label>
