@@ -42,7 +42,7 @@ export const orderColumns = [
     accessorKey: 'total',
     header: '訂單金額',
     cell: ({ row, table }) => {
-      const value = row.original.total ? `$${row.original.total}` : '—'
+      const value = row.original.total ? `${row.original.total}` : '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
