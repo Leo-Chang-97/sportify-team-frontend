@@ -20,9 +20,8 @@ import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-
-import datas from '../../datas.json'
-const data = datas[0] // 使用第一筆資料
+import fakeData from '@/app/venue/fake-data.json'
+const data = fakeData[0] // 使用第一筆資料
 const steps = [
   { id: 1, title: '選擇場地與時間', completed: true },
   { id: 2, title: '填寫付款資訊', completed: true },

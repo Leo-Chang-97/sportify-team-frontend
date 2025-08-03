@@ -36,8 +36,8 @@ import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
 
-import datas from '../../datas.json'
-const data = datas[0] // 使用第一筆資料
+import fakeData from '@/app/venue/fake-data.json'
+const data = fakeData[0] // 使用第一筆資料
 
 const steps = [
   { id: 1, title: '選擇場地與時間', completed: true },
