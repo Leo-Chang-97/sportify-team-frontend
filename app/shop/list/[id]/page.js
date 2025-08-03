@@ -96,9 +96,9 @@ export default function ProductListPage() {
                   </div>
                 )}
               </div>
-              {/* 下方小圖輪播（重複主圖） */}
-              <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px]">
-                <Carousel opts={{ align: 'start' }}>
+              {/* 下方小圖輪播 */}
+              <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px] relative items-center">
+                <Carousel opts={{ align: 'start' }} className="w-full px-10">
                   <CarouselContent>
                     {[...Array(totalImages)].map((_, idx) => (
                       <CarouselItem
@@ -123,11 +123,11 @@ export default function ProductListPage() {
                   </CarouselContent>
                   <CarouselPrevious
                     onClick={handlePrev}
-                    className="hidden md:flex"
+                    className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 items-center justify-center"
                   />
                   <CarouselNext
                     onClick={handleNext}
-                    className="hidden md:flex"
+                    className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 items-center justify-center"
                   />
                 </Carousel>
               </div>
