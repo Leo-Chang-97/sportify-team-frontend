@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   createReservation,
   fetchReservation,
@@ -18,8 +17,6 @@ import {
   fetchStatusOptions,
 } from '@/api'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -93,8 +90,8 @@ export default function VenueListPage() {
         const statusData = await fetchStatusOptions()
         setStatus(statusData.rows || [])
       } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
+        console.error('載入選項失敗:', error)
+        toast.error('載入選項失敗')
       }
     }
     loadData()

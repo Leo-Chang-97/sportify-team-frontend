@@ -18,12 +18,13 @@
     "price": 199.99,
     "rating": 4.5,
     "specs": {
-      "batteryLife": "30 hours",
-      "brand": "AudioMax",
-      "connectivity": "Bluetooth 5.2, 3.5mm jack",
-      "model": "WH-1000XM5",
-      "warranty": "2 years",
-      "weight": "250g"
+      "星期一": "08:00-20:00",
+      "星期二": "08:00-19:00",
+      "星期三": "09:00-21:00",
+      "星期四": "08:30-20:30",
+      "星期五": "08:00-20:00",
+      "星期六": "10:00-22:00",
+      "星期日": "10:00-18:00"
     }
   },
   {
@@ -45,13 +46,13 @@
     "price": 299.99,
     "rating": 4.2,
     "specs": {
-      "batteryLife": "7 days",
-      "brand": "TechFit",
-      "compatibility": "iOS, Android",
-      "display": "1.5\" AMOLED",
-      "model": "Watch Pro 5",
-      "warranty": "1 year",
-      "waterResistance": "5 ATM"
+      "星期一": "08:00-20:00",
+      "星期二": "08:00-19:30",
+      "星期三": "09:00-21:00",
+      "星期四": "08:30-20:30",
+      "星期五": "08:00-20:00",
+      "星期六": "10:00-22:00",
+      "星期日": "10:00-18:00"
     }
   },
   {
@@ -73,13 +74,13 @@
     "price": 1299.99,
     "rating": 4.8,
     "specs": {
-      "brand": "OptiPro",
-      "iso": "100-51,200 (expandable to 204,800)",
-      "model": "X-1000",
-      "resolution": "24.2MP",
-      "sensorType": "Full-frame CMOS",
-      "shutter": "1/8000 to 30 sec",
-      "warranty": "2 years"
+      "星期一": "08:00-20:00",
+      "星期二": "08:00-19:00",
+      "星期三": "09:00-21:00",
+      "星期四": "08:30-20:30",
+      "星期五": "08:00-20:00",
+      "星期六": "10:00-22:00",
+      "星期日": "10:00-18:00"
     }
   },
   {
@@ -101,13 +102,13 @@
     "price": 249.99,
     "rating": 4.6,
     "specs": {
-      "adjustableHeight": "16-20 inches",
-      "brand": "ErgoComfort",
-      "dimensions": "26\"W x 26\"D x 38-42\"H",
-      "material": "Mesh back, fabric seat",
-      "maxWeight": "300 lbs",
-      "model": "Executive Pro",
-      "warranty": "5 years"
+      "星期一": "08:00-20:00",
+      "星期二": "08:00-19:30",
+      "星期三": "09:00-21:00",
+      "星期四": "08:30-20:30",
+      "星期五": "08:00-20:00",
+      "星期六": "10:00-22:00",
+      "星期日": "10:00-18:00"
     }
   },
   {
@@ -129,15 +130,13 @@
     "price": 999.99,
     "rating": 4.9,
     "specs": {
-      "battery": "4,352mAh",
-      "brand": "TechPro",
-      "camera": "12MP triple camera system",
-      "display": "6.7\" Super Retina XDR",
-      "model": "Galaxy Pro Max",
-      "os": "iOS 16",
-      "processor": "A16 Bionic chip",
-      "storage": "128GB/256GB/512GB/1TB",
-      "warranty": "1 year"
+      "星期一": "08:00-20:00",
+      "星期二": "08:00-19:00",
+      "星期三": "09:00-21:00",
+      "星期四": "08:30-20:30",
+      "星期五": "08:00-20:00",
+      "星期六": "10:00-22:00",
+      "星期日": "10:00-18:00"
     }
   },
   {
@@ -159,16 +158,13 @@
     "price": 799.99,
     "rating": 4.7,
     "specs": {
-      "audio": "40W Dolby Atmos",
-      "brand": "VisionPro",
-      "connectivity": "HDMI x4, USB x3, Wi-Fi, Bluetooth",
-      "display": "55\" 4K Ultra HD LED",
-      "hdr": "Dolby Vision, HDR10+",
-      "model": "X55-4K",
-      "refreshRate": "120Hz",
-      "resolution": "3840 x 2160",
-      "smartFeatures": "Voice control, App store",
-      "warranty": "2 years"
+      "星期一": "08:00-20:00",
+      "星期二": "08:00-19:30",
+      "星期三": "09:00-21:00",
+      "星期四": "08:30-20:30",
+      "星期五": "08:00-20:00",
+      "星期六": "10:00-22:00",
+      "星期日": "10:00-18:00"
     }
   }
 ]
