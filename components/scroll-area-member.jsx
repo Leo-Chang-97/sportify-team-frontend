@@ -10,6 +10,7 @@ import {
   FavoriteIcon,
 } from '@/components/icons/member-icons'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
 // 定義 Scroll Area 欄位
 const memberItems = [
@@ -34,9 +35,10 @@ export default function ScrollAreaMember() {
               const IconComponent = item.icon
               const isActive = pathname === item.path
               return (
-                <div
+                <Link
                   key={idx}
-                  className="flex flex-col items-center min-w-[120px] shrink-0 py-4 rounded-lg hover:bg-foreground/10 transition-colors"
+                  href={item.path}
+                  className="flex flex-col items-center min-w-[120px] shrink-0 py-4 rounded-lg hover:bg-foreground/10 transition-colors cursor-pointer"
                 >
                   <div
                     className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
@@ -54,7 +56,7 @@ export default function ScrollAreaMember() {
                   >
                     {item.label}
                   </span>
-                </div>
+                </Link>
               )
             })}
           </div>
