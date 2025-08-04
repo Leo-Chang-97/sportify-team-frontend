@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PaginationBar } from '@/components/pagination-bar'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
 
@@ -82,6 +83,7 @@ export default function VenueListPage() {
     loadData()
   }, [])
 
+  // ===== 事件處理函數 =====
   const handleSearch = (keyword) => {
     const newParams = new URLSearchParams(searchParams.toString())
     if (keyword) {
@@ -91,6 +93,14 @@ export default function VenueListPage() {
       newParams.delete('keyword')
       newParams.set('page', '1')
     }
+    router.push(`?${newParams.toString()}`)
+  }
+
+  const handlePagination = (targetPage) => {
+    const perPage = data?.perPage || 8
+    const newParams = new URLSearchParams(searchParams.toString())
+    newParams.set('page', String(targetPage))
+    newParams.set('perPage', String(perPage))
     router.push(`?${newParams.toString()}`)
   }
 
@@ -192,10 +202,12 @@ export default function VenueListPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-forgeground">精選場館</h3>
+      <ScrollAreaSport sportItems={sports} />
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+          <h3 className="text-center text-lg font-normal tracking-[24px]">
+            精·選·場·館
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {data?.rows.map((data) => (
               <CenterCard
@@ -206,16 +218,17 @@ export default function VenueListPage() {
               />
             ))}
           </div>
+          <PaginationBar
+            page={data.page}
+            totalPages={data.totalPages}
+            perPage={data.perPage}
+            onPageChange={(targetPage) => {
+              handlePagination(targetPage)
+            }}
+          />
         </div>
-        <div className="mt-10 flex justify-center">
-          <Link href="/datas">
-            <Button className="group h-12 px-8" size="lg" variant="secondary">
-              載入更多
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      </main>
+
       <Footer />
     </>
   )
