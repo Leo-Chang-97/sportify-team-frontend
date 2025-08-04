@@ -183,7 +183,7 @@ export default function ProductHomePage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
+      <ScrollAreaSport sportItems={sports} />
       <section className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <h3 className="text-lg text-foreground text-center pb-10">
