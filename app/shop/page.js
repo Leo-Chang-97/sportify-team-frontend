@@ -214,13 +214,13 @@ export default function ProductHomePage() {
                 {brandItems.map((item, index) => (
                   <CarouselItem
                     key={index}
-                    className="sm:basis-1/2 md:basis-1/3 lg:basis-1/5 flex flex-col items-center"
+                    className="basis-1/3 md:basis-1/5 flex flex-col items-center"
                   >
-                    <div className="p-1 py-10 w-[200px] h-[200px]">
+                    <div className="p-1 py-10 w-full h-full max-w-[200px] max-h-[200px]">
                       <img
                         src={item.img}
                         alt={item.label}
-                        className="w-full h-full object-contain"
+                        className="w-auto h-full object-contain"
                       />
                     </div>
                   </CarouselItem>
