@@ -1,6 +1,21 @@
 'use client'
 
-import { Heart, Share, Minus, Plus, Star, ClipboardCheck } from 'lucide-react'
+import {
+  Heart,
+  Share,
+  Star,
+  ClipboardCheck,
+  CircleParking,
+  ShowerHead,
+} from 'lucide-react'
+import {
+  IconShoppingCart,
+  IconBarbell,
+  IconYoga,
+  IconBike,
+  IconTreadmill,
+  IconWifi,
+} from '@tabler/icons-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -26,7 +41,8 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
-import datas from '../datas.json'
+import { getCenterDetail } from '@/api/venue/center'
+import fakeData from '@/app/venue/fake-data.json'
 
 // 使用 Map 提供互動式地圖功能
 const Map = dynamic(() => import('@/components/map'), {
@@ -47,29 +63,68 @@ export default function CenterDetailPage() {
   /* Routing */
   const { id } = useParams()
   const router = useRouter()
+  // 根據 id 找到對應的假資料
+  const fakeItem = React.useMemo(
+    () => fakeData.find((item) => item.id === id),
+    [id]
+  )
 
-  /* Derive data object */
-  const data = React.useMemo(() => datas.find((p) => p.id === id), [id])
+  /* State for API data */
+  const [data, setData] = React.useState(null)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState(null)
+
+  /* Fetch data from API */
+  React.useEffect(() => {
+    const fetchCenterData = async () => {
+      try {
+        setLoading(true)
+        const centerData = await getCenterDetail(id)
+        setData(centerData.record)
+      } catch (err) {
+        console.error('Error fetching center detail:', err)
+        setError(err.message)
+        toast.error('載入場館資料失敗')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchCenterData()
+    }
+  }, [id])
 
   /* Handlers */
 
-  /* Conditional UI */
-  if (!data) {
+  /* Loading state */
+  if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
         <main className="flex-1 py-10">
-          <div
-            className={`
-              container px-4
-              md:px-6
-            `}
-          >
-            <h1 className="text-3xl font-bold">data Not Found</h1>
-            <p className="mt-4">
-              The data you&apos;re looking for doesn&apos;t exist.
-            </p>
-            <Button className="mt-6" onClick={() => router.push('/datas')}>
-              Back to datas
+          <div className="container px-4 md:px-6">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">載入中...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  /* Error or not found state */
+  if (error || !data) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <main className="flex-1 py-10">
+          <div className="container px-4 md:px-6">
+            <h1 className="text-3xl font-bold">場館資料載入失敗</h1>
+            <p className="mt-4">{error || '找不到您要查看的場館資料'}</p>
+            <Button className="mt-6" onClick={() => router.push('/venue')}>
+              返回場館列表
             </Button>
           </div>
         </main>
@@ -87,6 +142,23 @@ export default function CenterDetailPage() {
     { icon: BaseballBatIcon, label: '棒球' },
     { icon: BilliardBallIcon, label: '撞球' },
   ]
+
+  const facilityItems = [
+    { icon: CircleParking, label: '停車場' },
+    { icon: ShowerHead, label: '淋浴間' },
+    { icon: IconShoppingCart, label: '運動用品店' },
+    { icon: IconBarbell, label: '健身房' },
+    { icon: IconYoga, label: '瑜珈教室' },
+    { icon: IconBike, label: '飛輪教室' },
+    { icon: IconTreadmill, label: '體適能教室' },
+    { icon: IconWifi, label: 'Wi-Fi' },
+  ]
+
+  // 使用 API 資料的位置，如果沒有則使用預設位置
+  /* const position = data.location?.coordinates || [
+      data.latitude,
+      data.longitude,
+    ] || [25.116592439309592, 121.50983159645816] */
   const position = [25.116592439309592, 121.50983159645816]
 
   /*  Markup  */
@@ -104,7 +176,7 @@ export default function CenterDetailPage() {
               <div className="mt-2 flex items-center gap-2">
                 {/* Stars */}
                 <div
-                  aria-label={`Rating ${data.rating} out of 5`}
+                  aria-label={`Rating ${data.rating || 0} out of 5`}
                   className="flex items-center"
                 >
                   {range(5).map((i) => (
@@ -112,9 +184,9 @@ export default function CenterDetailPage() {
                       className={`
                           h-5 w-5
                           ${
-                            i < Math.floor(data.rating)
+                            i < Math.floor(data.rating || 0)
                               ? 'fill-yellow-400 text-yellow-400'
-                              : i < data.rating
+                              : i < (data.rating || 0)
                                 ? 'fill-yellow-400/50 text-yellow-400'
                                 : 'text-muted-foreground'
                           }
@@ -124,7 +196,7 @@ export default function CenterDetailPage() {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  ({data.rating.toFixed(1)})
+                  ({(data.rating || 0).toFixed(1)})
                 </span>
               </div>
             </div>
@@ -161,12 +233,14 @@ export default function CenterDetailPage() {
             <div className="overflow-hidden rounded-lg bg-muted">
               <AspectRatio ratio={4 / 3} className="bg-muted">
                 <Image
-                  alt={data.name}
+                  alt={data.name || '場館圖片'}
                   className="object-cover"
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  src={data.image}
+                  src={
+                    data.image || data.images?.[0] || '/placeholder-venue.jpg'
+                  }
                 />
               </AspectRatio>
             </div>
@@ -230,8 +304,6 @@ export default function CenterDetailPage() {
             `}
           >
             <section className="flex flex-col gap-6">
-              {/* Description */}
-              <p className="text-muted-foreground">{data.description}</p>
               {/* data info */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-2xl font-bold">場館運動項目</h2>
@@ -254,35 +326,51 @@ export default function CenterDetailPage() {
               {/* Features */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-2xl font-bold">場館設施</h2>
-                <ul className="space-y-2">
-                  {data.features.map((feature) => (
-                    <li
-                      className="flex items-start"
-                      key={`feature-${data.id}-${slugify(feature)}`}
-                    >
-                      <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-primary" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="flex flex-wrap gap-4">
+                  {facilityItems.map((item, idx) => {
+                    const IconComponent = item.icon
+                    return (
+                      <div className="flex gap-2" key={idx}>
+                        <IconComponent className="!w-6 !h-6" />
+                        <span>{item.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </section>
 
             {/* Specifications */}
             <section>
-              <h2 className="mb-4 text-2xl font-bold">資訊</h2>
+              <h2 className="mb-4 text-2xl font-bold">營業時間</h2>
               <div className="space-y-2">
-                {Object.entries(data.specs).map(([key, value]) => (
-                  <div
-                    className="flex justify-between border-b pb-2 text-sm"
-                    key={key}
-                  >
-                    <span className="font-medium capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <span className="text-muted-foreground">{value}</span>
+                {fakeItem?.specs ? (
+                  Object.entries(fakeItem.specs).map(([key, value]) => (
+                    <div
+                      className="flex justify-between border-b pb-2 text-sm"
+                      key={key}
+                    >
+                      <span className="font-medium capitalize">{key}</span>
+                      <span>{value}</span>
+                    </div>
+                  ))
+                ) : data.businessHours ? (
+                  Object.entries(data.businessHours).map(([key, value]) => (
+                    <div
+                      className="flex justify-between border-b pb-2 text-sm"
+                      key={key}
+                    >
+                      <span className="font-medium capitalize">
+                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                      <span>{value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground">
+                    營業時間資料載入中...
                   </div>
-                ))}
+                )}
               </div>
             </section>
           </div>
@@ -291,7 +379,7 @@ export default function CenterDetailPage() {
           <section>
             <h2 className="mb-4 text-2xl font-bold">地理位置</h2>
             <div className="w-full h-[400px] rounded-lg overflow-hidden">
-              <Map position={position} dataName={data.name} />
+              <Map position={position} dataName={data.name || '場館位置'} />
             </div>
           </section>
         </div>

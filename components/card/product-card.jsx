@@ -1,14 +1,14 @@
 'use client'
 
 import { Heart, ShoppingCart } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
+import { getProductImageUrl } from '@/api/admin/shop/image'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 // ...existing code...
 
@@ -24,7 +24,7 @@ export function ProductCard({
   const safeProduct = product || {
     category: 'Demo',
     id: 'demo',
-    image: '',
+    img: '', // 改為 img 以符合資料結構
     inStock: true,
     name: 'Demo Product',
     originalPrice: 0,
@@ -33,6 +33,16 @@ export function ProductCard({
   const [isHovered, setIsHovered] = React.useState(false)
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
   const [isInWishlist, setIsInWishlist] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
+  const image = safeProduct.img || safeProduct.image // 支援 img 和 image 兩種屬性名稱
+  const imageFileName =
+    typeof image === 'object' && image !== null ? image.url : image
 
   const handleAddToCart = (e) => {
     e.preventDefault()
@@ -64,8 +74,8 @@ export function ProductCard({
 
   return (
     <div className={cn('group', className)} {...props}>
-      <Link href={`/shop/product/1`}>
-      {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
+      <Link href={`/shop/list/1`}>
+        {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
         <Card
           className={cn(
             `
@@ -78,7 +88,10 @@ export function ProductCard({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="relative aspect-square overflow-hidden rounded-t-lg">
+          <AspectRatio
+            ratio={4 / 3}
+            className="bg-muted overflow-hidden rounded-t-lg relative"
+          >
             {/* {safeProduct.image && (
               <Image
                 alt={safeProduct.name}
@@ -91,70 +104,48 @@ export function ProductCard({
                 src={safeProduct.image}
               />
             )} */}
-            <Image
-              alt="text"
+            <img
+              alt={safeProduct.name || '商品圖片'}
               className={cn(
-                'object-cover transition-transform duration-300 ease-in-out',
+                'object-cover transition-transform duration-300 ease-in-out w-full h-full',
                 isHovered && 'scale-105'
               )}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src="/product-pic/photo-1505740420928-5e560c06d30e.avif"
+              src={getProductImageUrl(imageFileName)}
             />
 
-            {/* Category badge */}
-            <Badge
-              className={`
-                absolute top-2 left-2 bg-background/80 backdrop-blur-sm
-              `}
-              variant="outline"
-            >
-              {safeProduct.category}
-            </Badge>
-
-            {/* Discount badge */}
-            {discount > 0 && (
-              <Badge
-                className={`
-                absolute top-2 right-2 bg-destructive
-                text-destructive-foreground
-              `}
-              >
-                {discount}% OFF
-              </Badge>
-            )}
-
             {/* Wishlist button */}
-            <Button
-              className={cn(
-                `
-                  absolute right-2 bottom-2 z-10 rounded-full bg-background/80
-                  backdrop-blur-sm transition-opacity duration-300
-                `,
-                !isHovered && !isInWishlist && 'opacity-0'
-              )}
-              onClick={handleAddToWishlist}
-              size="icon"
-              type="button"
-              variant="outline"
-            >
-              <Heart
+            {isMounted && (
+              <Button
                 className={cn(
-                  'h-4 w-4',
-                  isInWishlist
-                    ? 'fill-destructive text-destructive'
-                    : 'text-muted-foreground'
+                  `
+                    absolute right-2 bottom-2 z-10 rounded-full bg-background/80
+                    backdrop-blur-sm transition-opacity duration-300
+                  `,
+                  !isHovered && !isInWishlist && 'opacity-0'
                 )}
-              />
-              <span className="sr-only">Add to wishlist</span>
-            </Button>
-          </div>
+                onClick={handleAddToWishlist}
+                size="icon"
+                type="button"
+                variant="outline"
+              >
+                <Heart
+                  className={cn(
+                    'h-4 w-4',
+                    isInWishlist
+                      ? 'fill-destructive text-destructive'
+                      : 'text-muted-foreground'
+                  )}
+                />
+                <span className="sr-only">Add to wishlist</span>
+              </Button>
+            )}
+          </AspectRatio>
 
           <CardContent className="p-4 pt-4">
             {/* Product name with line clamp */}
             <h3
               className={`
-                line-clamp-2 text-base font-medium transition-colors
+                line-clamp-2 text-lg font-medium transition-colors
                 group-hover:text-primary
               `}
             >
@@ -164,14 +155,9 @@ export function ProductCard({
             {variant === 'default' && (
               <>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span className="font-medium text-foreground">
-                    ${safeProduct.price.toFixed(2)}
+                  <span className="font-medium text-lg text-destructive">
+                    NTD${safeProduct.price}
                   </span>
-                  {safeProduct.originalPrice ? (
-                    <span className="text-sm text-muted-foreground line-through">
-                      ${safeProduct.originalPrice.toFixed(2)}
-                    </span>
-                  ) : null}
                 </div>
               </>
             )}
@@ -184,10 +170,10 @@ export function ProductCard({
                   'w-full gap-2 transition-all',
                   isAddingToCart && 'opacity-70'
                 )}
-                disabled={isAddingToCart}
+                disabled={!isMounted || isAddingToCart}
                 onClick={handleAddToCart}
               >
-                {isAddingToCart ? (
+                {isMounted && isAddingToCart ? (
                   <div
                     className={`
                       h-4 w-4 animate-spin rounded-full border-2
@@ -197,7 +183,7 @@ export function ProductCard({
                 ) : (
                   <ShoppingCart className="h-4 w-4" />
                 )}
-                Add to Cart
+                加入購物車
               </Button>
             </CardFooter>
           )}
@@ -206,23 +192,18 @@ export function ProductCard({
             <CardFooter className="p-4 pt-0">
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-foreground">
-                    ${safeProduct.price.toFixed(2)}
+                  <span className="font-medium text-lg text-destructive">
+                    NTD${safeProduct.price}
                   </span>
-                  {safeProduct.originalPrice ? (
-                    <span className="text-sm text-muted-foreground line-through">
-                      ${safeProduct.originalPrice.toFixed(2)}
-                    </span>
-                  ) : null}
                 </div>
                 <Button
                   className="h-8 w-8 rounded-full"
-                  disabled={isAddingToCart}
+                  disabled={!isMounted || isAddingToCart}
                   onClick={handleAddToCart}
                   size="icon"
                   variant="ghost"
                 >
-                  {isAddingToCart ? (
+                  {isMounted && isAddingToCart ? (
                     <div
                       className={`
                         h-4 w-4 animate-spin rounded-full border-2
@@ -232,23 +213,10 @@ export function ProductCard({
                   ) : (
                     <ShoppingCart className="h-4 w-4" />
                   )}
-                  <span className="sr-only">Add to cart</span>
+                  <span className="sr-only">加入購物車</span>
                 </Button>
               </div>
             </CardFooter>
-          )}
-
-          {!safeProduct.inStock && (
-            <div
-              className={`
-                absolute inset-0 flex items-center justify-center
-                bg-background/80 backdrop-blur-sm
-              `}
-            >
-              <Badge className="px-3 py-1 text-sm" variant="destructive">
-                Out of Stock
-              </Badge>
-            </div>
           )}
         </Card>
       </Link>
