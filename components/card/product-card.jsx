@@ -6,7 +6,6 @@ import Link from 'next/link'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
 
@@ -64,8 +63,8 @@ export function ProductCard({
 
   return (
     <div className={cn('group', className)} {...props}>
-      <Link href={`/shop/product/1`}>
-      {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
+      <Link href={`/shop/list/1`}>
+        {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
         <Card
           className={cn(
             `
@@ -99,30 +98,8 @@ export function ProductCard({
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src="/product-pic/photo-1505740420928-5e560c06d30e.avif"
+              src={product.img}
             />
-
-            {/* Category badge */}
-            <Badge
-              className={`
-                absolute top-2 left-2 bg-background/80 backdrop-blur-sm
-              `}
-              variant="outline"
-            >
-              {safeProduct.category}
-            </Badge>
-
-            {/* Discount badge */}
-            {discount > 0 && (
-              <Badge
-                className={`
-                absolute top-2 right-2 bg-destructive
-                text-destructive-foreground
-              `}
-              >
-                {discount}% OFF
-              </Badge>
-            )}
 
             {/* Wishlist button */}
             <Button
@@ -154,7 +131,7 @@ export function ProductCard({
             {/* Product name with line clamp */}
             <h3
               className={`
-                line-clamp-2 text-base font-medium transition-colors
+                line-clamp-2 text-xl font-bold transition-colors
                 group-hover:text-primary
               `}
             >
@@ -164,14 +141,9 @@ export function ProductCard({
             {variant === 'default' && (
               <>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span className="font-medium text-foreground">
-                    ${safeProduct.price.toFixed(2)}
+                  <span className="font-bold text-xl text-destructive">
+                    NTD${safeProduct.price}
                   </span>
-                  {safeProduct.originalPrice ? (
-                    <span className="text-sm text-muted-foreground line-through">
-                      ${safeProduct.originalPrice.toFixed(2)}
-                    </span>
-                  ) : null}
                 </div>
               </>
             )}
@@ -197,7 +169,7 @@ export function ProductCard({
                 ) : (
                   <ShoppingCart className="h-4 w-4" />
                 )}
-                Add to Cart
+                加入購物車
               </Button>
             </CardFooter>
           )}
@@ -206,14 +178,9 @@ export function ProductCard({
             <CardFooter className="p-4 pt-0">
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-foreground">
-                    ${safeProduct.price.toFixed(2)}
+                  <span className="font-bold text-xl text-destructive">
+                    NTD${safeProduct.price}
                   </span>
-                  {safeProduct.originalPrice ? (
-                    <span className="text-sm text-muted-foreground line-through">
-                      ${safeProduct.originalPrice.toFixed(2)}
-                    </span>
-                  ) : null}
                 </div>
                 <Button
                   className="h-8 w-8 rounded-full"
@@ -232,23 +199,10 @@ export function ProductCard({
                   ) : (
                     <ShoppingCart className="h-4 w-4" />
                   )}
-                  <span className="sr-only">Add to cart</span>
+                  <span className="sr-only">加入購物車</span>
                 </Button>
               </div>
             </CardFooter>
-          )}
-
-          {!safeProduct.inStock && (
-            <div
-              className={`
-                absolute inset-0 flex items-center justify-center
-                bg-background/80 backdrop-blur-sm
-              `}
-            >
-              <Badge className="px-3 py-1 text-sm" variant="destructive">
-                Out of Stock
-              </Badge>
-            </div>
           )}
         </Card>
       </Link>

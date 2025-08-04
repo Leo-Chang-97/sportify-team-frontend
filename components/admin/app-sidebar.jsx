@@ -78,6 +78,10 @@ const data = {
           title: 'Product',
           url: '/admin/shop/product',
         },
+        {
+          title: 'Order',
+          url: '/admin/shop/order',
+        },
       ],
     },
     {
