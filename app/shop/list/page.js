@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ProductCard } from '@/components/card/product-card'
-import { PaginationDemo } from '@/components/pagination'
+import { PaginationBar } from '@/components/pagination-bar'
 import {
   Sheet,
   SheetContent,
@@ -272,7 +272,7 @@ export default function ProductListPage() {
               </div>
             </div>
           </div>
-          <PaginationDemo />
+          <PaginationBar />
         </div>
       </section>
       <Footer />
