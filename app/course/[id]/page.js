@@ -197,7 +197,7 @@ export default function VenueListPage() {
       <BreadcrumbAuto />
       
       {/* 課程資訊區域 */}
-      <section className=" bg-slate-900 text-white py-16">
+      <section className=" text-white py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* 主標題 */}
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-white mb-12 sm:mb-16 lg:mb-20">
@@ -256,7 +256,7 @@ export default function VenueListPage() {
           </div>
         </div>
       </section>
-      <div className='px-20  bg-slate-900 flex w-full justify-center pb-16'>
+      <div className='px-20  flex w-full justify-center pb-16'>
         <CourseImg imgs={courseImages}/>
       </div>
       <Footer />
