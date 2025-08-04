@@ -3,7 +3,6 @@
 import { Minus, Plus } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -18,11 +17,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 
 const steps = [
   { id: 1, title: '確認購物車', active: true },
-  { id: 2, title: '填寫付款資訊', completed: true },
-  { id: 3, title: '完成訂單', completed: true },
+  { id: 2, title: '填寫付款資訊', completed: false },
+  { id: 3, title: '完成訂單', completed: false },
 ]
 
 const products = [
@@ -42,7 +42,7 @@ const products = [
       重量: 380,
       產地: '越南',
     },
-    img: '/product-imgs/spec01.jpeg',
+    img: 'spec01.jpeg', // 改為檔案名稱
   },
   {
     id: 2,
@@ -60,7 +60,7 @@ const products = [
       重量: 600,
       產地: '泰國',
     },
-    img: '/product-imgs/spec02.jpeg',
+    img: 'spec02.jpeg', // 改為檔案名稱
   },
   {
     id: 3,
@@ -78,7 +78,7 @@ const products = [
       重量: 600,
       產地: '中國',
     },
-    img: '/product-imgs/spec03.jpeg',
+    img: 'spec03.jpeg', // 改為檔案名稱
   },
 ]
 
@@ -118,55 +118,64 @@ export default function ProductListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-card-foreground">
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                          <Image
-                            className="object-cover w-full h-full"
-                            src={product.img}
-                            alt={product.name}
-                            width={40}
-                            height={40}
-                          />
+                {products.map((product) => {
+                  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
+                  const image = product.img
+                  const imageFileName =
+                    typeof image === 'object' && image !== null
+                      ? image.url
+                      : image
+
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                            <img
+                              className="object-cover w-full h-full"
+                              src={getProductImageUrl(imageFileName)}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                            />
+                          </div>
+                          <span className="text-base whitespace-normal text-accent-foreground">
+                            {product.name}
+                          </span>
                         </div>
-                        <span className="text-base whitespace-normal text-accent-foreground">
-                          {product.name}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-accent-foreground">
-                      ${product.price}
-                    </TableCell>
-                    <TableCell className="text-accent-foreground">
-                      <div className="flex items-center justify-center gap-2">
-                        <span
-                          className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
-                          aria-label="Decrease quantity"
-                          onClick={() =>
-                            quantity > 1 && handleQuantityChange(quantity - 1)
-                          }
-                        >
-                          <Minus className="h-4 w-4" />
-                        </span>
-                        <span className="w-12 text-center select-none">
-                          {quantity}
-                        </span>
-                        <span
-                          className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
-                          aria-label="Increase quantity"
-                          onClick={() => handleQuantityChange(quantity + 1)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right hidden md:table-cell text-accent-foreground">
-                      ${product.price}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="text-accent-foreground">
+                        ${product.price}
+                      </TableCell>
+                      <TableCell className="text-accent-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <span
+                            className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                            aria-label="Decrease quantity"
+                            onClick={() =>
+                              quantity > 1 && handleQuantityChange(quantity - 1)
+                            }
+                          >
+                            <Minus className="h-4 w-4" />
+                          </span>
+                          <span className="w-12 text-center select-none">
+                            {quantity}
+                          </span>
+                          <span
+                            className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                            aria-label="Increase quantity"
+                            onClick={() => handleQuantityChange(quantity + 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right hidden md:table-cell text-accent-foreground">
+                        ${product.price}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
             <div className="flex flex-col">
