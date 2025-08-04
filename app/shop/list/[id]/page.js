@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/carousel'
 import { useParams, useRouter } from 'next/navigation'
 import products from '../../datas.json'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -49,6 +50,12 @@ export default function ProductListPage() {
   const handleQuantityChange = React.useCallback((newQty) => {
     setQuantity((prev) => (newQty >= 1 ? newQty : prev))
   }, [])
+
+  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
+  const image = product?.img
+  const imageFileName =
+    typeof image === 'object' && image !== null ? image.url : image
+
   const handleViewDetails = React.useCallback(() => {
     if (!product) return
     toast.success(`查看 ${product.name} 的詳細資訊`)
@@ -57,9 +64,9 @@ export default function ProductListPage() {
 
   const imageGroup = (
     <div className="w-full max-w-[350px] md:max-w-[400px] lg:max-w-[450px] flex items-center justify-center mb-4 md:mb-6">
-      {product?.img ? (
+      {imageFileName ? (
         <img
-          src={product.img}
+          src={getProductImageUrl(imageFileName)}
           alt={product.name}
           className="w-full h-full object-contain"
           key={selectedIndex}
@@ -83,9 +90,9 @@ export default function ProductListPage() {
             <div className="flex-1 flex flex-col items-center justify-center">
               {/* 上方大圖 */}
               <div className="w-full max-w-[400px] md:max-w-[450px] lg:max-w-[500px] flex items-center justify-center mb-4">
-                {product?.img ? (
+                {imageFileName ? (
                   <img
-                    src={product.img}
+                    src={getProductImageUrl(imageFileName)}
                     alt={product.name}
                     className="w-full h-full object-contain"
                     key={selectedIndex}
@@ -96,9 +103,9 @@ export default function ProductListPage() {
                   </div>
                 )}
               </div>
-              {/* 下方小圖輪播（重複主圖） */}
-              <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px]">
-                <Carousel opts={{ align: 'start' }}>
+              {/* 下方小圖輪播 */}
+              <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px] relative items-center">
+                <Carousel opts={{ align: 'start' }} className="w-full px-10">
                   <CarouselContent>
                     {[...Array(totalImages)].map((_, idx) => (
                       <CarouselItem
@@ -113,7 +120,7 @@ export default function ProductListPage() {
                           }}
                         >
                           <img
-                            src={product.img}
+                            src={getProductImageUrl(imageFileName)}
                             alt={product.name}
                             className="w-full h-full object-contain"
                           />
@@ -123,11 +130,11 @@ export default function ProductListPage() {
                   </CarouselContent>
                   <CarouselPrevious
                     onClick={handlePrev}
-                    className="hidden md:flex"
+                    className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 items-center justify-center"
                   />
                   <CarouselNext
                     onClick={handleNext}
-                    className="hidden md:flex"
+                    className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 items-center justify-center"
                   />
                 </Carousel>
               </div>

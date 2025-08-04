@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { FaXmark, FaCheck } from 'react-icons/fa6'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -21,8 +21,8 @@ import {
 
 const steps = [
   { id: 1, title: '待出貨', completed: true },
-  { id: 2, title: '已出貨', completed: true },
-  { id: 3, title: '已完成', completed: true },
+  { id: 2, title: '已出貨', completed: false },
+  { id: 3, title: '已完成', completed: false },
 ]
 
 const products = [
@@ -42,7 +42,7 @@ const products = [
       重量: 380,
       產地: '越南',
     },
-    img: '/product-imgs/spec01.jpeg',
+    img: 'spec01.jpeg', // 改為檔案名稱
   },
   {
     id: 2,
@@ -60,7 +60,7 @@ const products = [
       重量: 600,
       產地: '泰國',
     },
-    img: '/product-imgs/spec02.jpeg',
+    img: 'spec02.jpeg', // 改為檔案名稱
   },
   {
     id: 3,
@@ -78,7 +78,7 @@ const products = [
       重量: 600,
       產地: '中國',
     },
-    img: '/product-imgs/spec03.jpeg',
+    img: 'spec03.jpeg', // 改為檔案名稱
   },
 ]
 
@@ -153,36 +153,45 @@ export default function ProductListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-card-foreground">
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                          <Image
-                            className="object-cover w-full h-full"
-                            src={product.img}
-                            alt={product.name}
-                            width={40}
-                            height={40}
-                          />
+                {products.map((product) => {
+                  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
+                  const image = product.img
+                  const imageFileName =
+                    typeof image === 'object' && image !== null
+                      ? image.url
+                      : image
+
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                            <img
+                              className="object-cover w-full h-full"
+                              src={getProductImageUrl(imageFileName)}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                            />
+                          </div>
+                          <span className="text-base whitespace-normal text-accent-foreground">
+                            {product.name}
+                          </span>
                         </div>
-                        <span className="text-base whitespace-normal text-accent-foreground">
-                          {product.name}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-accent-foreground">
-                      ${product.price}
-                    </TableCell>
-                    <TableCell className="text-accent-foreground">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="w-12 text-center select-none">
-                          {quantity}
-                        </span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="text-accent-foreground">
+                        ${product.price}
+                      </TableCell>
+                      <TableCell className="text-accent-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="w-12 text-center select-none">
+                            {quantity}
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </div>
