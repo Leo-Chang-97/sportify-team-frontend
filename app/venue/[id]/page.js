@@ -7,6 +7,9 @@ import {
   ClipboardCheck,
   CircleParking,
   ShowerHead,
+  MapPin,
+  TrainFront,
+  Bus,
 } from 'lucide-react'
 import {
   IconShoppingCart,
@@ -43,6 +46,7 @@ import {
 } from '@/components/icons/sport-icons'
 import { getCenterDetail } from '@/api/venue/center'
 import fakeData from '@/app/venue/fake-data.json'
+import { getCenterImageUrl } from '@/api/venue/image'
 
 // 使用 Map 提供互動式地圖功能
 const Map = dynamic(() => import('@/components/map'), {
@@ -131,17 +135,17 @@ export default function CenterDetailPage() {
       </div>
     )
   }
-  const sportItems = [
-    { icon: BasketballIcon, label: '籃球' },
-    { icon: BadmintonIcon, label: '羽球' },
-    { icon: TableTennisIcon, label: '桌球' },
-    { icon: TennisIcon, label: '網球' },
-    { icon: VolleyballIcon, label: '排球' },
-    { icon: TennisRacketIcon, label: '壁球' },
-    { icon: SoccerIcon, label: '足球' },
-    { icon: BaseballBatIcon, label: '棒球' },
-    { icon: BilliardBallIcon, label: '撞球' },
-  ]
+  const sportIconMap = {
+    basketball: BasketballIcon,
+    badminton: BadmintonIcon,
+    tabletennis: TableTennisIcon,
+    tennis: TennisIcon,
+    volleyball: VolleyballIcon,
+    squash: TennisRacketIcon,
+    soccer: SoccerIcon,
+    baseball: BaseballBatIcon,
+    billiard: BilliardBallIcon,
+  }
 
   const facilityItems = [
     { icon: CircleParking, label: '停車場' },
@@ -155,11 +159,9 @@ export default function CenterDetailPage() {
   ]
 
   // 使用 API 資料的位置，如果沒有則使用預設位置
-  /* const position = data.location?.coordinates || [
-      data.latitude,
-      data.longitude,
-    ] || [25.116592439309592, 121.50983159645816] */
-  const position = [25.116592439309592, 121.50983159645816]
+  const position = [data.latitude, data.longitude] || [
+    25.116592439309592, 121.50983159645816,
+  ]
 
   /*  Markup  */
   return (
@@ -238,9 +240,7 @@ export default function CenterDetailPage() {
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  src={
-                    data.image || data.images?.[0] || '/placeholder-venue.jpg'
-                  }
+                  src={getCenterImageUrl(data.images[0])}
                 />
               </AspectRatio>
             </div>
@@ -306,16 +306,18 @@ export default function CenterDetailPage() {
             <section className="flex flex-col gap-6">
               {/* data info */}
               <div className="flex flex-col">
-                <h2 className="mb-4 text-2xl font-bold">場館運動項目</h2>
+                <h2 className="mb-4 text-xl font-bold">場館運動項目</h2>
 
                 <div className="flex flex-wrap gap-2">
-                  {sportItems.map((item, idx) => {
-                    const IconComponent = item.icon
+                  {data.sports.map((item, idx) => {
+                    const IconComponent = sportIconMap[item.iconKey]
                     return (
                       <Link href="#" key={idx}>
                         <Button variant="outline" size="sm">
-                          <IconComponent className="!w-6 !h-6" />
-                          <span>{item.label}</span>
+                          {IconComponent && (
+                            <IconComponent className="!w-6 !h-6" />
+                          )}
+                          {item.name}
                           <span className="text-muted-foreground">4個場地</span>
                         </Button>
                       </Link>
@@ -325,13 +327,13 @@ export default function CenterDetailPage() {
               </div>
               {/* Features */}
               <div className="flex flex-col">
-                <h2 className="mb-4 text-2xl font-bold">場館設施</h2>
+                <h2 className="mb-4 text-xl font-bold">場館設施</h2>
                 <div className="flex flex-wrap gap-4">
                   {facilityItems.map((item, idx) => {
                     const IconComponent = item.icon
                     return (
                       <div className="flex gap-2" key={idx}>
-                        <IconComponent className="!w-6 !h-6" />
+                        <IconComponent className="!w-6 !h-6 text-highlight" />
                         <span>{item.label}</span>
                       </div>
                     )
@@ -342,7 +344,7 @@ export default function CenterDetailPage() {
 
             {/* Specifications */}
             <section>
-              <h2 className="mb-4 text-2xl font-bold">營業時間</h2>
+              <h2 className="mb-4 text-xl font-bold">營業時間</h2>
               <div className="space-y-2">
                 {fakeItem?.specs ? (
                   Object.entries(fakeItem.specs).map(([key, value]) => (
@@ -377,7 +379,33 @@ export default function CenterDetailPage() {
 
           <Separator className="my-8" />
           <section>
-            <h2 className="mb-4 text-2xl font-bold">地理位置</h2>
+            <h2 className="mb-4 text-xl font-bold">地理位置</h2>
+            <div className="space-y-2 mb-4">
+              <div className="flex pb-2 gap-2">
+                <MapPin className="text-highlight" />
+                <Link
+                  href={`https://www.google.com/maps/place/${data.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="underline underline-offset-4">
+                    {data.address}
+                  </span>
+                </Link>
+              </div>
+              <div className="flex pb-2 gap-2">
+                <TrainFront className="text-highlight" />
+                <span>距離最近的捷運站</span>
+                <span className="text-highlight text-bold">200</span>
+                <span>公尺</span>
+              </div>
+              <div className="flex pb-2 gap-2">
+                <Bus className="text-highlight" />
+                <span>距離最近的公車站</span>
+                <span className="text-highlight text-bold">150</span>
+                <span>公尺</span>
+              </div>
+            </div>
             <div className="w-full h-[400px] rounded-lg overflow-hidden">
               <Map position={position} dataName={data.name || '場館位置'} />
             </div>
