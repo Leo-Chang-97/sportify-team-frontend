@@ -201,8 +201,8 @@ export default function VenueListPage() {
       <ScrollAreaSport />
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選課程</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <h3 className="text-lg text-center">精選課程</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-15">
             <CourseCard />
             <CourseCard />  
             <CourseCard />

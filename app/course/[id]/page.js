@@ -26,6 +26,7 @@ import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
+import CourseImg from '../_compoents/course-img'
 import {
   Popover,
   PopoverContent,
@@ -73,10 +74,10 @@ export default function VenueListPage() {
 
   // 課程圖片資料
   const courseImages = [
-    { id: 1, src: '/product-pic/volleyball-course.png', alt: '桌球教學 1' },
-    { id: 2, src: '/product-pic/volleyball-course.png', alt: '桌球教學 2' },
-    { id: 3, src: '/product-pic/volleyball-course.png', alt: '桌球教學 3' },
-    { id: 4, src: '/product-pic/volleyball-course.png', alt: '桌球教學 4' }
+    { id: 1, src: '/product-pic/class-img/class1.png', alt: '桌球教學 1' },
+    { id: 2, src: '/product-pic/class-img/class2.png', alt: '桌球教學 2' },
+    { id: 3, src: '/product-pic/class-img/class3.png', alt: '桌球教學 3' },
+    { id: 4, src: '/product-pic/class-img/class4.png', alt: '桌球教學 4' }
   ];
 
   // ===== 載入下拉選單選項 =====
@@ -196,7 +197,7 @@ export default function VenueListPage() {
       <BreadcrumbAuto />
       
       {/* 課程資訊區域 */}
-      <section className="bg-slate-900 text-white py-16">
+      <section className=" bg-slate-900 text-white py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* 主標題 */}
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-white mb-12 sm:mb-16 lg:mb-20">
@@ -208,7 +209,7 @@ export default function VenueListPage() {
             {/* 左側 - 主圖片 (桌機版左側，手機版上方) */}
             <div className="md:w-1/2">
               <img 
-                src="/banner/class-banner.jpg" 
+                src="/product-pic/volleyball-course.png" 
                 alt="桌球教學主圖" 
                 className="w-full h-48 sm:h-64 lg:h-auto rounded-lg object-cover"
               />
@@ -253,10 +254,11 @@ export default function VenueListPage() {
               </div>
             </div>
           </div>
-          
         </div>
       </section>
-      
+      <div className='px-20  bg-slate-900 flex w-full justify-center pb-16'>
+        <CourseImg imgs={courseImages}/>
+      </div>
       <Footer />
     </>
   )

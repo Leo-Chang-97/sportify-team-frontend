@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 const CourseCard = () => {
@@ -14,7 +15,7 @@ const CourseCard = () => {
         {/* 實際使用時可以替換成真實圖片 */}
         
         <img 
-          src="/product-pic/photo-1505740420928-5e560c06d30e.avif" 
+          src="/product-pic/volleyball-course.png" 
           alt="羽球課程" 
           className="w-full h-full object-cover"
         />
@@ -40,10 +41,12 @@ const CourseCard = () => {
           </p>
           
           {/* Read More 按鈕 */}
+          <Link href={`/course/1`}>
           <button className="flex items-center text-gray-400 hover:text-gray-50 transition-all duration-300 group">
             <span className="text-sm font-medium mr-2">Read More</span>
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" />
           </button>
+          </Link>
         </div>
       </div>
       
