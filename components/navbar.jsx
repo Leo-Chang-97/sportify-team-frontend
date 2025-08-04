@@ -163,10 +163,10 @@ const UserMenu = ({
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={() => onItemClick?.('profile')}>
-        個人檔案
+        <Link href="/member/member-data">個人檔案</Link>
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('settings')}>
-        會員中心
+      <DropdownMenuItem onClick={() => onItemClick?.('member')}>
+        <Link href="/member">會員中心</Link>
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
         購物車

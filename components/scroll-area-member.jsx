@@ -14,7 +14,7 @@ import Link from 'next/link'
 
 // 定義 Scroll Area 欄位
 const memberItems = [
-  { icon: MemberDataIcon, label: '會員資料', path: '/member/member-data' },
+  { icon: MemberDataIcon, label: '個人資料', path: '/member/member-data' },
   { icon: VenueDataIcon, label: '場館租借紀錄', path: '/member/venue-data' },
   { icon: ClassDataIcon, label: '課程紀錄', path: '/member/class-data' },
   { icon: ShopDataIcon, label: '商品訂單紀錄', path: '/member/shop-data' },

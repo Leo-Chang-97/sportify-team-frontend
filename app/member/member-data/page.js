@@ -56,30 +56,30 @@ export default function VenueListPage() {
 
 
   // ===== 載入下拉選單選項 =====
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const memberData = await fetchMemberOptions()
-        setMembers(memberData.rows || [])
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       const memberData = await fetchMemberOptions()
+  //       setMembers(memberData.rows || [])
 
-        // const locationData = await fetchLocationOptions()
-        // setLocations(locationData.rows || [])
+  //       // const locationData = await fetchLocationOptions()
+  //       // setLocations(locationData.rows || [])
 
-        const sportData = await fetchSportOptions()
-        setSports(sportData.rows || [])
+  //       const sportData = await fetchSportOptions()
+  //       setSports(sportData.rows || [])
 
-        const timePeriodData = await fetchTimePeriodOptions()
-        setTimePeriods(timePeriodData.rows || [])
+  //       const timePeriodData = await fetchTimePeriodOptions()
+  //       setTimePeriods(timePeriodData.rows || [])
 
-        const statusData = await fetchStatusOptions()
-        setStatus(statusData.rows || [])
-      } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
-      }
-    }
-    loadData()
-  }, [])
+  //       const statusData = await fetchStatusOptions()
+  //       setStatus(statusData.rows || [])
+  //     } catch (error) {
+  //       console.error('載入球場/時段失敗:', error)
+  //       toast.error('載入球場/時段失敗')
+  //     }
+  //   }
+  //   loadData()
+  // }, [])
 
 
 
