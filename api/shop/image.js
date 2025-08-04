@@ -6,7 +6,7 @@ import { API_SERVER_ADMIN } from '@/lib/api-path'
  * @returns {string} 完整的圖片 URL
  */
 export const getProductImageUrl = (imageName) => {
-  if (!imageName) return '/placeholder-product.jpg' // 預設圖片
+  if (!imageName) return '/product-pic/product-img.jpg' // 預設圖片
   // 經由後端 API 端點取得圖片
   return `${API_SERVER_ADMIN}/shop/product/image/${imageName}`
 }

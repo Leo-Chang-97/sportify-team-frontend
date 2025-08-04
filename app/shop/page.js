@@ -41,151 +41,150 @@ const brandItems = [
 
 const products = [
   {
-    "id": 1,
-    "name": "極限飛馳籃球鞋",
-    "brand_name": "Anta",
-    "sport_name": "籃球",
-    "price": 880,
-    "stock": 50,
-    "specs": {
-      "商品名稱": "極限飛馳籃球鞋",
-      "品牌": "Anta",
-      "運動種類": "籃球",
-      "材質": "透氣網布與耐磨橡膠",
-      "尺寸": "27",
-      "重量": 380,
-      "產地": "越南"
+    id: 1,
+    name: '極限飛馳籃球鞋',
+    brand_name: 'Anta',
+    sport_name: '籃球',
+    price: 880,
+    stock: 50,
+    specs: {
+      商品名稱: '極限飛馳籃球鞋',
+      品牌: 'Anta',
+      運動種類: '籃球',
+      材質: '透氣網布與耐磨橡膠',
+      尺寸: '27',
+      重量: 380,
+      產地: '越南',
     },
-    "img": "/product-imgs/spec01.jpeg"
+    img: 'spec01.jpeg',
   },
   {
-    "id": 2,
-    "name": "標準七號籃球",
-    "brand_name": "Spalding",
-    "sport_name": "籃球",
-    "price": 650,
-    "stock": 100,
-    "specs": {
-      "商品名稱": "標準七號籃球",
-      "品牌": "Spalding",
-      "運動種類": "籃球",
-      "材質": "高級合成皮革",
-      "尺寸": "24",
-      "重量": 600,
-      "產地": "泰國"
+    id: 2,
+    name: '標準七號籃球',
+    brand_name: 'Spalding',
+    sport_name: '籃球',
+    price: 650,
+    stock: 100,
+    specs: {
+      商品名稱: '標準七號籃球',
+      品牌: 'Spalding',
+      運動種類: '籃球',
+      材質: '高級合成皮革',
+      尺寸: '24',
+      重量: 600,
+      產地: '泰國',
     },
-    "img": "/product-imgs/spec02.jpeg"
+    img: 'spec02.jpeg',
   },
   {
-    "id": 3,
-    "name": "7號籃球",
-    "brand_name": "Spalding",
-    "sport_name": "籃球",
-    "price": 720,
-    "stock": 14,
-    "specs": {
-      "商品名稱": "7號籃球",
-      "品牌": "Spalding",
-      "運動種類": "籃球",
-      "材質": "合成皮",
-      "尺寸": "24.5",
-      "重量": 600,
-      "產地": "中國"
+    id: 3,
+    name: '7號籃球',
+    brand_name: 'Spalding',
+    sport_name: '籃球',
+    price: 720,
+    stock: 14,
+    specs: {
+      商品名稱: '7號籃球',
+      品牌: 'Spalding',
+      運動種類: '籃球',
+      材質: '合成皮',
+      尺寸: '24.5',
+      重量: 600,
+      產地: '中國',
     },
-    "img": "/product-imgs/spec03.jpeg"
+    img: 'spec03.jpeg',
   },
   {
-    "id": 4,
-    "name": "訓練背心",
-    "brand_name": "Nike",
-    "sport_name": "籃球",
-    "price": 950,
-    "stock": 15,
-    "specs": {
-      "商品名稱": "訓練背心",
-      "品牌": "Nike",
-      "運動種類": "籃球",
-      "材質": "速乾滌綸",
-      "尺寸": "1",
-      "重量": 181,
-      "產地": "越南"
+    id: 4,
+    name: '訓練背心',
+    brand_name: 'Nike',
+    sport_name: '籃球',
+    price: 950,
+    stock: 15,
+    specs: {
+      商品名稱: '訓練背心',
+      品牌: 'Nike',
+      運動種類: '籃球',
+      材質: '速乾滌綸',
+      尺寸: '1',
+      重量: 181,
+      產地: '越南',
     },
-    "img": "/product-imgs/spec04.jpeg"
+    img: 'spec04.jpeg',
   },
   {
-    "id": 5,
-    "name": "運動長襪",
-    "brand_name": "Nike",
-    "sport_name": "籃球",
-    "price": 750,
-    "stock": 18,
-    "specs": {
-      "商品名稱": "運動長襪",
-      "品牌": "Nike",
-      "運動種類": "籃球",
-      "材質": "運動棉",
-      "尺寸": "25-27",
-      "重量": 97,
-      "產地": "台灣"
+    id: 5,
+    name: '運動長襪',
+    brand_name: 'Nike',
+    sport_name: '籃球',
+    price: 750,
+    stock: 18,
+    specs: {
+      商品名稱: '運動長襪',
+      品牌: 'Nike',
+      運動種類: '籃球',
+      材質: '運動棉',
+      尺寸: '25-27',
+      重量: 97,
+      產地: '台灣',
     },
-    "img": "/product-imgs/spec05.jpeg"
+    img: 'spec05.jpeg',
   },
   {
-    "id": 6,
-    "name": "經典運動短褲",
-    "brand_name": "Nike",
-    "sport_name": "籃球",
-    "price": 890,
-    "stock": 20,
-    "specs": {
-      "商品名稱": "經典運動短褲",
-      "品牌": "Nike",
-      "運動種類": "籃球",
-      "材質": "皮革與氣墊科技",
-      "尺寸": "45",
-      "重量": 463,
-      "產地": "印尼"
+    id: 6,
+    name: '經典運動短褲',
+    brand_name: 'Nike',
+    sport_name: '籃球',
+    price: 890,
+    stock: 20,
+    specs: {
+      商品名稱: '經典運動短褲',
+      品牌: 'Nike',
+      運動種類: '籃球',
+      材質: '皮革與氣墊科技',
+      尺寸: '45',
+      重量: 463,
+      產地: '印尼',
     },
-    "img": "/product-imgs/spec06.jpeg"
+    img: 'spec06.jpeg',
   },
   {
-    "id": 7,
-    "name": "攻擊型碳素羽球拍",
-    "brand_name": "Yonex",
-    "sport_name": "羽球",
-    "price": 820,
-    "stock": 30,
-    "specs": {
-      "商品名稱": "攻擊型碳素羽球拍",
-      "品牌": "Yonex",
-      "運動種類": "羽球",
-      "材質": "高剛性碳纖維",
-      "尺寸": "67",
-      "重量": 83,
-      "產地": "日本"
+    id: 7,
+    name: '攻擊型碳素羽球拍',
+    brand_name: 'Yonex',
+    sport_name: '羽球',
+    price: 820,
+    stock: 30,
+    specs: {
+      商品名稱: '攻擊型碳素羽球拍',
+      品牌: 'Yonex',
+      運動種類: '羽球',
+      材質: '高剛性碳纖維',
+      尺寸: '67',
+      重量: 83,
+      產地: '日本',
     },
-    "img": "/product-imgs/spec07.jpeg"
+    img: 'spec07.jpeg',
   },
   {
-    "id": 8,
-    "name": "比賽級鵝毛羽球",
-    "brand_name": "VICTOR",
-    "sport_name": "羽球",
-    "price": 750,
-    "stock": 150,
-    "specs": {
-      "商品名稱": "比賽級鵝毛羽球",
-      "品牌": "VICTOR",
-      "運動種類": "羽球",
-      "材質": "天然鵝毛",
-      "尺寸": "8",
-      "重量": 60,
-      "產地": "中國"
+    id: 8,
+    name: '比賽級鵝毛羽球',
+    brand_name: 'VICTOR',
+    sport_name: '羽球',
+    price: 750,
+    stock: 150,
+    specs: {
+      商品名稱: '比賽級鵝毛羽球',
+      品牌: 'VICTOR',
+      運動種類: '羽球',
+      材質: '天然鵝毛',
+      尺寸: '8',
+      重量: 60,
+      產地: '中國',
     },
-    "img": "/product-imgs/spec08.jpeg"
-  }
+    img: 'spec08.jpeg',
+  },
 ]
-
 
 export default function ProductHomePage() {
   const [members, setMembers] = useState([])
@@ -304,7 +303,11 @@ export default function ProductHomePage() {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} variant='default'/>
+              <ProductCard
+                key={product.id}
+                product={product}
+                variant="default"
+              />
             ))}
           </div>
         </div>
