@@ -1,6 +1,7 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
+import Image from 'next/image'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -131,7 +132,7 @@ export default function ProductListPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <img
+                            <Image
                               className="object-cover w-full h-full"
                               src={getProductImageUrl(imageFileName)}
                               alt={product.name}

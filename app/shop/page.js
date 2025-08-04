@@ -1,6 +1,7 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import Image from 'next/image'
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
@@ -9,6 +10,7 @@ import {
   fetchMemberOptions,
   fetchSportOptions,
   fetchBrandOptions,
+  toggleFavorite,
 } from '@/api'
 import { Input } from '@/components/ui/input'
 import { Navbar } from '@/components/navbar'
@@ -31,6 +33,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
+import { toast } from 'sonner'
 
 // 定義 Brand 欄位
 const brandItems = [
@@ -104,6 +107,16 @@ export default function ProductHomePage() {
   const handleSearch = () => {
     // 搜尋邏輯
     console.log('搜尋:', { brandId, sportId })
+  }
+
+  const handleAddToWishlist = async (productId) => {
+    const result = await toggleFavorite(productId)
+    mutate()
+    if (result?.favorited) {
+      toast('已加入我的收藏', { style: { backgroundColor: '#ff671e', color: '#fff' ,border:'none'} })
+    } else {
+      toast('已從我的收藏移除', { style: { backgroundColor: '#ff671e', color: '#fff' ,border:'none'} })
+    }
   }
 
   // 定義 Hero Banner 搜尋欄位
@@ -195,6 +208,7 @@ export default function ProductHomePage() {
                 key={product.id}
                 product={product}
                 variant="default"
+                onAddToWishlist={() => handleAddToWishlist(product.id)}
               />
             ))}
           </div>
@@ -217,9 +231,11 @@ export default function ProductHomePage() {
                     className="basis-1/3 md:basis-1/5 flex flex-col items-center"
                   >
                     <div className="p-1 py-10 w-full h-full max-w-[200px] max-h-[200px]">
-                      <img
+                      <Image
                         src={item.img}
                         alt={item.label}
+                        width={200}
+                        height={200}
                         className="w-auto h-full object-contain"
                       />
                     </div>

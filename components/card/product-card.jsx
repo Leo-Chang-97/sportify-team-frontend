@@ -1,6 +1,7 @@
 'use client'
 
 import { Heart, ShoppingCart } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
 
@@ -20,14 +21,6 @@ export function ProductCard({
   variant = 'default',
   ...props
 }) {
-  // 防呆：如果沒傳 product，給預設值
-  const safeProduct = product || {
-    name:"",
-    price: 0,
-    sport_name: "",
-    brand_name: "",
-    image_url: "",
-  }
   const [isHovered, setIsHovered] = React.useState(false)
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
   const [isInWishlist, setIsInWishlist] = React.useState(false)
@@ -38,9 +31,9 @@ export function ProductCard({
   }, [])
 
   // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
-  const image = safeProduct.img || safeProduct.image // 支援 img 和 image 兩種屬性名稱
+  const image = product?.img || product?.image // 支援 img 和 image 兩種屬性名稱
   const imageFileName =
-    safeProduct.image_url ||
+    product?.image_url ||
     (typeof image === 'object' && image !== null ? image.url : image)
 
   const handleAddToCart = (e) => {
@@ -49,7 +42,7 @@ export function ProductCard({
       setIsAddingToCart(true)
       // Simulate API call
       setTimeout(() => {
-        onAddToCart(safeProduct.id)
+        onAddToCart(product?.id)
         setIsAddingToCart(false)
       }, 600)
     }
@@ -59,22 +52,20 @@ export function ProductCard({
     e.preventDefault()
     if (onAddToWishlist) {
       setIsInWishlist(!isInWishlist)
-      onAddToWishlist(safeProduct.id)
+      onAddToWishlist(product?.id)
     }
   }
 
-  const discount = safeProduct.originalPrice
+  const discount = product?.originalPrice
     ? Math.round(
-        ((safeProduct.originalPrice - safeProduct.price) /
-          safeProduct.originalPrice) *
-          100
+        ((product.originalPrice - product.price) / product.originalPrice) * 100
       )
     : 0
 
   return (
     <div className={cn('group', className)} {...props}>
       <Link href={`/shop/list/1`}>
-        {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
+        {/* <Link href={`/shop/product/${product?.id}`}> */}
         <Card
           className={cn(
             `
@@ -91,25 +82,27 @@ export function ProductCard({
             ratio={4 / 3}
             className="bg-muted overflow-hidden rounded-t-lg relative"
           >
-            {/* {safeProduct.image && (
+            {/* {product?.image && (
               <Image
-                alt={safeProduct.name}
+                alt={product?.name}
                 className={cn(
                   'object-cover transition-transform duration-300 ease-in-out',
                   isHovered && 'scale-105'
                 )}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                src={safeProduct.image}
+                src={product?.image}
               />
             )} */}
-            <img
-              alt={safeProduct.name || '商品圖片'}
+            <Image
+              alt={product?.name || '商品圖片'}
               className={cn(
                 'object-cover transition-transform duration-300 ease-in-out w-full h-full',
                 isHovered && 'scale-105'
               )}
               src={getProductImageUrl(imageFileName)}
+              width={300}
+              height={300}
             />
 
             {/* Wishlist button */}
@@ -144,11 +137,11 @@ export function ProductCard({
             {/* 運動和品牌 */}
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground font-medium">
-                {safeProduct.brand_name || safeProduct.brand || '—'}
+                {product?.brand_name || product?.brand || '—'}
               </span>
-              {safeProduct.sport_name && (
+              {product?.sport_name && (
                 <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                  {safeProduct.sport_name}
+                  {product?.sport_name}
                 </span>
               )}
             </div>
@@ -159,14 +152,14 @@ export function ProductCard({
                 group-hover:text-primary min-h-[56px]
               `}
             >
-              {safeProduct.name}
+              {product?.name}
             </h3>
 
             {variant === 'default' && (
               <>
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className="font-medium text-lg text-destructive">
-                    NTD${safeProduct.price}
+                    NTD${product?.price}
                   </span>
                 </div>
               </>
@@ -203,7 +196,7 @@ export function ProductCard({
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-lg text-destructive">
-                    NTD${safeProduct.price}
+                    NTD${product?.price}
                   </span>
                 </div>
                 <Button

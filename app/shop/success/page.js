@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { FaXmark, FaCheck } from 'react-icons/fa6'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
@@ -159,7 +160,7 @@ export default function ProductListPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <img
+                            <Image
                               className="object-cover w-full h-full"
                               src={getProductImageUrl(imageFileName)}
                               alt={product.name}

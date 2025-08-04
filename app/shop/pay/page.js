@@ -175,7 +175,7 @@ export default function ProductListPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <img
+                            <Image
                               className="object-cover w-full h-full"
                               src={getProductImageUrl(imageFileName)}
                               alt={product.name}

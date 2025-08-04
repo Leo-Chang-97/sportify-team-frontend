@@ -1,6 +1,7 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
+import Image from 'next/image'
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
@@ -65,9 +66,11 @@ export default function ProductListPage() {
   const imageGroup = (
     <div className="w-full max-w-[350px] md:max-w-[400px] lg:max-w-[450px] flex items-center justify-center mb-4 md:mb-6">
       {imageFileName ? (
-        <img
+        <Image
           src={getProductImageUrl(imageFileName)}
           alt={product.name}
+          width={450}
+          height={450}
           className="w-full h-full object-contain"
           key={selectedIndex}
         />
@@ -91,9 +94,11 @@ export default function ProductListPage() {
               {/* 上方大圖 */}
               <div className="w-full max-w-[400px] md:max-w-[450px] lg:max-w-[500px] flex items-center justify-center mb-4">
                 {imageFileName ? (
-                  <img
+                  <Image
                     src={getProductImageUrl(imageFileName)}
                     alt={product.name}
+                    width={500}
+                    height={500}
                     className="w-full h-full object-contain"
                     key={selectedIndex}
                   />
@@ -119,9 +124,11 @@ export default function ProductListPage() {
                               selectedIndex === idx ? '1px solid gray' : 'none',
                           }}
                         >
-                          <img
+                          <Image
                             src={getProductImageUrl(imageFileName)}
                             alt={product.name}
+                            width={100}
+                            height={100}
                             className="w-full h-full object-contain"
                           />
                         </button>

@@ -8,12 +8,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      // {
-      //   protocol: 'http',
-      //   hostname: 'localhost',
-      //   port: '3005',
-      //   pathname: '/api/admin/shop/product/image/**',
-      // },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3005',
+        pathname: '/api/admin/shop/product/image/**',
+      },
     ],
   },
 }
