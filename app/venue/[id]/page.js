@@ -1,27 +1,52 @@
 'use client'
 
-import { Heart, Share, Minus, Plus, Star } from 'lucide-react'
+import {
+  Heart,
+  Share,
+  Star,
+  ClipboardCheck,
+  CircleParking,
+  ShowerHead,
+} from 'lucide-react'
+import {
+  IconShoppingCart,
+  IconBarbell,
+  IconYoga,
+  IconBike,
+  IconTreadmill,
+  IconWifi,
+} from '@tabler/icons-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
+import dynamic from 'next/dynamic'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Footer from '@/components/footer'
-import { cn } from '@/lib/utils'
+import {
+  BasketballIcon,
+  BadmintonIcon,
+  TableTennisIcon,
+  TennisIcon,
+  VolleyballIcon,
+  TennisRacketIcon,
+  SoccerIcon,
+  BaseballBatIcon,
+  BilliardBallIcon,
+} from '@/components/icons/sport-icons'
+import { getCenterDetail } from '@/api/venue/center'
+import fakeData from '@/app/venue/fake-data.json'
 
-/* -------------------------------------------------------------------------- */
-/*                         Helpers (shared, memo-safe)                        */
-/* -------------------------------------------------------------------------- */
-
-const CURRENCY_FORMATTER = new Intl.NumberFormat('en-US', {
-  currency: 'USD',
-  style: 'currency',
+// 使用 Map 提供互動式地圖功能
+const Map = dynamic(() => import('@/components/map'), {
+  ssr: false,
 })
 
 /** `feature -> feature` ➜ `feature-feature` (for React keys) */
@@ -32,471 +57,331 @@ const slugify = (str) =>
     .replace(/[^\w-]+/g, '')
 
 /** Build an integer array `[0,…,length-1]` once */
-
 const range = (length) => Array.from({ length }, (_, i) => i)
 
-/* -------------------------------------------------------------------------- */
-/*                        Static product data (demo only)                     */
-/* -------------------------------------------------------------------------- */
-
-const products = [
-  {
-    category: 'Audio',
-    description:
-      'Experience crystal-clear sound with our premium wireless headphones. Featuring active noise cancellation, 30-hour battery life, and comfortable over-ear design for all-day listening comfort.',
-    features: [
-      'Active noise cancellation',
-      '30-hour battery life',
-      'Bluetooth 5.2 connectivity',
-      'Comfortable memory foam ear cushions',
-      'Quick charge - 5 minutes for 4 hours of playback',
-      'Built-in microphone for calls',
-    ],
-    id: '1',
-    image:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    inStock: true,
-    name: 'Premium Wireless Headphones',
-    originalPrice: 249.99,
-    price: 199.99,
-    rating: 4.5,
-    specs: {
-      batteryLife: '30 hours',
-      brand: 'AudioMax',
-      connectivity: 'Bluetooth 5.2, 3.5mm jack',
-      model: 'WH-1000XM5',
-      warranty: '2 years',
-      weight: '250g',
-    },
-  },
-  {
-    category: 'Wearables',
-    description:
-      'Stay connected and track your fitness goals with our advanced smartwatch. Features health monitoring, GPS tracking, and a beautiful always-on display.',
-    features: [
-      'Health monitoring (heart rate, ECG, sleep)',
-      'Water resistant up to 50m',
-      'GPS tracking',
-      '7-day battery life',
-      'Always-on retina display',
-      'Customizable watch faces',
-    ],
-    id: '2',
-    image:
-      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    inStock: true,
-    name: 'Smart Watch Series 5',
-    originalPrice: 349.99,
-    price: 299.99,
-    rating: 4.2,
-    specs: {
-      batteryLife: '7 days',
-      brand: 'TechFit',
-      compatibility: 'iOS, Android',
-      display: '1.5" AMOLED',
-      model: 'Watch Pro 5',
-      warranty: '1 year',
-      waterResistance: '5 ATM',
-    },
-  },
-  {
-    category: 'Photography',
-    description:
-      'Capture stunning photos and videos with our professional camera kit. Includes a high-resolution sensor, 4K video recording, and a versatile lens kit for any shooting situation.',
-    features: [
-      '24.2MP full-frame sensor',
-      '4K video recording at 60fps',
-      '5-axis image stabilization',
-      'Weather-sealed body',
-      'Dual SD card slots',
-      'Includes 24-70mm f/2.8 lens',
-    ],
-    id: '3',
-    image:
-      'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    inStock: false,
-    name: 'Professional Camera Kit',
-    originalPrice: 1499.99,
-    price: 1299.99,
-    rating: 4.8,
-    specs: {
-      brand: 'OptiPro',
-      iso: '100-51,200 (expandable to 204,800)',
-      model: 'X-1000',
-      resolution: '24.2MP',
-      sensorType: 'Full-frame CMOS',
-      shutter: '1/8000 to 30 sec',
-      warranty: '2 years',
-    },
-  },
-  {
-    category: 'Furniture',
-    description:
-      'Work in comfort with our ergonomic office chair designed for all-day support. Features adjustable height, lumbar support, and breathable mesh back.',
-    features: [
-      'Adjustable height and armrests',
-      'Breathable mesh back',
-      'Lumbar support',
-      '360° swivel',
-      'Heavy-duty base with smooth-rolling casters',
-      'Weight capacity: 300 lbs',
-    ],
-    id: '4',
-    image:
-      'https://images.unsplash.com/photo-1506377295352-e3154d43ea9e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    inStock: true,
-    name: 'Ergonomic Office Chair',
-    originalPrice: 299.99,
-    price: 249.99,
-    rating: 4.6,
-    specs: {
-      adjustableHeight: '16-20 inches',
-      brand: 'ErgoComfort',
-      dimensions: '26"W x 26"D x 38-42"H',
-      material: 'Mesh back, fabric seat',
-      maxWeight: '300 lbs',
-      model: 'Executive Pro',
-      warranty: '5 years',
-    },
-  },
-  {
-    category: 'Electronics',
-    description:
-      'The ultimate smartphone experience with a stunning display, powerful camera system, and all-day battery life.',
-    features: [
-      '6.7" Super Retina XDR display',
-      'Triple camera system (12MP wide, ultra-wide, telephoto)',
-      'Face ID for secure authentication',
-      'A16 Bionic chip',
-      'Up to 1TB storage',
-      'All-day battery life',
-    ],
-    id: '5',
-    image:
-      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    inStock: true,
-    name: 'Smartphone Pro Max',
-    originalPrice: 1099.99,
-    price: 999.99,
-    rating: 4.9,
-    specs: {
-      battery: '4,352mAh',
-      brand: 'TechPro',
-      camera: '12MP triple camera system',
-      display: '6.7" Super Retina XDR',
-      model: 'Galaxy Pro Max',
-      os: 'iOS 16',
-      processor: 'A16 Bionic chip',
-      storage: '128GB/256GB/512GB/1TB',
-      warranty: '1 year',
-    },
-  },
-  {
-    category: 'Electronics',
-    description:
-      'Transform your home entertainment with our Ultra HD Smart TV featuring vibrant colors, immersive sound, and smart connectivity.',
-    features: [
-      '55" 4K Ultra HD display',
-      'Dolby Vision HDR',
-      'Dolby Atmos sound',
-      'Built-in voice assistant',
-      'Smart home integration',
-      'Multiple HDMI and USB ports',
-    ],
-    id: '6',
-    image:
-      'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    inStock: true,
-    name: 'Ultra HD Smart TV 55"',
-    originalPrice: 899.99,
-    price: 799.99,
-    rating: 4.7,
-    specs: {
-      audio: '40W Dolby Atmos',
-      brand: 'VisionPro',
-      connectivity: 'HDMI x4, USB x3, Wi-Fi, Bluetooth',
-      display: '55" 4K Ultra HD LED',
-      hdr: 'Dolby Vision, HDR10+',
-      model: 'X55-4K',
-      refreshRate: '120Hz',
-      resolution: '3840 x 2160',
-      smartFeatures: 'Voice control, App store',
-      warranty: '2 years',
-    },
-  },
-]
-
-export default function ProductDetailPage() {
-  /* ----------------------------- Routing --------------------------------- */
+export default function CenterDetailPage() {
+  /* Routing */
   const { id } = useParams()
   const router = useRouter()
+  // 根據 id 找到對應的假資料
+  const fakeItem = React.useMemo(
+    () => fakeData.find((item) => item.id === id),
+    [id]
+  )
 
-  /* ----------------------------- Local state ----------------------------- */
-  const [quantity, setQuantity] = React.useState(1)
+  /* State for API data */
+  const [data, setData] = React.useState(null)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState(null)
 
-  /* ------------------------ Derive product object ------------------------ */
-  const product = React.useMemo(() => products.find((p) => p.id === id), [id])
+  /* Fetch data from API */
+  React.useEffect(() => {
+    const fetchCenterData = async () => {
+      try {
+        setLoading(true)
+        const centerData = await getCenterDetail(id)
+        setData(centerData.record)
+      } catch (err) {
+        console.error('Error fetching center detail:', err)
+        setError(err.message)
+        toast.error('載入場館資料失敗')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  /* ----------------------- Derived/computed values ----------------------- */
-  const discountPercentage = React.useMemo(() => {
-    if (!product?.originalPrice) return 0
-    return Math.round(
-      ((product.originalPrice - product.price) / product.originalPrice) * 100
-    )
-  }, [product])
+    if (id) {
+      fetchCenterData()
+    }
+  }, [id])
 
-  /* ------------------------------ Handlers ------------------------------- */
-  const handleQuantityChange = React.useCallback((newQty) => {
-    setQuantity((prev) => (newQty >= 1 ? newQty : prev))
-  }, [])
+  /* Handlers */
 
-  const handleViewDetails = React.useCallback(() => {
-    if (!product) return
-    toast.success(`查看 ${product.name} 的詳細資訊`)
-    // 這裡可以添加其他邏輯，比如跳轉到詳細頁面或顯示更多資訊
-  }, [product])
-
-  /* -------------------------- Conditional UI ---------------------------- */
-  if (!product) {
+  /* Loading state */
+  if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
         <main className="flex-1 py-10">
-          <div
-            className={`
-              container px-4
-              md:px-6
-            `}
-          >
-            <h1 className="text-3xl font-bold">Product Not Found</h1>
-            <p className="mt-4">
-              The product you&apos;re looking for doesn&apos;t exist.
-            </p>
-            <Button className="mt-6" onClick={() => router.push('/products')}>
-              Back to Products
-            </Button>
+          <div className="container px-4 md:px-6">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">載入中...</p>
+              </div>
+            </div>
           </div>
         </main>
       </div>
     )
   }
 
-  /* ------------------------------ Markup --------------------------------- */
+  /* Error or not found state */
+  if (error || !data) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <main className="flex-1 py-10">
+          <div className="container px-4 md:px-6">
+            <h1 className="text-3xl font-bold">場館資料載入失敗</h1>
+            <p className="mt-4">{error || '找不到您要查看的場館資料'}</p>
+            <Button className="mt-6" onClick={() => router.push('/venue')}>
+              返回場館列表
+            </Button>
+          </div>
+        </main>
+      </div>
+    )
+  }
+  const sportItems = [
+    { icon: BasketballIcon, label: '籃球' },
+    { icon: BadmintonIcon, label: '羽球' },
+    { icon: TableTennisIcon, label: '桌球' },
+    { icon: TennisIcon, label: '網球' },
+    { icon: VolleyballIcon, label: '排球' },
+    { icon: TennisRacketIcon, label: '壁球' },
+    { icon: SoccerIcon, label: '足球' },
+    { icon: BaseballBatIcon, label: '棒球' },
+    { icon: BilliardBallIcon, label: '撞球' },
+  ]
+
+  const facilityItems = [
+    { icon: CircleParking, label: '停車場' },
+    { icon: ShowerHead, label: '淋浴間' },
+    { icon: IconShoppingCart, label: '運動用品店' },
+    { icon: IconBarbell, label: '健身房' },
+    { icon: IconYoga, label: '瑜珈教室' },
+    { icon: IconBike, label: '飛輪教室' },
+    { icon: IconTreadmill, label: '體適能教室' },
+    { icon: IconWifi, label: 'Wi-Fi' },
+  ]
+
+  // 使用 API 資料的位置，如果沒有則使用預設位置
+  /* const position = data.location?.coordinates || [
+      data.latitude,
+      data.longitude,
+    ] || [25.116592439309592, 121.50983159645816] */
+  const position = [25.116592439309592, 121.50983159645816]
+
+  /*  Markup  */
   return (
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <main className="px-4 md:px-6">
-        <div className="container mx-auto max-w-screen-xl">
-          <div className="flex min-h-screen flex-col">
-            <main className="flex-1 py-10">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                {/* Title & rating */}
-                <div>
-                  <h1 className="text-3xl font-bold">{product.name}</h1>
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+            {/* Title & rating */}
+            <div>
+              <h1 className="text-3xl font-bold">{data.name}</h1>
 
-                  <div className="mt-2 flex items-center gap-2">
-                    {/* Stars */}
-                    <div
-                      aria-label={`Rating ${product.rating} out of 5`}
-                      className="flex items-center"
-                    >
-                      {range(5).map((i) => (
-                        <Star
-                          className={`
+              <div className="mt-2 flex items-center gap-2">
+                {/* Stars */}
+                <div
+                  aria-label={`Rating ${data.rating || 0} out of 5`}
+                  className="flex items-center"
+                >
+                  {range(5).map((i) => (
+                    <Star
+                      className={`
                           h-5 w-5
                           ${
-                            i < Math.floor(product.rating)
+                            i < Math.floor(data.rating || 0)
                               ? 'fill-yellow-400 text-yellow-400'
-                              : i < product.rating
+                              : i < (data.rating || 0)
                                 ? 'fill-yellow-400/50 text-yellow-400'
                                 : 'text-muted-foreground'
                           }
                         `}
-                          key={`star-${i}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      ({product.rating.toFixed(1)})
-                    </span>
-                  </div>
+                      key={`star-${i}`}
+                    />
+                  ))}
                 </div>
-                {/* Buttons */}
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Link href={`/venue/center/1`} className="w-full sm:w-auto">
-                    <Button variant="white" size="lg" className="w-full">
-                      分享
-                      <Share />
-                    </Button>
-                  </Link>
-                  <Link href="#" className="w-full sm:w-auto">
-                    <Button variant="white" size="lg" className="w-full">
-                      收藏
-                      <Heart />
-                    </Button>
-                  </Link>
-                </div>
+                <span className="text-sm text-muted-foreground">
+                  ({(data.rating || 0).toFixed(1)})
+                </span>
               </div>
+            </div>
+            {/* Buttons */}
+            <div className="flex flex-col md:flex-row gap-2 w-full sm:w-auto">
+              <Link href={`/venue/reservation`} className="w-full sm:w-auto">
+                <Button variant="highlight" size="lg" className="w-full">
+                  預訂
+                  <ClipboardCheck />
+                </Button>
+              </Link>
+              <div className="flex flex-row gap-2 w-full sm:w-auto">
+                <Link href={`/venue/center/1`} className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full">
+                    分享
+                    <Share />
+                  </Button>
+                </Link>
+                <Link href="#" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full">
+                    收藏
+                    <Heart />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
 
-              <Separator className="my-8" />
+          <Separator className="my-8" />
 
-              {/* Main grid */}
-              <div
-                className={`
-              grid grid-cols-1 gap-8
-              md:grid-cols-2
-            `}
-              >
-                {/* ------------------------ Product image ------------------------ */}
-                <div
-                  className={`
-                relative aspect-square overflow-hidden rounded-lg bg-muted
-              `}
-                >
+          {/* Image */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {/* Main image */}
+            <div className="overflow-hidden rounded-lg bg-muted">
+              <AspectRatio ratio={4 / 3} className="bg-muted">
+                <Image
+                  alt={data.name || '場館圖片'}
+                  className="object-cover"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  src={
+                    data.image || data.images?.[0] || '/placeholder-venue.jpg'
+                  }
+                />
+              </AspectRatio>
+            </div>
+            {/* 2x2 grid image */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
-                    alt={product.name}
+                    alt={`${data.name} - 圖片 1`}
                     className="object-cover"
                     fill
                     priority
-                    src={product.image}
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   />
-                  {discountPercentage > 0 && (
-                    <div
-                      className={`
-                    absolute top-2 left-2 rounded-full bg-red-500 px-2 py-1
-                    text-xs font-bold text-white
-                  `}
-                    >
-                      -{discountPercentage}%
-                    </div>
-                  )}
-                </div>
-
-                {/* ---------------------- Product info -------------------------- */}
-                <div className="flex flex-col">
-                  {/* Category & prices */}
-                  <div>
-                    <p className="text-lg font-medium text-muted-foreground">
-                      {product.category}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-3xl font-bold">
-                        {CURRENCY_FORMATTER.format(product.price)}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-xl text-muted-foreground line-through">
-                          {CURRENCY_FORMATTER.format(product.originalPrice)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-muted-foreground">{product.description}</p>
-
-                  {/* Stock */}
-                  <div aria-atomic="true" aria-live="polite">
-                    {product.inStock ? (
-                      <p className="text-sm font-medium text-green-600">
-                        In Stock
-                      </p>
-                    ) : (
-                      <p className="text-sm font-medium text-red-500">
-                        Out of Stock
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Quantity selector & View Details */}
-                  <div
-                    className={`
-                  flex flex-col gap-4
-                  sm:flex-row sm:items-center
-                `}
-                  >
-                    {/* Quantity */}
-                    <div className="flex items-center">
-                      <Button
-                        aria-label="Decrease quantity"
-                        disabled={quantity <= 1}
-                        onClick={() => handleQuantityChange(quantity - 1)}
-                        size="icon"
-                        variant="outline"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-
-                      <span className="w-12 text-center select-none">
-                        {quantity}
-                      </span>
-
-                      <Button
-                        aria-label="Increase quantity"
-                        onClick={() => handleQuantityChange(quantity + 1)}
-                        size="icon"
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* View Details Button */}
-                    <Button
-                      className="flex-1"
-                      disabled={!product.inStock}
-                      onClick={handleViewDetails}
-                    >
-                      查看詳細資訊
-                    </Button>
-                  </div>
-                </div>
+                </AspectRatio>
               </div>
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <Image
+                    alt={`${data.name} - 圖片 2`}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1708312604073-90639de903fc?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  />
+                </AspectRatio>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <Image
+                    alt={`${data.name} - 圖片 3`}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1708268418738-4863baa9cf72?q=80&w=1214&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  />
+                </AspectRatio>
+              </div>
+              <div className="overflow-hidden rounded-lg bg-muted">
+                <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <Image
+                    alt={`${data.name} - 圖片 4`}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    src="https://images.unsplash.com/photo-1627314387807-df615e8567de?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  />
+                </AspectRatio>
+              </div>
+            </div>
+          </div>
 
-              <Separator className="my-8" />
+          <Separator className="my-8" />
 
-              {/* ---------------------- Features & Specs ------------------------ */}
-              <div
-                className={`
+          {/* - Features & Specs */}
+          <div
+            className={`
               grid grid-cols-1 gap-8
               md:grid-cols-2
             `}
-              >
-                {/* Features */}
-                <section>
-                  <h2 className="mb-4 text-2xl font-bold">Features</h2>
-                  <ul className="space-y-2">
-                    {product.features.map((feature) => (
-                      <li
-                        className="flex items-start"
-                        key={`feature-${product.id}-${slugify(feature)}`}
-                      >
-                        <span className="mt-1 mr-2 h-2 w-2 rounded-full bg-primary" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+          >
+            <section className="flex flex-col gap-6">
+              {/* data info */}
+              <div className="flex flex-col">
+                <h2 className="mb-4 text-2xl font-bold">場館運動項目</h2>
 
-                {/* Specifications */}
-                <section>
-                  <h2 className="mb-4 text-2xl font-bold">Specifications</h2>
-                  <div className="space-y-2">
-                    {Object.entries(product.specs).map(([key, value]) => (
-                      <div
-                        className="flex justify-between border-b pb-2 text-sm"
-                        key={key}
-                      >
-                        <span className="font-medium capitalize">
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
-                        </span>
-                        <span className="text-muted-foreground">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <div className="flex flex-wrap gap-2">
+                  {sportItems.map((item, idx) => {
+                    const IconComponent = item.icon
+                    return (
+                      <Link href="#" key={idx}>
+                        <Button variant="outline" size="sm">
+                          <IconComponent className="!w-6 !h-6" />
+                          <span>{item.label}</span>
+                          <span className="text-muted-foreground">4個場地</span>
+                        </Button>
+                      </Link>
+                    )
+                  })}
+                </div>
               </div>
-            </main>
+              {/* Features */}
+              <div className="flex flex-col">
+                <h2 className="mb-4 text-2xl font-bold">場館設施</h2>
+                <div className="flex flex-wrap gap-4">
+                  {facilityItems.map((item, idx) => {
+                    const IconComponent = item.icon
+                    return (
+                      <div className="flex gap-2" key={idx}>
+                        <IconComponent className="!w-6 !h-6" />
+                        <span>{item.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+
+            {/* Specifications */}
+            <section>
+              <h2 className="mb-4 text-2xl font-bold">營業時間</h2>
+              <div className="space-y-2">
+                {fakeItem?.specs ? (
+                  Object.entries(fakeItem.specs).map(([key, value]) => (
+                    <div
+                      className="flex justify-between border-b pb-2 text-sm"
+                      key={key}
+                    >
+                      <span className="font-medium capitalize">{key}</span>
+                      <span>{value}</span>
+                    </div>
+                  ))
+                ) : data.businessHours ? (
+                  Object.entries(data.businessHours).map(([key, value]) => (
+                    <div
+                      className="flex justify-between border-b pb-2 text-sm"
+                      key={key}
+                    >
+                      <span className="font-medium capitalize">
+                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                      <span>{value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground">
+                    營業時間資料載入中...
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
+
+          <Separator className="my-8" />
+          <section>
+            <h2 className="mb-4 text-2xl font-bold">地理位置</h2>
+            <div className="w-full h-[400px] rounded-lg overflow-hidden">
+              <Map position={position} dataName={data.name || '場館位置'} />
+            </div>
+          </section>
         </div>
       </main>
       <Footer />
