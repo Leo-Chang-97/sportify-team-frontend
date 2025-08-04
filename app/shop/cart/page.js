@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getProductImageUrl } from '@/api/shop/image'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 
 const steps = [
   { id: 1, title: '確認購物車', active: true },

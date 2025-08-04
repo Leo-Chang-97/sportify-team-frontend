@@ -7,7 +7,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
-import { getProductImageUrl } from '@/api/shop/image'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 // ...existing code...

@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { getProductImageUrl } from '@/api/shop/image'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 
 export default function ProductForm({
   mode = 'add', // 'add' 或 'edit'

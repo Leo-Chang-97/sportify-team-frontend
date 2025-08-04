@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/carousel'
 import { useParams, useRouter } from 'next/navigation'
 import products from '../../datas.json'
-import { getProductImageUrl } from '@/api/shop/image'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,

@@ -29,7 +29,7 @@ import {
   fetchInvoice,
   fetchOrderStatus,
 } from '@/api'
-import { fetchAllProductsOrder } from '@/api/shop/product'
+import { fetchAllProductsOrder } from '@/api/admin/shop/product'
 
 export default function OrderForm({
   mode = 'add',
@@ -106,7 +106,7 @@ export default function OrderForm({
   useEffect(() => {
     if (mode !== 'edit' || !orderId) {
       setIsDataLoading(false)
-      setIsInitialLoad(false) 
+      setIsInitialLoad(false)
       return
     }
     const loadOrder = async () => {
@@ -144,8 +144,8 @@ export default function OrderForm({
             payment: data.payment || '',
             invoice: data.invoice?.type || '',
             invoiceNumber: data.invoice?.number || '',
-            invoiceCarrier: data.invoice?.carrier || '', 
-            invoiceTaxId: data.invoice?.taxid || '', 
+            invoiceCarrier: data.invoice?.carrier || '',
+            invoiceTaxId: data.invoice?.taxid || '',
             status: data.status || '',
             items: processedItems,
             // 信用卡相關欄位（目前不從後端載入，保持空值）
@@ -175,19 +175,16 @@ export default function OrderForm({
       if (value === 'seven' || value === '全家') fee = 60
       else if (value === '宅配') fee = 100
       setFormData((prev) => ({ ...prev, delivery: value, fee }))
-    }
-    else if (name === 'delivery') {
+    } else if (name === 'delivery') {
       setFormData((prev) => ({ ...prev, delivery: value }))
-    }
-    else if (name === 'invoice') {
+    } else if (name === 'invoice') {
       setFormData((prev) => ({
         ...prev,
         invoice: value,
         invoiceCarrier: '',
-        invoiceTaxId: '', 
+        invoiceTaxId: '',
       }))
-    }
-    else if (name === 'payment') {
+    } else if (name === 'payment') {
       setFormData((prev) => ({
         ...prev,
         payment: value,
@@ -245,7 +242,7 @@ export default function OrderForm({
         name: product?.name || '',
         price: price?.toString() || '',
         quantity: items[idx].quantity || 1, // 保持原有數量或預設為1
-        is_removed: 0, 
+        is_removed: 0,
         item_status: 'active',
       }
       return { ...prev, items }
@@ -310,18 +307,18 @@ export default function OrderForm({
 
       const submitData = {
         member_id: formData.memberId,
-        total: calculateOrderTotal(), 
+        total: calculateOrderTotal(),
         fee: Number(formData.fee),
         recipient: formData.recipient,
         phone: formData.phone,
         address: formData.address,
-        delivery: deliveryForSubmit, 
+        delivery: deliveryForSubmit,
         payment: formData.payment,
         status: formData.status,
         invoice_type: formData.invoice,
         invoice_number: formData.invoiceNumber || '', // 新增時為空，後端會自動產生
-        carrier: formData.invoice === '載具' ? formData.invoiceCarrier : '', 
-        taxid: formData.invoice === '統編' ? formData.invoiceTaxId : '', 
+        carrier: formData.invoice === '載具' ? formData.invoiceCarrier : '',
+        taxid: formData.invoice === '統編' ? formData.invoiceTaxId : '',
         items: formData.items
           .filter((item) => {
             // 保留已下架的商品（有 item_id 且 is_removed 為 1）
@@ -332,13 +329,13 @@ export default function OrderForm({
             return item.productId && item.name
           })
           .map((item) => ({
-            ...(item.item_id && { item_id: item.item_id }), 
-            product_id: Number(item.productId), 
-            name: item.name, 
+            ...(item.item_id && { item_id: item.item_id }),
+            product_id: Number(item.productId),
+            name: item.name,
             price: Number(item.price),
             quantity: Number(item.quantity),
-            is_removed: item.is_removed || 0, 
-            status: item.item_status || 'active', 
+            is_removed: item.is_removed || 0,
+            status: item.item_status || 'active',
           })),
         // 注意：信用卡資料不會送到後端資料庫
         // 實際串接第三方支付時，會透過安全的支付閘道處理

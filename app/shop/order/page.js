@@ -8,7 +8,7 @@ import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-import { getProductImageUrl } from '@/api/shop/image'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
