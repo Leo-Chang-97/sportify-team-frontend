@@ -71,6 +71,24 @@ export function RegisterForm({
                   )}
 
                   <div className="grid gap-3">
+                    <Label htmlFor="email">Email帳號</Label>
+                    <Input
+                      className={errors.email ? 'border-red-500' : ''}
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      value={formData.email}
+                      onChange={(e) =>
+                        handleInputChange('email', e.target.value)
+                      }
+                      disabled={isLoading}
+                    />
+                    {errors.email && (
+                      <div className="text-red-500 text-sm">{errors.email}</div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-3">
                     <Label htmlFor="name">姓名</Label>
                     <Input
                       className={errors.name ? 'border-red-500' : ''}
@@ -88,23 +106,6 @@ export function RegisterForm({
                     )}
                   </div>
 
-                  <div className="grid gap-3">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      className={errors.email ? 'border-red-500' : ''}
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange('email', e.target.value)
-                      }
-                      disabled={isLoading}
-                    />
-                    {errors.email && (
-                      <div className="text-red-500 text-sm">{errors.email}</div>
-                    )}
-                  </div>
 
                   <div className="grid gap-3">
                     <Label htmlFor="phone">手機號碼</Label>

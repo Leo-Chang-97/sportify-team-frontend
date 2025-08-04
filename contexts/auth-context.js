@@ -44,6 +44,45 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const register = async ({
+    email,
+    password,
+    name,
+    phone,
+    confirmPassword,
+  }) => {
+    try {
+      const res = await fetch(`${API_SERVER}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name, phone, confirmPassword }),
+      })
+
+      const result = await res.json()
+
+      if (res.ok && result.success) {
+        localStorage.setItem(storageKey, result.token)
+        setUser(result.user)
+        return { success: true, user: result.user }
+      } else {
+        return {
+          success: false,
+          issues: result.issues || [],
+          message: result.message || '註冊失敗',
+        }
+      }
+    } catch (error) {
+      console.error('註冊發生錯誤:', error)
+      return {
+        success: false,
+        issues: [],
+        message: '網路錯誤，請稍後再試',
+      }
+    }
+  }
+
   const logout = () => {
     setUser(null)
     localStorage.removeItem(storageKey)
@@ -86,6 +125,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         login,
+        register,
         logout,
         isAuthenticated: !!user,
         isLoading,
