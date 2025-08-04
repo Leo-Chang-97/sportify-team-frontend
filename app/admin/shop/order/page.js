@@ -323,7 +323,6 @@ export default function OrderPage() {
   // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
-
   // ===== Debug 資料格式 =====
   /*console.log('完整資料:', data)
   console.log('資料結構:', JSON.stringify(data, null, 2))

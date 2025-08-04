@@ -35,7 +35,7 @@ import products from '../datas.json'
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-64">
+      <SheetContent side="left" className="w-50">
         <SheetHeader>
           <SheetTitle>商品分類</SheetTitle>
         </SheetHeader>
@@ -182,7 +182,7 @@ export default function ProductListPage() {
           </div>
           <div className="flex">
             {/* 桌機側邊欄 */}
-            <div className="w-64 pr-8 hidden md:block">
+            <div className="w-50 pr-8 hidden md:block">
               <div className="mb-8">
                 <p className="text-xl font-bold mb-4 text-foreground">
                   運動類型
@@ -224,7 +224,7 @@ export default function ProductListPage() {
             />
 
             <div className="flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}

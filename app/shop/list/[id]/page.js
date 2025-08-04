@@ -84,7 +84,7 @@ export default function ProductListPage() {
       <Navbar />
       <BreadcrumbAuto />
       <section className="px-4 md:px-6 py-10">
-        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6 mb-10">
           <div className="flex flex-col md:flex-row items-start justify-between gap-4">
             {/* 左側商品圖片區塊 */}
             <div className="flex-1 flex flex-col items-center justify-center">
@@ -143,37 +143,33 @@ export default function ProductListPage() {
             <div className="flex-1 flex flex-col items-center md:items-start justify-start gap-6 md:gap-8 lg:gap-10 mt-6 lg:mt-0 w-full">
               {/* Title*/}
               <div className="flex flex-col gap-2 md:gap-3">
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
-                  {product.name}
-                </h1>
-                <p className="text-base md:text-lg font-medium text-muted-foreground">
+                <h1 className="text-xl font-bold">{product.name}</h1>
+                <p className="text-base font-medium text-muted-foreground">
                   {product.sport_name}/{product.brand_name}
                 </p>
                 <div className="mt-1 md:mt-2 flex items-center gap-2">
-                  <span className="text-lg md:text-xl lg:text-2xl font-bold text-destructive">
+                  <span className="text-lg font-medium text-destructive">
                     NTD${CURRENCY_FORMATTER.format(product.price)}
                   </span>
                 </div>
               </div>
               <div>
-                <h1 className="text-base md:text-lg font-bold mb-2 md:mb-3">
-                  配送方式
-                </h1>
+                <h1 className="text-base font-medium mb-2 md:mb-3">配送方式</h1>
                 <div className="flex gap-2 mb-1">
-                  <p className="text-sm md:text-base font-regular">宅配</p>
-                  <p className="text-sm md:text-base font-regular text-muted-foreground">
+                  <p className="text-base font-regular">宅配</p>
+                  <p className="text-base font-regular text-muted-foreground">
                     NTD$100
                   </p>
                 </div>
                 <div className="flex gap-2 mb-1">
-                  <p className="text-sm md:text-base font-regular">7-11取貨</p>
-                  <p className="text-sm md:text-base font-regular text-muted-foreground">
+                  <p className="text-base font-regular">7-11取貨</p>
+                  <p className="text-base font-regular text-muted-foreground">
                     NTD$60
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <p className="text-sm md:text-base font-regular">全家取貨</p>
-                  <p className="text-sm md:text-base font-regular text-muted-foreground">
+                  <p className="text-base font-regular">全家取貨</p>
+                  <p className="text-base font-regular text-muted-foreground">
                     NTD$60
                   </p>
                 </div>
@@ -202,21 +198,23 @@ export default function ProductListPage() {
                 </Button>
               </div>
               <div className="flex flex-col md:flex-row items-center justify-between w-full gap-3 md:gap-4">
-                <Button className="w-[300px] md:w-auto flex-1 text-sm md:text-base">
+                <Button className="w-[300px] md:w-auto flex-1 text-base">
                   加入最愛
                 </Button>
-                <Button className="w-[300px] md:w-auto flex-1 text-sm md:text-base">
+                <Button className="w-[300px] md:w-auto flex-1 text-base">
                   加入購物車
                 </Button>
               </div>
             </div>
           </div>
+        </div>
+        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6 px-">
           <Tabs defaultValue="imgs" className="w-full items-center">
             <TabsList className="mb-6 md:mb-8">
-              <TabsTrigger value="imgs" className="text-sm md:text-base">
+              <TabsTrigger value="imgs" className="text-sm">
                 商品圖片
               </TabsTrigger>
-              <TabsTrigger value="spec" className="text-sm md:text-base">
+              <TabsTrigger value="spec" className="text-sm">
                 詳細規格
               </TabsTrigger>
             </TabsList>

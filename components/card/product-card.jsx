@@ -81,7 +81,7 @@ export function ProductCard({
             `
               relative h-full overflow-hidden rounded-lg py-0 transition-all
               duration-200 ease-in-out
-              hover:shadow-md
+              hover:shadow-md gap-3
             `,
             isHovered && 'ring-1 ring-primary/20'
           )}
@@ -141,12 +141,23 @@ export function ProductCard({
             )}
           </AspectRatio>
 
-          <CardContent className="p-4 pt-4">
+          <CardContent>
+            {/* 運動和品牌 */}
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-muted-foreground font-medium">
+                {safeProduct.brand_name || safeProduct.brand || '—'}
+              </span>
+              {safeProduct.sport_name && (
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                  {safeProduct.sport_name}
+                </span>
+              )}
+            </div>
             {/* Product name with line clamp */}
             <h3
               className={`
                 line-clamp-2 text-lg font-medium transition-colors
-                group-hover:text-primary
+                group-hover:text-primary min-h-[56px]
               `}
             >
               {safeProduct.name}
@@ -189,7 +200,7 @@ export function ProductCard({
           )}
 
           {variant === 'compact' && (
-            <CardFooter className="p-4 pt-0">
+            <CardFooter className="px-6 pt-0 pb-4">
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-lg text-destructive">
