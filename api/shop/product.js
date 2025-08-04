@@ -36,7 +36,7 @@ export const deleteProduct = async (deletedId) => {
 }
 
 // 獲取所有產品（用於訂單下拉選單）
-export const fetchAllProductsBasic = async () => {
+export const fetchAllProductsOrder = async () => {
   const res = await adminApiClient.get('/shop/product/list')
   return res.data
 }
