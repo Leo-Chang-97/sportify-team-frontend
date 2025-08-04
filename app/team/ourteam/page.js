@@ -9,6 +9,9 @@ import {
   XCircle,
   CheckCircle,
 } from 'lucide-react'
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
 
 // 使用這個來獲取隨機使用者頭像
 const avatarUrls = [
@@ -180,17 +183,17 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-4 sm:p-8 font-['Noto_Sans_TC'] flex justify-center text-gray-900">
-      <div className="container max-w-7xl mx-auto flex flex-col gap-8">
-        {/* 標題 - 隊伍名稱 */}
-        <header className="py-8 text-center border-b border-gray-700">
-          <h2 className="text-2xl sm:text-2xl font-bold text-white">
-            你 · 的 · 隊 · 伍
-          </h2>
-        </header>
-
-        {/* 主要內容容器 (上下排列) */}
-        <main className="flex flex-col gap-8">
+    <>
+      <Navbar />
+      <BreadcrumbAuto />
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+          {/* 標題 - 隊伍名稱 */}
+          <header className="py-8 text-center border-b border-gray-700">
+            <h2 className="text-2xl sm:text-2xl font-bold text-white">
+              你 · 的 · 隊 · 伍
+            </h2>
+          </header>
           {/* 隊伍成員資訊區塊 */}
           <section className="bg-white border border-gray-300 rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">隊伍成員資訊</h2>
@@ -398,9 +401,10 @@ const App = () => {
           <h2 className="text-2xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-white">
             更 · 多 · 可 · 能
           </h2>
-        </main>
-      </div>
-    </div>
+        </div>
+      </main>
+      <Footer />
+    </>
   )
 }
 
