@@ -20,9 +20,8 @@ import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-
-import datas from '../../datas.json'
-const data = datas[0] // 使用第一筆資料
+import fakeData from '@/app/venue/fake-data.json'
+const data = fakeData[0] // 使用第一筆資料
 const steps = [
   { id: 1, title: '選擇場地與時間', completed: true },
   { id: 2, title: '填寫付款資訊', completed: true },
@@ -40,6 +39,13 @@ export default function SuccessPage() {
     selectedDate: null,
     timeSlots: [],
     totalPrice: 0,
+    userInfo: {
+      name: '',
+      phone: '',
+      email: '',
+    },
+    paymentMethod: '',
+    receiptType: '',
   })
 
   // 從 URL 參數讀取訂單資訊
@@ -97,13 +103,24 @@ export default function SuccessPage() {
 
             {/* 訂單確認 */}
             <section className="w-full flex justify-center">
-              <div className="w-full max-w-lg">
+              <div className="w-full md:max-w-lg">
                 <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
                 {/* 訂單摘要卡片 */}
                 <Card>
-                  <CardHeader className="flex flex-col md:flex-row gap-4">
+                  <CardHeader className="flex flex-col md:flex-row justify-between gap-4">
+                    {/* 場館資訊 */}
+                    <div className="space-y-2 order-2 md:order-1">
+                      <h4 className="font-medium text-accent-foreground">
+                        場館資訊
+                      </h4>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div>地區: {orderSummary.location || '未選擇'}</div>
+                        <div>中心: {orderSummary.center || '未選擇'}</div>
+                        <div>運動: {orderSummary.sport || '未選擇'}</div>
+                      </div>
+                    </div>
                     {data.image && (
-                      <div className="w-full md:w-60 min-w-0 flex-shrink-0 overflow-hidden rounded-lg">
+                      <div className="w-full md:w-50 min-w-0 flex-shrink-0 overflow-hidden rounded-lg order-1">
                         <AspectRatio ratio={4 / 3} className="bg-muted">
                           <Image
                             alt={data.name}
@@ -116,17 +133,6 @@ export default function SuccessPage() {
                         </AspectRatio>
                       </div>
                     )}
-                    {/* 場館資訊 */}
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-accent-foreground">
-                        場館資訊
-                      </h4>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <div>地區: {orderSummary.location || '未選擇'}</div>
-                        <div>中心: {orderSummary.center || '未選擇'}</div>
-                        <div>運動: {orderSummary.sport || '未選擇'}</div>
-                      </div>
-                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* 預約日期 */}
@@ -190,15 +196,64 @@ export default function SuccessPage() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-end">
-                    <Link href="/venue" className="w-full sm:w-auto">
-                      <Button size="lg" className="w-full">
-                        返回場館列表
-                        <ClipboardCheck />
-                      </Button>
-                    </Link>
-                  </CardFooter>
                 </Card>
+              </div>
+            </section>
+
+            {/* 訂單詳細 */}
+            <section className="w-full flex justify-center">
+              <div className="w-full md:max-w-lg">
+                <h2 className="text-xl font-semibold mb-4">付款資訊</h2>
+                {/* 訂單摘要卡片 */}
+                <Card>
+                  <CardContent className="space-y-4">
+                    {/* 訂單人資料 */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-accent-foreground">
+                        訂單人資料
+                      </h4>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div>
+                          姓名: {orderSummary.userInfo?.name || '未填寫'}
+                        </div>
+                        <div>
+                          電話: {orderSummary.userInfo?.phone || '未填寫'}
+                        </div>
+                        <div>
+                          Email: {orderSummary.userInfo?.email || '未填寫'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 付款方式 */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-accent-foreground">
+                        付款方式
+                      </h4>
+                      <div className="text-sm text-muted-foreground">
+                        {orderSummary.paymentMethod || '未選擇'}
+                      </div>
+                    </div>
+
+                    {/* 發票類型 */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-accent-foreground">
+                        發票類型
+                      </h4>
+                      <div className="text-sm text-muted-foreground">
+                        {orderSummary.receiptType || '未選擇'}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="flex justify-end mt-10">
+                  <Link href="/venue" className="w-full sm:w-auto">
+                    <Button variant="highlight" size="lg" className="w-full">
+                      返回場館列表
+                      <ClipboardCheck />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </section>
           </section>

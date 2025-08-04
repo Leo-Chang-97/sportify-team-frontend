@@ -28,17 +28,6 @@ export function CenterCard({
   variant = 'default',
   ...props
 }) {
-  // 防呆：如果沒傳 data，給預設值
-  const safedata = data || {
-    category: 'Demo',
-    id: 'demo',
-    image: '',
-    inStock: true,
-    name: '北投國民運動中心',
-    originalPrice: 0,
-    price: 0,
-    rating: 4,
-  }
   const [isHovered, setIsHovered] = React.useState(false)
   const [isInWishlist, setIsInWishlist] = React.useState(false)
 
@@ -46,19 +35,12 @@ export function CenterCard({
     e.preventDefault()
     if (onAddToWishlist) {
       setIsInWishlist(!isInWishlist)
-      onAddToWishlist(safedata.id)
+      onAddToWishlist(data.id)
     }
   }
 
-  const discount = safedata.originalPrice
-    ? Math.round(
-        ((safedata.originalPrice - safedata.price) / safedata.originalPrice) *
-          100
-      )
-    : 0
-
   const renderStars = () => {
-    const rating = safedata.rating ?? 0
+    const rating = data.rating ?? 0
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 >= 0.5
 
@@ -74,7 +56,7 @@ export function CenterCard({
                   ? 'fill-yellow-400/50 text-yellow-400'
                   : 'stroke-muted/40 text-muted'
             )}
-            key={`star-${safedata.id}-position-${i + 1}`}
+            key={`star-${data.id}-position-${i + 1}`}
           />
         ))}
         {rating > 0 && (
@@ -113,28 +95,18 @@ export function CenterCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
-          {safedata.image && (
+          {data.image && (
             <Image
-              alt={safedata.name}
+              alt={data.name}
               className={cn(
                 'object-cover transition-transform duration-300 ease-in-out',
                 isHovered && 'scale-105'
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src={safedata.image}
+              src={data.image}
             />
           )}
-          {/* <Image
-            alt="test"
-            className={cn(
-              'object-cover transition-transform duration-300 ease-in-out',
-              isHovered && 'scale-105'
-            )}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            src="/data-pic/photo-1505740420928-5e560c06d30e.avif"
-          /> */}
 
           {/* Category badge */}
           <Badge
@@ -143,20 +115,8 @@ export function CenterCard({
               `}
             variant="outline"
           >
-            {safedata.category}
+            {data.location.name}
           </Badge>
-
-          {/* Discount badge */}
-          {discount > 0 && (
-            <Badge
-              className={`
-                absolute top-2 right-2 bg-destructive
-                text-destructive-foreground
-              `}
-            >
-              {discount}% OFF
-            </Badge>
-          )}
 
           {/* Wishlist button */}
           <Button
@@ -192,7 +152,7 @@ export function CenterCard({
                 group-hover:text-primary
               `}
           >
-            {safedata.name}
+            {data.name}
           </h3>
 
           {variant === 'default' && (
@@ -222,7 +182,7 @@ export function CenterCard({
 
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
-            <Link href={`/venue/${safedata.id}`} className="w-full flex-1">
+            <Link href={`/venue/${data.id}`} className="w-full flex-1">
               <Button
                 variant="secondary"
                 className="w-full hover:bg-primary/10"
@@ -240,27 +200,7 @@ export function CenterCard({
           </CardFooter>
         )}
 
-        {/* {variant === 'compact' && (
-          <CardFooter className="p-4 pt-0">
-            <Link href={`/venue/center/${safedata.id}`} className="flex-1">
-              <Button
-                variant="outline"
-                className="w-full text-primary border-primary"
-              >
-                詳細
-                <Eye />
-              </Button>
-            </Link>
-            <Link href="#" className="flex-1">
-              <Button className="w-full">
-                預訂
-                <ClipboardCheck />
-              </Button>
-            </Link>
-          </CardFooter>
-        )} */}
-
-        {!safedata.inStock && (
+        {/* {!data.inStock && (
           <div
             className={`
                 absolute inset-0 flex items-center justify-center
@@ -271,7 +211,7 @@ export function CenterCard({
               Out of Stock
             </Badge>
           </div>
-        )}
+        )} */}
       </Card>
     </div>
   )
