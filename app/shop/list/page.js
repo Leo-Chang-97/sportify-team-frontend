@@ -1,8 +1,15 @@
 'use client'
 
 import { Search, AlignLeft, Funnel } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
-import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import useSWR from 'swr'
+import {
+  getProducts,
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,7 +37,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import products from '../datas.json'
+// import products from '../datas.json'
 
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
   return (
@@ -89,10 +96,32 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
 }
 
 export default function ProductListPage() {
+  // ===== 路由和搜尋參數處理 =====
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  // ===== 組件狀態管理 =====
   const [members, setMembers] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sports, setSports] = useState([])
   const [brands, setBrands] = useState([])
+  const [products, setProducts] = useState([])
+
+  // ===== URL 參數處理 =====
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+
+  // ===== 數據獲取 =====
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(['products', queryParams], async ([, params]) =>
+    getProducts(params)
+  )
 
   // ===== 載入下拉選單選項 =====
   useEffect(() => {
@@ -113,6 +142,14 @@ export default function ProductListPage() {
     }
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (data && data.data) {
+      setProducts(data.data)
+      console.log('Products loaded:', data.data);
+      
+    }
+  }, [data])
 
   const handleSearch = () => {
     // 搜尋邏輯

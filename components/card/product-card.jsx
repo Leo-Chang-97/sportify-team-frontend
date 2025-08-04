@@ -22,13 +22,11 @@ export function ProductCard({
 }) {
   // 防呆：如果沒傳 product，給預設值
   const safeProduct = product || {
-    category: 'Demo',
-    id: 'demo',
-    img: '', // 改為 img 以符合資料結構
-    inStock: true,
-    name: 'Demo Product',
-    originalPrice: 0,
+    name:"",
     price: 0,
+    sport_name: "",
+    brand_name: "",
+    image_url: "",
   }
   const [isHovered, setIsHovered] = React.useState(false)
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
@@ -42,7 +40,8 @@ export function ProductCard({
   // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
   const image = safeProduct.img || safeProduct.image // 支援 img 和 image 兩種屬性名稱
   const imageFileName =
-    typeof image === 'object' && image !== null ? image.url : image
+    safeProduct.image_url ||
+    (typeof image === 'object' && image !== null ? image.url : image)
 
   const handleAddToCart = (e) => {
     e.preventDefault()
