@@ -27,6 +27,7 @@ import {
 import { PaginationBar } from '@/components/pagination-bar'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
+import { getCenterImageUrl } from '@/api/venue/image'
 
 import fakeData from './fake-data.json'
 

@@ -20,6 +20,7 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
+import { getCenterImageUrl } from '@/api/venue/image'
 
 export function CenterCard({
   className,
@@ -94,8 +95,8 @@ export function CenterCard({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="relative aspect-4/3 overflow-hidden rounded-t-lg">
-          {data.image && (
+        <div className="relative aspect-square overflow-hidden rounded-t-lg">
+          {data.images && data.images.length > 0 && (
             <Image
               alt={data.name}
               className={cn(
@@ -104,7 +105,7 @@ export function CenterCard({
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src={data.images}
+              src={getCenterImageUrl(data.images[0])}
             />
           )}
 
