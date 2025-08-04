@@ -1,60 +1,14 @@
-import { adminApiClient } from '@/api/axios'
+import { apiClient } from '@/api/axios'
 
-// 獲取所有產品
-export const fetchProducts = async (params = {}) => {
+// 前台使用者 - 取得商品列表 (通常會有篩選、分頁等)
+export const getProducts = async (params = {}) => {
   const query = new URLSearchParams(params).toString()
-  const res = await adminApiClient.get(`/shop/product?${query}`)
+  const res = await apiClient.get(`/shop/product?${query}`)
   return res.data
 }
 
-// 獲取單一產品
-export const fetchProduct = async (id) => {
-  const res = await adminApiClient.get(`/shop/product/${id}`)
-  return res.data
-}
-
-// 創建新產品
-export const createProduct = async (data) => {
-  const res = await adminApiClient.post('/shop/product', data, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return res.data
-}
-
-// 更新產品
-export const updateProduct = async (id, data) => {
-  const res = await adminApiClient.put(`/shop/product/${id}`, data, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return res.data
-}
-
-// 刪除產品
-export const deleteProduct = async (deletedId) => {
-  const res = await adminApiClient.delete(`/shop/product/${deletedId}`)
-  return res.data
-}
-
-// 獲取所有產品（用於訂單下拉選單）
-export const fetchAllProductsOrder = async () => {
-  const res = await adminApiClient.get('/shop/product/list')
-  return res.data
-}
-
-// 刪除產品圖片
-export const deleteProductImage = async (imageId) => {
-  const res = await adminApiClient.delete(`/shop/product/image/${imageId}`)
-  return res.data
-}
-
-// 獲取品牌資料
-export const fetchBrandData = async () => {
-  const res = await adminApiClient.get('/shop/product/brand')
-  return res.data
-}
-
-// 獲取運動類別資料
-export const fetchSportData = async () => {
-  const res = await adminApiClient.get('/shop/product/sport')
+// 前台使用者 - 取得單一商品詳細資訊
+export const getProductDetail = async (id) => {
+  const res = await apiClient.get(`/shop/product/${id}`)
   return res.data
 }

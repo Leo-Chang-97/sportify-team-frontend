@@ -29,7 +29,7 @@ import {
   fetchInvoice,
   fetchOrderStatus,
 } from '@/api'
-import { fetchAllProductsOrder } from '@/api/shop/product'
+import { fetchAllProductsOrder } from '@/api/admin/shop/product'
 
 export default function OrderForm({
   mode = 'add',
@@ -104,9 +104,11 @@ export default function OrderForm({
 
   // ===== 載入現有訂單資料（僅編輯模式）=====
   useEffect(() => {
-    if (mode !== 'edit' || !orderId) {
-      setIsDataLoading(false)
-      setIsInitialLoad(false) 
+    if (mode !== 'edit' || !orderId || payment.length === 0) {
+      if (mode !== 'edit') {
+        setIsDataLoading(false)
+        setIsInitialLoad(false)
+      }
       return
     }
     const loadOrder = async () => {
@@ -133,6 +135,10 @@ export default function OrderForm({
           const deliveryValue =
             data.delivery === '7-11' ? 'seven' : data.delivery
 
+          // 處理付款方式：根據後端返回的 payment name 找到對應的 payment ID
+          const paymentValue =
+            payment.find((p) => p.name === data.payment)?.id?.toString() || ''
+
           const formDataToSet = {
             memberId: data.member_id?.toString() || '',
             total: data.total?.toString() || '',
@@ -141,11 +147,11 @@ export default function OrderForm({
             address: data.address || '',
             delivery: deliveryValue, // 使用轉換後的值
             fee: data.fee !== undefined ? data.fee.toString() : '',
-            payment: data.payment || '',
+            payment: paymentValue, // 使用 payment ID
             invoice: data.invoice?.type || '',
             invoiceNumber: data.invoice?.number || '',
-            invoiceCarrier: data.invoice?.carrier || '', 
-            invoiceTaxId: data.invoice?.taxid || '', 
+            invoiceCarrier: data.invoice?.carrier || '',
+            invoiceTaxId: data.invoice?.taxid || '',
             status: data.status || '',
             items: processedItems,
             // 信用卡相關欄位（目前不從後端載入，保持空值）
@@ -165,7 +171,7 @@ export default function OrderForm({
       }
     }
     loadOrder()
-  }, [mode, orderId])
+  }, [mode, orderId, payment]) // 加入 payment 依賴，確保 payment 數據載入後再執行
 
   // ===== 事件處理函數 =====
   const handleInputChange = (name, value) => {
@@ -175,19 +181,16 @@ export default function OrderForm({
       if (value === 'seven' || value === '全家') fee = 60
       else if (value === '宅配') fee = 100
       setFormData((prev) => ({ ...prev, delivery: value, fee }))
-    }
-    else if (name === 'delivery') {
+    } else if (name === 'delivery') {
       setFormData((prev) => ({ ...prev, delivery: value }))
-    }
-    else if (name === 'invoice') {
+    } else if (name === 'invoice') {
       setFormData((prev) => ({
         ...prev,
         invoice: value,
         invoiceCarrier: '',
-        invoiceTaxId: '', 
+        invoiceTaxId: '',
       }))
-    }
-    else if (name === 'payment') {
+    } else if (name === 'payment') {
       setFormData((prev) => ({
         ...prev,
         payment: value,
@@ -245,7 +248,7 @@ export default function OrderForm({
         name: product?.name || '',
         price: price?.toString() || '',
         quantity: items[idx].quantity || 1, // 保持原有數量或預設為1
-        is_removed: 0, 
+        is_removed: 0,
         item_status: 'active',
       }
       return { ...prev, items }
@@ -284,7 +287,11 @@ export default function OrderForm({
 
     try {
       // 信用卡付款模擬處理（暫時不送到後端）
-      if (formData.payment === '信用卡') {
+      // 根據 payment ID 判斷是否為信用卡（ID 為 1）
+      const selectedPayment = payment.find(
+        (p) => p.id.toString() === formData.payment
+      )
+      if (selectedPayment && selectedPayment.name === '信用卡') {
         // TODO: 未來這裡會串接第三方支付API (如綠界、藍新等)
         // 目前暫時模擬信用卡付款成功
         console.log('模擬信用卡付款處理:', {
@@ -310,18 +317,18 @@ export default function OrderForm({
 
       const submitData = {
         member_id: formData.memberId,
-        total: calculateOrderTotal(), 
+        total: calculateOrderTotal(),
         fee: Number(formData.fee),
         recipient: formData.recipient,
         phone: formData.phone,
         address: formData.address,
-        delivery: deliveryForSubmit, 
-        payment: formData.payment,
+        delivery: deliveryForSubmit,
+        payment: formData.payment, // 保持字串格式，對應後端的 paymentId
         status: formData.status,
         invoice_type: formData.invoice,
         invoice_number: formData.invoiceNumber || '', // 新增時為空，後端會自動產生
-        carrier: formData.invoice === '載具' ? formData.invoiceCarrier : '', 
-        taxid: formData.invoice === '統編' ? formData.invoiceTaxId : '', 
+        carrier: formData.invoice === '載具' ? formData.invoiceCarrier : '',
+        taxid: formData.invoice === '統編' ? formData.invoiceTaxId : '',
         items: formData.items
           .filter((item) => {
             // 保留已下架的商品（有 item_id 且 is_removed 為 1）
@@ -332,13 +339,13 @@ export default function OrderForm({
             return item.productId && item.name
           })
           .map((item) => ({
-            ...(item.item_id && { item_id: item.item_id }), 
-            product_id: Number(item.productId), 
-            name: item.name, 
+            ...(item.item_id && { item_id: item.item_id }),
+            product_id: Number(item.productId),
+            name: item.name,
             price: Number(item.price),
             quantity: Number(item.quantity),
-            is_removed: item.is_removed || 0, 
-            status: item.item_status || 'active', 
+            is_removed: item.is_removed || 0,
+            status: item.item_status || 'active',
           })),
         // 注意：信用卡資料不會送到後端資料庫
         // 實際串接第三方支付時，會透過安全的支付閘道處理
@@ -526,12 +533,10 @@ export default function OrderForm({
                   ) : (
                     payment.map((item, idx) => (
                       <SelectItem
-                        key={item.payment + '-' + idx}
-                        value={item.payment.toString()}
+                        key={item.id + '-' + idx}
+                        value={item.id.toString()}
                       >
-                        {item.payment === 'Line_Pay'
-                          ? 'Line Pay'
-                          : item.payment}
+                        {item.name === 'Line_Pay' ? 'Line Pay' : item.name}
                       </SelectItem>
                     ))
                   )}
@@ -543,7 +548,8 @@ export default function OrderForm({
             </div>
 
             {/* 信用卡輸入框 - 當付款方式為信用卡時顯示 */}
-            {formData.payment === '信用卡' && (
+            {payment.find((p) => p.id.toString() === formData.payment)?.name ===
+              '信用卡' && (
               <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
                 <h3 className="text-sm font-semibold text-gray-700">
                   信用卡資訊

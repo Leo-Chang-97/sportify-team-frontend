@@ -15,7 +15,7 @@
       "重量": 380,
       "產地": "越南"
     },
-    "img": "/product-imgs/spec01.jpeg"
+    "img": "spec01.jpeg"
   },
   {
     "id": 2,
@@ -33,7 +33,7 @@
       "重量": 600,
       "產地": "泰國"
     },
-    "img": "/product-imgs/spec02.jpeg"
+    "img": "spec02.jpeg"
   },
   {
     "id": 3,
@@ -51,7 +51,7 @@
       "重量": 600,
       "產地": "中國"
     },
-    "img": "/product-imgs/spec03.jpeg"
+    "img": "spec03.jpeg"
   },
   {
     "id": 4,
@@ -69,7 +69,7 @@
       "重量": 181,
       "產地": "越南"
     },
-    "img": "/product-imgs/spec04.jpeg"
+    "img": "spec04.jpeg"
   },
   {
     "id": 5,
@@ -87,7 +87,7 @@
       "重量": 97,
       "產地": "台灣"
     },
-    "img": "/product-imgs/spec05.jpeg"
+    "img": "spec05.jpeg"
   },
   {
     "id": 6,
@@ -105,7 +105,7 @@
       "重量": 463,
       "產地": "印尼"
     },
-    "img": "/product-imgs/spec06.jpeg"
+    "img": "spec06.jpeg"
   },
   {
     "id": 7,
@@ -123,7 +123,7 @@
       "重量": 83,
       "產地": "日本"
     },
-    "img": "/product-imgs/spec07.jpeg"
+    "img": "spec07.jpeg"
   },
   {
     "id": 8,
@@ -141,7 +141,7 @@
       "重量": 60,
       "產地": "中國"
     },
-    "img": "/product-imgs/spec08.jpeg"
+    "img": "spec08.jpeg"
   },
   {
     "id": 9,
@@ -159,7 +159,7 @@
       "重量": 84,
       "產地": "日本"
     },
-    "img": "/product-imgs/spec09.jpeg"
+    "img": "spec09.jpeg"
   },
   {
     "id": 10,
@@ -177,7 +177,7 @@
       "重量": 4510,
       "產地": "中國"
     },
-    "img": "/product-imgs/spec10.jpeg"
+    "img": "spec10.jpeg"
   },
   {
     "id": 11,
@@ -195,7 +195,7 @@
       "重量": 6,
       "產地": "越南"
     },
-    "img": "/product-imgs/spec11.jpeg"
+    "img": "spec11.jpeg"
   },
   {
     "id": 12,
@@ -213,7 +213,7 @@
       "重量": 85,
       "產地": "台灣"
     },
-    "img": "/product-imgs/spec12.jpeg"
+    "img": "spec12.jpeg"
   },
   {
     "id": 13,
@@ -231,7 +231,7 @@
       "重量": 185,
       "產地": "日本"
     },
-    "img": "/product-imgs/spec13.jpeg"
+    "img": "spec13.jpeg"
   },
   {
     "id": 14,
@@ -249,7 +249,7 @@
       "重量": 3,
       "產地": "中國"
     },
-    "img": "/product-imgs/spec14.jpeg"
+    "img": "spec14.jpeg"
   },
   {
     "id": 15,
@@ -267,7 +267,7 @@
       "重量": 175,
       "產地": "日本"
     },
-    "img": "/product-imgs/spec15.jpeg"
+    "img": "spec15.jpeg"
   },
   {
     "id": 16,
@@ -285,6 +285,6 @@
       "重量": 86,
       "產地": "瑞典"
     },
-    "img": "/product-imgs/spec16.jpeg"
+    "img": "spec16.jpeg"
   }
 ]

@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/select'
 import { ChevronDownIcon } from 'lucide-react'
 
-export default function VenueListPage() {
+export default function TeamPage() {
   // ===== 組件狀態管理 =====
   const [isLoading, setIsLoading] = useState(false)
   // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
@@ -182,6 +182,11 @@ export default function VenueListPage() {
       ),
     },
   ]
+
+  // 做一個 onClick function
+  const createTeam = () => {
+    console.log('創建隊伍Create!')
+  }
   return (
     <>
       <Navbar />
@@ -197,9 +202,103 @@ export default function VenueListPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
+      <ScrollAreaSport sportItems={sports} />
       <section>
-        <TeamCard></TeamCard>
+        <div className="container mx-auto max-w-screen-xl px-4 gap-8">
+          <div className="self-stretch text-center justify-start text-white text-2xl font-normal font-['Noto_Sans_TC'] leading-loose tracking-[24px]">
+            推·薦·隊·伍
+          </div>
+          {/* 這個 div 是包含「創建隊伍」按鈕和右側排序下拉菜單的容器 */}
+          <div className="self-stretch flex justify-between items-center mt-4 mb-8">
+            {/* 創建隊伍按鈕 (使用 shadcn/ui 的 Button 組件) */}
+            {/* 如果你想讓它變成可點擊的按鈕，建議使用 shadcn/ui 的 Button 元件 */}
+            <Link href="/team/create" passHref>
+              <Button
+                onClick={createTeam} //測試
+                className="relative group // <--- 新增 relative 和 group 在 Button 本身
+              w-40 h-11 px-12 py-4 bg-gradient-to-r from-orange-500 to-blue-600 rounded-lg
+              flex justify-center items-center gap-2 overflow-hidden
+              text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7"
+              >
+                <span className="flex justify-center items-center gap-2 z-10">
+                  {' '}
+                  {/* 確保內容在遮罩上方 */}
+                  <span className="justify-start text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7">
+                    創建隊伍
+                  </span>
+                  {/* ICON 部分 */}
+                  <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-white"
+                    >
+                      <path
+                        d="M14 5L21 12L14 19"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M3 12H21"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                </span>
+
+                {/* === 新增這個 div 作為遮罩層 === */}
+                <div
+                  className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 ease-in-out
+                group-hover:opacity-30 pointer-events-none z-0" // z-0 確保遮罩在內容下方
+                ></div>
+              </Button>
+            </Link>
+
+            {/* 右側的排序下拉菜單 (保持原樣，因為其結構看起來是完整的) */}
+            {/* 這是你程式碼中的 Select 元件，我假設它能正常工作 */}
+            <div className="flex-1 h-9 flex justify-end items-center gap-2">
+              <div
+                data-color="white"
+                data-size="hug"
+                data-state="search"
+                className="inline-flex flex-col justify-start items-start"
+              />
+              <div
+                data-color="white"
+                data-size="hug"
+                data-state="select"
+                className="inline-flex flex-col justify-start items-start"
+              >
+                <div className="px-2 py-1 bg-white rounded-md outline-1 outline-offset-[-1px] outline-slate-900 inline-flex justify-start items-center">
+                  <div className="pl-4 pr-2 flex justify-start items-center gap-2">
+                    <div className="justify-start text-stone-300 text-base font-normal font-['Noto_Sans_TC'] leading-normal">
+                      請選擇排序
+                    </div>
+                    {/* 排序下拉菜單的 ICON 保持原樣 */}
+                    <div className="w-7 h-7 relative">
+                      <div className="w-2 h-3.5 left-[7.50px] top-[18.75px] absolute origin-top-left -rotate-90 border border-slate-900" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* card-group */}
+          <div className="w-full flex flex-col justify-start items-start gap-8">
+            <TeamCard></TeamCard>
+            <TeamCard></TeamCard>
+            <TeamCard></TeamCard>
+            <TeamCard></TeamCard>
+          </div>
+        </div>
       </section>
       <Footer />
     </>
