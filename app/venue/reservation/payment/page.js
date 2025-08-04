@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { ClipboardCheck } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
@@ -184,23 +184,6 @@ export default function PaymentPage() {
                     onReceiptChange={setSelectedReceipt}
                   />
                 </CardContent>
-                <CardFooter className="flex justify-end">
-                  <Link
-                    href={`/venue/reservation/success?data=${encodeURIComponent(
-                      JSON.stringify({
-                        ...orderSummary,
-                        userInfo: formData,
-                        ...getSelectedOptions(),
-                      })
-                    )}`}
-                    className="w-full sm:w-auto"
-                  >
-                    <Button size="lg" className="w-full">
-                      確認付款
-                      <ClipboardCheck />
-                    </Button>
-                  </Link>
-                </CardFooter>
               </Card>
             </section>
             {/* 訂單確認 */}
@@ -296,6 +279,23 @@ export default function PaymentPage() {
                     </div>
                   </div>
                 </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Link
+                    href={`/venue/reservation/success?data=${encodeURIComponent(
+                      JSON.stringify({
+                        ...orderSummary,
+                        userInfo: formData,
+                        ...getSelectedOptions(),
+                      })
+                    )}`}
+                    className="w-full"
+                  >
+                    <Button size="lg" className="w-full">
+                      確認付款
+                      <CreditCard />
+                    </Button>
+                  </Link>
+                </CardFooter>
               </Card>
             </section>
           </section>
