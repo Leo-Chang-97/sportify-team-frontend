@@ -27,8 +27,8 @@ export default function ScrollAreaMember() {
 
   return (
     <div className="w-full bg-background px-4 md:px-6">
-      <div className="container mx-auto flex flex-col max-w-screen-xl items-center pt-10">
-        <h3 className="text-lg text-white mb-8">GUEST</h3>
+      <div className="container mx-auto flex flex-col max-w-screen-xl items-center ">
+        {/* <h3 className="text-lg text-white mb-8">GUEST</h3> */}
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex justify-between items-center px-4 py-10 min-w-full">
             {memberItems.map((item, idx) => {
