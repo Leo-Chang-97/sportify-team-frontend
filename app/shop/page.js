@@ -1,8 +1,15 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
-import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import useSWR from 'swr'
+import {
+  getProducts,
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api'
 import { Input } from '@/components/ui/input'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -39,160 +46,34 @@ const brandItems = [
   { img: '/brand-pic/Yonex.svg', label: 'Yonex' },
 ]
 
-const products = [
-  {
-    id: 1,
-    name: '極限飛馳籃球鞋',
-    brand_name: 'Anta',
-    sport_name: '籃球',
-    price: 880,
-    stock: 50,
-    specs: {
-      商品名稱: '極限飛馳籃球鞋',
-      品牌: 'Anta',
-      運動種類: '籃球',
-      材質: '透氣網布與耐磨橡膠',
-      尺寸: '27',
-      重量: 380,
-      產地: '越南',
-    },
-    img: 'spec01.jpeg',
-  },
-  {
-    id: 2,
-    name: '標準七號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 650,
-    stock: 100,
-    specs: {
-      商品名稱: '標準七號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '高級合成皮革',
-      尺寸: '24',
-      重量: 600,
-      產地: '泰國',
-    },
-    img: 'spec02.jpeg',
-  },
-  {
-    id: 3,
-    name: '7號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 720,
-    stock: 14,
-    specs: {
-      商品名稱: '7號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '合成皮',
-      尺寸: '24.5',
-      重量: 600,
-      產地: '中國',
-    },
-    img: 'spec03.jpeg',
-  },
-  {
-    id: 4,
-    name: '訓練背心',
-    brand_name: 'Nike',
-    sport_name: '籃球',
-    price: 950,
-    stock: 15,
-    specs: {
-      商品名稱: '訓練背心',
-      品牌: 'Nike',
-      運動種類: '籃球',
-      材質: '速乾滌綸',
-      尺寸: '1',
-      重量: 181,
-      產地: '越南',
-    },
-    img: 'spec04.jpeg',
-  },
-  {
-    id: 5,
-    name: '運動長襪',
-    brand_name: 'Nike',
-    sport_name: '籃球',
-    price: 750,
-    stock: 18,
-    specs: {
-      商品名稱: '運動長襪',
-      品牌: 'Nike',
-      運動種類: '籃球',
-      材質: '運動棉',
-      尺寸: '25-27',
-      重量: 97,
-      產地: '台灣',
-    },
-    img: 'spec05.jpeg',
-  },
-  {
-    id: 6,
-    name: '經典運動短褲',
-    brand_name: 'Nike',
-    sport_name: '籃球',
-    price: 890,
-    stock: 20,
-    specs: {
-      商品名稱: '經典運動短褲',
-      品牌: 'Nike',
-      運動種類: '籃球',
-      材質: '皮革與氣墊科技',
-      尺寸: '45',
-      重量: 463,
-      產地: '印尼',
-    },
-    img: 'spec06.jpeg',
-  },
-  {
-    id: 7,
-    name: '攻擊型碳素羽球拍',
-    brand_name: 'Yonex',
-    sport_name: '羽球',
-    price: 820,
-    stock: 30,
-    specs: {
-      商品名稱: '攻擊型碳素羽球拍',
-      品牌: 'Yonex',
-      運動種類: '羽球',
-      材質: '高剛性碳纖維',
-      尺寸: '67',
-      重量: 83,
-      產地: '日本',
-    },
-    img: 'spec07.jpeg',
-  },
-  {
-    id: 8,
-    name: '比賽級鵝毛羽球',
-    brand_name: 'VICTOR',
-    sport_name: '羽球',
-    price: 750,
-    stock: 150,
-    specs: {
-      商品名稱: '比賽級鵝毛羽球',
-      品牌: 'VICTOR',
-      運動種類: '羽球',
-      材質: '天然鵝毛',
-      尺寸: '8',
-      重量: 60,
-      產地: '中國',
-    },
-    img: 'spec08.jpeg',
-  },
-]
-
 export default function ProductHomePage() {
+  // ===== 路由和搜尋參數處理 =====
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  // ===== 組件狀態管理 =====
   const [members, setMembers] = useState([])
   const [sportId, setSportId] = useState('')
   const [brandId, setBrandId] = useState('')
   const [sports, setSports] = useState([])
   const [brands, setBrands] = useState([])
+  const [products, setProducts] = useState([])
 
+  // ===== URL 參數處理 =====
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+
+  // ===== 數據獲取 =====
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(['products', queryParams], async ([, params]) =>
+    getProducts(params)
+  )
   // ===== 載入下拉選單選項 =====
   useEffect(() => {
     const loadData = async () => {
@@ -212,6 +93,13 @@ export default function ProductHomePage() {
     }
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (data && data.data) {
+      setProducts(data.data.slice(0, 10))
+      console.log('Products loaded:', data.data)
+    }
+  }, [data])
 
   const handleSearch = () => {
     // 搜尋邏輯
@@ -301,7 +189,7 @@ export default function ProductHomePage() {
           <h3 className="text-lg text-foreground text-center pb-10">
             精選商品
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-6">
             {products.map((product) => (
               <ProductCard
                 key={product.id}

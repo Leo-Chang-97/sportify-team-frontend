@@ -1,8 +1,15 @@
 'use client'
 
 import { Search, AlignLeft, Funnel } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
-import { fetchMemberOptions, fetchSportOptions, fetchBrandOptions } from '@/api'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import useSWR from 'swr'
+import {
+  getProducts,
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,12 +37,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import products from '../datas.json'
+// import products from '../datas.json'
 
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-64">
+      <SheetContent side="left" className="w-50">
         <SheetHeader>
           <SheetTitle>商品分類</SheetTitle>
         </SheetHeader>
@@ -89,10 +96,32 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
 }
 
 export default function ProductListPage() {
+  // ===== 路由和搜尋參數處理 =====
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  // ===== 組件狀態管理 =====
   const [members, setMembers] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sports, setSports] = useState([])
   const [brands, setBrands] = useState([])
+  const [products, setProducts] = useState([])
+
+  // ===== URL 參數處理 =====
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+
+  // ===== 數據獲取 =====
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(['products', queryParams], async ([, params]) =>
+    getProducts(params)
+  )
 
   // ===== 載入下拉選單選項 =====
   useEffect(() => {
@@ -113,6 +142,14 @@ export default function ProductListPage() {
     }
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (data && data.data) {
+      setProducts(data.data)
+      console.log('Products loaded:', data.data);
+      
+    }
+  }, [data])
 
   const handleSearch = () => {
     // 搜尋邏輯
@@ -182,7 +219,7 @@ export default function ProductListPage() {
           </div>
           <div className="flex">
             {/* 桌機側邊欄 */}
-            <div className="w-64 pr-8 hidden md:block">
+            <div className="w-50 pr-8 hidden md:block">
               <div className="mb-8">
                 <p className="text-xl font-bold mb-4 text-foreground">
                   運動類型
@@ -224,7 +261,7 @@ export default function ProductListPage() {
             />
 
             <div className="flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}
