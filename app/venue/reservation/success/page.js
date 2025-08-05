@@ -6,6 +6,7 @@ import { FaXmark, FaCheck } from 'react-icons/fa6'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
+import { useReservation } from '@/contexts/reservation-context'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -39,41 +40,11 @@ const steps = [
 ]
 
 export default function SuccessPage() {
-  const searchParams = useSearchParams()
+  const { reservationData } = useReservation()
   const [isSuccess, setIsSuccess] = useState(true)
-  // 訂單摘要狀態
-  const [orderSummary, setOrderSummary] = useState({
-    location: '',
-    center: '',
-    sport: '',
-    selectedDate: null,
-    timeSlots: [],
-    totalPrice: 0,
-    userInfo: {
-      name: '',
-      phone: '',
-      email: '',
-    },
-    paymentMethod: '',
-    receiptType: '',
-  })
+  // 使用 context 中的訂單資料
+  const orderSummary = reservationData
 
-  // 從 URL 參數讀取訂單資訊
-  useEffect(() => {
-    const dataParam = searchParams.get('data')
-    if (dataParam) {
-      try {
-        const decodedData = JSON.parse(decodeURIComponent(dataParam))
-        // 處理日期字串轉換為 Date 物件
-        if (decodedData.selectedDate) {
-          decodedData.selectedDate = new Date(decodedData.selectedDate)
-        }
-        setOrderSummary(decodedData)
-      } catch (error) {
-        console.error('解析訂單資料失敗:', error)
-      }
-    }
-  }, [searchParams])
   return (
     <>
       <Navbar />
@@ -285,15 +256,11 @@ export default function SuccessPage() {
             {/* 按鈕區 */}
             <section>
               <div className="flex justify-between">
-                <Link href="/shop/order">
-                  <Button variant="outline" className="w-[120px]">
-                    查看訂單
-                  </Button>
+                <Link href="/venue/order">
+                  <Button variant="outline">查看訂單</Button>
                 </Link>
-                <Link href="/shop/list">
-                  <Button variant="highlight" className="w-[120px]">
-                    返回列表頁
-                  </Button>
+                <Link href="/venue">
+                  <Button variant="highlight">返回列表頁</Button>
                 </Link>
               </div>
             </section>

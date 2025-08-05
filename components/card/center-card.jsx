@@ -41,7 +41,7 @@ export function CenterCard({
   }
 
   const renderStars = () => {
-    const rating = data.rating ?? 0
+    const rating = data.averageRating ?? 0
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 >= 0.5
 
@@ -55,14 +55,14 @@ export function CenterCard({
                 ? 'fill-yellow-400 text-yellow-400'
                 : i === fullStars && hasHalfStar
                   ? 'fill-yellow-400/50 text-yellow-400'
-                  : 'stroke-muted/40 text-muted'
+                  : 'stroke-yellow-400 text-muted'
             )}
             key={`star-${data.id}-position-${i + 1}`}
           />
         ))}
         {rating > 0 && (
           <span className="ml-1 text-xs text-muted-foreground">
-            {rating.toFixed(1)}
+            {Number(rating).toFixed(1)}
           </span>
         )}
       </div>

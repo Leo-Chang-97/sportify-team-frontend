@@ -51,6 +51,7 @@ import {
   useInitializeCurrentDate,
 } from '@/components/date-picker-calendar'
 import { TimeSlotTable } from '@/components/timeslot-table'
+import { useReservation } from '@/contexts/reservation-context'
 import fakeData from '@/app/venue/fake-data.json'
 const data = fakeData[0] // 使用第一筆資料
 const steps = [
@@ -118,6 +119,7 @@ const earliestYear = currentYear - 1
 const latestYear = currentYear + 2
 
 export default function ReservationPage() {
+  const { reservationData, setReservationData } = useReservation()
   const [selectedDate, setSelectedDate] = useState(null)
   const [dateData, setDateData] = useState({})
   const [isLoaded, setIsLoaded] = useState(false)
@@ -152,15 +154,15 @@ export default function ReservationPage() {
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
 
-  // 訂單摘要狀態
-  const [orderSummary, setOrderSummary] = useState({
-    location: '',
-    center: '',
-    sport: '',
-    selectedDate: null,
-    timeSlots: [],
-    totalPrice: 0,
-  })
+  // 使用 context 來管理訂單摘要狀態
+  const orderSummary = reservationData
+  const setOrderSummary = (updater) => {
+    if (typeof updater === 'function') {
+      setReservationData((prev) => updater(prev))
+    } else {
+      setReservationData(updater)
+    }
+  }
 
   // 初始化當前日期
   useInitializeCurrentDate()
@@ -526,10 +528,7 @@ export default function ReservationPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Link
-                    href={`/venue/reservation/payment?data=${encodeURIComponent(JSON.stringify(orderSummary))}`}
-                    className="w-full"
-                  >
+                  <Link href="/venue/reservation/payment" className="w-full">
                     <Button size="lg" className="w-full">
                       預訂
                       <ClipboardCheck />

@@ -45,20 +45,12 @@ import {
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
 import { getCenterDetail } from '@/api/venue/center'
-import fakeData from '@/app/venue/fake-data.json'
 import { getCenterImageUrl } from '@/api/venue/image'
 
 // 使用 Map 提供互動式地圖功能
 const Map = dynamic(() => import('@/components/map'), {
   ssr: false,
 })
-
-/** `feature -> feature` ➜ `feature-feature` (for React keys) */
-const slugify = (str) =>
-  str
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
 
 /** Build an integer array `[0,…,length-1]` once */
 const range = (length) => Array.from({ length }, (_, i) => i)
@@ -67,11 +59,6 @@ export default function CenterDetailPage() {
   /* Routing */
   const { id } = useParams()
   const router = useRouter()
-  // 根據 id 找到對應的假資料
-  const fakeItem = React.useMemo(
-    () => fakeData.find((item) => item.id === id),
-    [id]
-  )
 
   /* State for API data */
   const [data, setData] = React.useState(null)
@@ -158,6 +145,16 @@ export default function CenterDetailPage() {
     { icon: IconWifi, label: 'Wi-Fi' },
   ]
 
+  const businessHours = {
+    星期一: '08:00-20:00',
+    星期二: '08:00-20:00',
+    星期三: '08:00-20:00',
+    星期四: '08:00-20:00',
+    星期五: '08:00-20:00',
+    星期六: '08:00-20:00',
+    星期日: '休館',
+  }
+
   // 使用 API 資料的位置，如果沒有則使用預設位置
   const position = [data.latitude, data.longitude] || [
     25.116592439309592, 121.50983159645816,
@@ -170,7 +167,8 @@ export default function CenterDetailPage() {
       <BreadcrumbAuto />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+          {/* 標題與按鈕 */}
+          <section className="flex flex-col md:flex-row justify-between items-start gap-6">
             {/* Title & rating */}
             <div>
               <h1 className="text-3xl font-bold">{data.name}</h1>
@@ -178,7 +176,7 @@ export default function CenterDetailPage() {
               <div className="mt-2 flex items-center gap-2">
                 {/* Stars */}
                 <div
-                  aria-label={`Rating ${data.rating || 0} out of 5`}
+                  aria-label={`Rating ${data.averageRating || 0} out of 5`}
                   className="flex items-center"
                 >
                   {range(5).map((i) => (
@@ -186,9 +184,9 @@ export default function CenterDetailPage() {
                       className={`
                           h-5 w-5
                           ${
-                            i < Math.floor(data.rating || 0)
+                            i < Math.floor(data.averageRating || 0)
                               ? 'fill-yellow-400 text-yellow-400'
-                              : i < (data.rating || 0)
+                              : i < (data.averageRating || 0)
                                 ? 'fill-yellow-400/50 text-yellow-400'
                                 : 'text-muted-foreground'
                           }
@@ -198,7 +196,7 @@ export default function CenterDetailPage() {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  ({(data.rating || 0).toFixed(1)})
+                  ({Number(data.averageRating || 0).toFixed(1)})
                 </span>
               </div>
             </div>
@@ -225,12 +223,12 @@ export default function CenterDetailPage() {
                 </Link>
               </div>
             </div>
-          </div>
+          </section>
 
           <Separator className="my-8" />
 
-          {/* Image */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {/* 圖片 */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* Main image */}
             <div className="overflow-hidden rounded-lg bg-muted">
               <AspectRatio ratio={4 / 3} className="bg-muted">
@@ -292,19 +290,20 @@ export default function CenterDetailPage() {
                 </AspectRatio>
               </div>
             </div>
-          </div>
+          </section>
 
           <Separator className="my-8" />
 
-          {/* - Features & Specs */}
-          <div
+          {/* 資訊 */}
+          <section
             className={`
               grid grid-cols-1 gap-8
               md:grid-cols-2
             `}
           >
+            {/* 左半部 */}
             <section className="flex flex-col gap-6">
-              {/* data info */}
+              {/* 場館運動項目 */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-xl font-bold">場館運動項目</h2>
 
@@ -325,7 +324,7 @@ export default function CenterDetailPage() {
                   })}
                 </div>
               </div>
-              {/* Features */}
+              {/* 場館設施 */}
               <div className="flex flex-col">
                 <h2 className="mb-4 text-xl font-bold">場館設施</h2>
                 <div className="flex flex-wrap gap-4">
@@ -342,12 +341,12 @@ export default function CenterDetailPage() {
               </div>
             </section>
 
-            {/* Specifications */}
+            {/* 營業時間 */}
             <section>
               <h2 className="mb-4 text-xl font-bold">營業時間</h2>
               <div className="space-y-2">
-                {fakeItem?.specs ? (
-                  Object.entries(fakeItem.specs).map(([key, value]) => (
+                {data.businessHours ? (
+                  Object.entries(data.businessHours).map(([key, value]) => (
                     <div
                       className="flex justify-between border-b pb-2 text-sm"
                       key={key}
@@ -356,15 +355,13 @@ export default function CenterDetailPage() {
                       <span>{value}</span>
                     </div>
                   ))
-                ) : data.businessHours ? (
-                  Object.entries(data.businessHours).map(([key, value]) => (
+                ) : businessHours ? (
+                  Object.entries(businessHours).map(([key, value]) => (
                     <div
                       className="flex justify-between border-b pb-2 text-sm"
                       key={key}
                     >
-                      <span className="font-medium capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
+                      <span className="font-medium capitalize">{key}</span>
                       <span>{value}</span>
                     </div>
                   ))
@@ -375,9 +372,11 @@ export default function CenterDetailPage() {
                 )}
               </div>
             </section>
-          </div>
+          </section>
 
           <Separator className="my-8" />
+
+          {/* 地理位置 */}
           <section>
             <h2 className="mb-4 text-xl font-bold">地理位置</h2>
             <div className="space-y-2 mb-4">

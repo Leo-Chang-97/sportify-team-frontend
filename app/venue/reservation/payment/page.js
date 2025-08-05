@@ -4,7 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useReservation } from '@/contexts/reservation-context'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -46,7 +47,10 @@ const steps = [
 ]
 
 export default function PaymentPage() {
-  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { reservationData, setReservationData } = useReservation()
+  // 使用 context 中的訂單資料
+  const orderSummary = reservationData
 
   // 付款和發票選項狀態
   const [selectedPayment, setSelectedPayment] = useState('1')
@@ -57,16 +61,6 @@ export default function PaymentPage() {
     name: '',
     phone: '',
     email: '',
-  })
-
-  // 訂單摘要狀態
-  const [orderSummary, setOrderSummary] = useState({
-    location: '',
-    center: '',
-    sport: '',
-    selectedDate: null,
-    timeSlots: [],
-    totalPrice: 0,
   })
 
   // 處理表單輸入變更
@@ -92,22 +86,6 @@ export default function PaymentPage() {
     }
   }
 
-  // 從 URL 參數讀取訂單資訊
-  useEffect(() => {
-    const dataParam = searchParams.get('data')
-    if (dataParam) {
-      try {
-        const decodedData = JSON.parse(decodeURIComponent(dataParam))
-        // 處理日期字串轉換為 Date 物件
-        if (decodedData.selectedDate) {
-          decodedData.selectedDate = new Date(decodedData.selectedDate)
-        }
-        setOrderSummary(decodedData)
-      } catch (error) {
-        console.error('解析訂單資料失敗:', error)
-      }
-    }
-  }, [searchParams])
   return (
     <>
       <Navbar />
@@ -280,21 +258,23 @@ export default function PaymentPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Link
-                    href={`/venue/reservation/success?data=${encodeURIComponent(
-                      JSON.stringify({
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={() => {
+                      // 更新 context 包含用戶資料和付款資訊
+                      setReservationData({
                         ...orderSummary,
                         userInfo: formData,
                         ...getSelectedOptions(),
                       })
-                    )}`}
-                    className="w-full"
+                      // 使用 router 跳轉到成功頁面
+                      router.push('/venue/reservation/success')
+                    }}
                   >
-                    <Button size="lg" className="w-full">
-                      確認付款
-                      <CreditCard />
-                    </Button>
-                  </Link>
+                    確認付款
+                    <CreditCard />
+                  </Button>
                 </CardFooter>
               </Card>
             </section>
