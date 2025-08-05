@@ -1,15 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { FaXmark, FaCheck } from 'react-icons/fa6'
+import { Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -19,11 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { getProductImageUrl } from '@/api/admin/shop/image'
 
 const steps = [
-  { id: 1, title: '待出貨', completed: true },
-  { id: 2, title: '已出貨', completed: false },
-  { id: 3, title: '已完成', completed: false },
+  { id: 1, title: '確認購物車', active: true },
+  { id: 2, title: '填寫付款資訊', completed: false },
+  { id: 3, title: '完成訂單', completed: false },
 ]
 
 const products = [
@@ -83,27 +83,11 @@ const products = [
   },
 ]
 
-const order = [
-  {
-    id: 1,
-    item: {
-      訂單編號: 1,
-      收件人: '王淑華',
-      手機號碼: '0945678901',
-      收件地址: '台南市中西區民族路二段77號',
-      物流方式: '7-11取貨',
-      付款方式: 'Line Pay',
-      發票類型: '統一編號',
-      統一編號: '39497205',
-      發票號碼: 'WB68570834',
-      訂單金額: 4680,
-    },
-  },
-]
-
 export default function ProductListPage() {
   const [quantity, setQuantity] = React.useState(1)
-  const [isSuccess, setIsSuccess] = useState(true)
+  const handleQuantityChange = React.useCallback((newQty) => {
+    setQuantity((prev) => (newQty >= 1 ? newQty : prev))
+  }, [])
 
   return (
     <>
@@ -118,28 +102,6 @@ export default function ProductListPage() {
           />
           <div className="bg-card rounded-lg p-6">
             <Table className="w-full table-fixed">
-              <TableBody className="divide-y divide-foreground">
-                {Object.entries(order[0].item).map(([key, value]) => (
-                  <TableRow
-                    key={key}
-                    className="border-b border-card-foreground"
-                  >
-                    <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                      {key}
-                    </TableCell>
-                    <TableCell
-                      className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                      style={{ width: '100%' }}
-                    >
-                      {key === '訂單金額' ? `NTD$${value}` : value}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
               <TableHeader className="border-b-2 border-card-foreground">
                 <TableRow className="text-lg">
                   <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
@@ -150,6 +112,9 @@ export default function ProductListPage() {
                   </TableHead>
                   <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
                     數量
+                  </TableHead>
+                  <TableHead className="font-bold w-1/4 text-right hidden md:table-cell text-accent-foreground p-2">
+                    總計
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -175,7 +140,7 @@ export default function ProductListPage() {
                               height={40}
                             />
                           </div>
-                          <span className="text-base whitespace-normal text-accent-foreground">
+                          <span className="text-sm whitespace-normal text-accent-foreground">
                             {product.name}
                           </span>
                         </div>
@@ -185,21 +150,78 @@ export default function ProductListPage() {
                       </TableCell>
                       <TableCell className="text-accent-foreground">
                         <div className="flex items-center justify-center gap-2">
+                          <span
+                            className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                            aria-label="Decrease quantity"
+                            onClick={() =>
+                              quantity > 1 && handleQuantityChange(quantity - 1)
+                            }
+                          >
+                            <Minus className="h-4 w-4" />
+                          </span>
                           <span className="w-12 text-center select-none">
                             {quantity}
                           </span>
+                          <span
+                            className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                            aria-label="Increase quantity"
+                            onClick={() => handleQuantityChange(quantity + 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </span>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-right hidden md:table-cell text-accent-foreground">
+                        ${product.price}
                       </TableCell>
                     </TableRow>
                   )
                 })}
               </TableBody>
             </Table>
+            <div className="flex flex-col">
+              <span className="text-base text-right p-2 text-muted-foreground">
+                共有3件商品
+              </span>
+              <Table className="table-fixed flex justify-end">
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="text-base pr-10 text-accent-foreground">
+                      商品金額
+                    </TableCell>
+                    <TableCell className="text-base font-bold text-accent-foreground">
+                      $2250
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="border-b border-card-foreground">
+                    <TableCell className="text-base pr-10 text-accent-foreground">
+                      運費
+                    </TableCell>
+                    <TableCell className="text-base text-accent-foreground">
+                      未選擇
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-base pr-10 text-accent-foreground">
+                      商品小計
+                    </TableCell>
+                    <TableCell className="text-base font-bold text-accent-foreground">
+                      $2250
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
-          <div className="flex justify-center">
-            <Link href="/shop/order">
+          <div className="flex justify-between">
+            <Link href="/shop">
+              <Button variant="outline" className="w-[120px]">
+                繼續購物
+              </Button>
+            </Link>
+            <Link href="/shop/order/pay">
               <Button variant="highlight" className="w-[120px]">
-                返回我的訂單
+                填寫付款資訊
               </Button>
             </Link>
           </div>

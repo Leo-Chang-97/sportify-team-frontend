@@ -21,9 +21,9 @@ import {
 } from '@/components/ui/table'
 
 const steps = [
-  { id: 1, title: '確認購物車', completed: true },
-  { id: 2, title: '填寫付款資訊', completed: true },
-  { id: 3, title: '完成訂單', active: true },
+  { id: 1, title: '待出貨', completed: true },
+  { id: 2, title: '已出貨', completed: false },
+  { id: 3, title: '已完成', completed: false },
 ]
 
 const products = [
@@ -94,6 +94,8 @@ const order = [
       物流方式: '7-11取貨',
       付款方式: 'Line Pay',
       發票類型: '統一編號',
+      統一編號: '39497205',
+      發票號碼: 'WB68570834',
       訂單金額: 4680,
     },
   },
@@ -114,22 +116,27 @@ export default function ProductListPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="flex flex-col items-center gap-4 py-4 md:py-8">
-            {isSuccess ? (
-              <>
-                <div className="rounded-full bg-highlight p-4">
-                  <FaCheck className="text-4xl text-accent" />
-                </div>
-                <h2 className="text-2xl font-bold text-accent">已完成訂購</h2>
-              </>
-            ) : (
-              <>
-                <div className="rounded-full bg-highlight p-4">
-                  <FaXmark className="text-4xl text-accent" />
-                </div>
-                <h2 className="text-2xl font-bold text-accent">訂單失敗</h2>
-              </>
-            )}
+          <div className="bg-card rounded-lg p-6">
+            <Table className="w-full table-fixed">
+              <TableBody className="divide-y divide-foreground">
+                {Object.entries(order[0].item).map(([key, value]) => (
+                  <TableRow
+                    key={key}
+                    className="border-b border-card-foreground"
+                  >
+                    <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
+                      {key}
+                    </TableCell>
+                    <TableCell
+                      className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
+                      style={{ width: '100%' }}
+                    >
+                      {key === '訂單金額' ? `NTD$${value}` : value}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
           <div className="bg-card rounded-lg p-6">
             <Table className="w-full table-fixed">
@@ -189,37 +196,10 @@ export default function ProductListPage() {
               </TableBody>
             </Table>
           </div>
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableBody className="divide-y divide-foreground">
-                {Object.entries(order[0].item).map(([key, value]) => (
-                  <TableRow
-                    key={key}
-                    className="border-b border-card-foreground"
-                  >
-                    <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                      {key}
-                    </TableCell>
-                    <TableCell
-                      className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                      style={{ width: '100%' }}
-                    >
-                      {key === '訂單金額' ? `NTD$${value}` : value}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="flex justify-between">
+          <div className="flex justify-center">
             <Link href="/shop/order">
-              <Button variant="outline" className="w-[120px]">
-                查看訂單
-              </Button>
-            </Link>
-            <Link href="/shop/list">
               <Button variant="highlight" className="w-[120px]">
-                瀏覽新商品
+                返回我的訂單
               </Button>
             </Link>
           </div>

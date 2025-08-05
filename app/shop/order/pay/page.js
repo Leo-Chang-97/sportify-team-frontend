@@ -308,13 +308,13 @@ export default function ProductListPage() {
             </CardFooter>
           </Card>
           <div className="flex justify-between">
-            <Link href="/shop/cart">
+            <Link href="/shop/order">
               <Button variant="outline" className="w-[120px]">
                 返回購物車
               </Button>
             </Link>
             <Link
-              href={`/shop/success?data=${encodeURIComponent(
+              href={`/shop/order/success?data=${encodeURIComponent(
                 JSON.stringify({
                   products: products,
                   userInfo: formData,

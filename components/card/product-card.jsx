@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { se } from 'date-fns/locale'
 
 // ...existing code...
 
@@ -18,12 +19,15 @@ export function ProductCard({
   onAddToCart,
   onAddToWishlist,
   product,
+  isFavorited: initialIsFavorited,
   variant = 'default',
   ...props
 }) {
   const [isHovered, setIsHovered] = React.useState(false)
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
-  const [isInWishlist, setIsInWishlist] = React.useState(false)
+  const [isInWishlist, setIsInWishlist] = React.useState(
+    initialIsFavorited || false
+  ) // 初始狀態從 props 傳入
   const [isMounted, setIsMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -36,36 +40,27 @@ export function ProductCard({
     product?.image_url ||
     (typeof image === 'object' && image !== null ? image.url : image)
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.preventDefault()
     if (onAddToCart) {
-      setIsAddingToCart(true)
-      // Simulate API call
-      setTimeout(() => {
-        onAddToCart(product?.id)
-        setIsAddingToCart(false)
-      }, 600)
+      setIsAddingToCart(true) // 設定正在加入購物車的狀態
+      const result = await onAddToCart(product?.id, 1)
+      setIsAddingToCart(false)
     }
   }
 
-  const handleAddToWishlist = (e) => {
+  const handleAddToWishlist = async (e) => {
     e.preventDefault()
     if (onAddToWishlist) {
-      setIsInWishlist(!isInWishlist)
-      onAddToWishlist(product?.id)
+      const result = await onAddToWishlist(product?.id)
+      setIsInWishlist(!!result?.favorited) // 根據後端回傳結果設定狀態
     }
   }
-
-  const discount = product?.originalPrice
-    ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100
-      )
-    : 0
 
   return (
     <div className={cn('group', className)} {...props}>
-      <Link href={`/shop/list/1`}>
-        {/* <Link href={`/shop/product/${product?.id}`}> */}
+      {/* <Link href={`/shop/1`}> */}
+        <Link href={`/shop/${product?.id}`}>
         <Card
           className={cn(
             `
@@ -113,7 +108,7 @@ export function ProductCard({
                     absolute right-2 bottom-2 z-10 rounded-full bg-background/80
                     backdrop-blur-sm transition-opacity duration-300
                   `,
-                  !isHovered && !isInWishlist && 'opacity-0'
+                  !isHovered && !isInWishlist ? 'opacity-0' : ''
                 )}
                 onClick={handleAddToWishlist}
                 size="icon"
@@ -171,7 +166,8 @@ export function ProductCard({
               <Button
                 className={cn(
                   'w-full gap-2 transition-all',
-                  isAddingToCart && 'opacity-70'
+                  isAddingToCart && 'opacity-70',
+                  'cursor-pointer'
                 )}
                 disabled={!isMounted || isAddingToCart}
                 onClick={handleAddToCart}
@@ -200,7 +196,7 @@ export function ProductCard({
                   </span>
                 </div>
                 <Button
-                  className="h-8 w-8 rounded-full"
+                  className="h-8 w-8 rounded-full cursor-pointer"
                   disabled={!isMounted || isAddingToCart}
                   onClick={handleAddToCart}
                   size="icon"
