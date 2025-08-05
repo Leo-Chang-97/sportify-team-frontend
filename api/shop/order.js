@@ -1,31 +1,13 @@
 import { apiClient } from '@/api/axios'
 
-// 獲取所有付款方式
-export const getPaymentMethods = async () => {
-  const res = await apiClient.get('/shop/order/methods')
-  return res.data
-}
-
-// 獲取用戶所有訂單
+// 獲取用戶訂單列表
 export const getUserOrders = async (params = {}) => {
   const res = await apiClient.get('/shop/order/orders', { params })
   return res.data
 }
 
-// 取得單一訂單詳細
-export const getOrderDetail = async (orderId) => {
-  const res = await apiClient.get(`/shop/order/order/${orderId}`)
-  return res.data
-}
-
-// 獲取物流方式選項
-export const getDeliveryOptions = async () => {
-  const res = await apiClient.get('/shop/order/delivery')
-  return res.data
-}
-
-// 獲取發票類型選項
-export const getInvoiceTypes = async () => {
-  const res = await apiClient.get('/shop/order/invoice')
+// 獲取用戶單一訂單詳情
+export const getOrderDetail = async (orderId, params = {}) => {
+  const res = await apiClient.get(`/shop/order/order/${orderId}`, { params })
   return res.data
 }
