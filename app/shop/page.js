@@ -206,26 +206,17 @@ export default function ProductListPage() {
       <BreadcrumbAuto />
       <section className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-          <div className="flex flex-col items-start justify-center gap-3 mb-8">
-            <p className="text-2xl font-bold text-foreground">籃球</p>
-            <p className="text-base font-regular text-foreground">
-              共有16筆商品
-            </p>
-          </div>
-          {/* 搜尋和排序區域 */}
-          <div className="flex justify-center lg:justify-end items-center gap-4 mb-6 min-w-[300px] overflow-x-auto">
-            <div className="flex gap-4 items-center md:justify-end justify-between w-full">
-              {/* 手機側邊欄開啟按鈕*/}
-              <div className="block md:hidden flex items-center">
-                <Button
-                  variant="secondary"
-                  onClick={() => setSidebarOpen(true)}
-                  className="!h-10"
-                >
-                  <AlignLeft size={20} />
-                </Button>
-              </div>
-              <div className="relative flex items-center w-[180px]">
+          {/* 桌面版：標題和搜尋排序在同一行，使用 space-between */}
+          <div className="hidden md:flex justify-between items-end mb-8">
+            <div className="flex flex-col items-start justify-center gap-3">
+              <p className="text-2xl font-bold text-foreground">籃球</p>
+              <p className="text-base font-regular text-foreground">
+                共有16筆商品
+              </p>
+            </div>
+            {/* 桌面版搜尋和排序區域 */}
+            <div className="flex items-center gap-4">
+              <div className="relative flex items-center w-[200px]">
                 <Input
                   type="search"
                   className="w-full bg-accent text-accent-foreground !h-10 pr-10"
@@ -239,26 +230,62 @@ export default function ProductListPage() {
                   <Search size={20} />
                 </Button>
               </div>
-              <div className="hidden md:block">
-                <Select>
-                  <SelectTrigger className="bg-accent text-accent-foreground !h-10 w-[150px]">
-                    <SelectValue placeholder="請選擇排序" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="price-asc">價格遞增排序</SelectItem>
-                    <SelectItem value="price-desc">價格遞減排序</SelectItem>
-                  </SelectContent>
-                </Select>
+              <Select>
+                <SelectTrigger className="bg-accent text-accent-foreground !h-10 w-[150px]">
+                  <SelectValue placeholder="請選擇排序" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="price-asc">價格遞增排序</SelectItem>
+                  <SelectItem value="price-desc">價格遞減排序</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* 手機版：分層布局 */}
+          <div className="block md:hidden space-y-4 mb-8">
+            {/* 標題區域 */}
+            <div className="flex flex-col items-start justify-center gap-3">
+              <p className="text-2xl font-bold text-foreground">籃球</p>
+              <p className="text-base font-regular text-foreground">
+                共有16筆商品
+              </p>
+            </div>
+
+            {/* 功能按鈕區域 */}
+            <div className="flex items-center justify-between gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setSidebarOpen(true)}
+                className="!h-10 flex items-center gap-2"
+              >
+                <AlignLeft size={16} />
+              </Button>
+
+              <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+                <div className="relative flex items-center flex-1">
+                  <Input
+                    type="search"
+                    className="w-full bg-accent text-accent-foreground !h-10 pr-10 text-sm"
+                    placeholder="請輸入關鍵字"
+                  />
+                  <Button
+                    variant={'outline'}
+                    onClick={handleSearch}
+                    className="h-7 w-7 absolute right-1 flex items-center justify-center"
+                  >
+                    <Search size={16} />
+                  </Button>
+                </div>
               </div>
-              <div className="block md:hidden flex items-center">
-                <Button
-                  variant="secondary"
-                  onClick={() => setSidebarOpen(true)}
-                  className="!h-10"
-                >
-                  <Funnel size={20} />
-                </Button>
-              </div>
+
+              <Button
+                variant="secondary"
+                onClick={() => setSidebarOpen(true)}
+                className="!h-10 flex items-center gap-2"
+              >
+                <Funnel size={16} />
+              </Button>
             </div>
           </div>
           <div className="flex">
