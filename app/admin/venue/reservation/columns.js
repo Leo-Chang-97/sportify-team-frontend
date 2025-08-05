@@ -39,15 +39,6 @@ export const reservationColumns = [
     },
   },
   {
-    accessorKey: 'court',
-    header: '球場',
-    cell: ({ row, table }) => {
-      const value = row.original.courtName ?? '—'
-      const highlightKeyword = table.options.meta?.highlightKeyword
-      return highlightKeyword ? highlightKeyword(value) : value
-    },
-  },
-  {
     accessorKey: 'date',
     header: '日期',
     cell: ({ row, table }) => {
@@ -57,10 +48,15 @@ export const reservationColumns = [
     },
   },
   {
-    accessorKey: 'timeSlot',
-    header: '時段',
+    accessorKey: 'courtTimeSlots',
+    header: '場地時段',
     cell: ({ row, table }) => {
-      const value = row.original.timeLabel
+      const slots = row.original.courtTimeSlots ?? []
+      if (!slots.length) return '—'
+      // 例如：中和 羽球 3 (07:00-08:00)、中和 羽球 3 (14:00-15:00)
+      const value = slots
+        .map((slot) => `${slot.courtName} (${slot.timeLabel})`)
+        .join('、')
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
