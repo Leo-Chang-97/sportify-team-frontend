@@ -28,6 +28,7 @@ import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBannerMember from '@/components/hero-banner-member'
 import ScrollAreaMember from '@/components/scroll-area-member'
 import MemberMainCard from '@/components/card/member-main-card'
+import MemberSubCard from '@/components/card/member-sub-card'
 import {
   Popover,
   PopoverContent,
@@ -42,7 +43,7 @@ import {
 } from '@/components/ui/select'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
-import  FormCard  from '@/components/card/form-card'
+import FormCard from '@/components/card/form-card'
 
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
@@ -175,7 +176,6 @@ export default function VenueListPage() {
     console.log('搜尋:', { locationId, sportId, date })
   }
 
-
   return (
     <>
       <Navbar />
@@ -184,12 +184,12 @@ export default function VenueListPage() {
         backgroundImage="/banner/member-banner.jpg"
         title="會員中心"
         overlayOpacity="bg-primary/50"
-      >
-      </HeroBannerMember>
+      ></HeroBannerMember>
       {/* <ScrollAreaMember /> */}
       <section className="py-10">
-        <div className="container mx-auto flex justify-center max-w-screen-xl px-4">
+        <div className="container mx-auto flex flex-col items-center max-w-screen-xl px-4 gap-8">
           <MemberMainCard />
+          <MemberSubCard />
         </div>
       </section>
       <Footer />

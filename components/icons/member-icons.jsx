@@ -336,3 +336,11 @@ export function VenueDataIcon({ className }) {
     </svg>
   )
 }
+
+export function ArrowRightIcon({ className }) {
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 10L25 20L15 30" stroke="white" stroke-width="2" />
+    </svg>
+  )
+}

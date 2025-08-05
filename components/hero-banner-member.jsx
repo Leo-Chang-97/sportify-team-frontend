@@ -17,23 +17,8 @@ export default function HeroBanner({
 }) {
   return (
     <>
-      {/* <div
-        className={`relative w-full bg-cover bg-center px-4 md:px-6 mb-60 md:mb-5 ${className}`}
-        style={{ backgroundImage: `url('${backgroundImage}')` }}
-        {...props}
-      >
-        <div className={`absolute inset-0 ${overlayOpacity}`}></div>
-        <div
-          className={`relative container mx-auto flex flex-col h-70 max-w-screen-xl items-center justify-end gap-4 translate-y-60 md:translate-y-5 ${containerClassName}`}
-        >
-          <h2 className={titleClassName}>{title}</h2>
-          <div className="w-full flex flex-col md:flex-row justify-center items-center gap-5 md:items-end">
-            {children}
-          </div>
-        </div>
-      </div> */}
       <div
-        className={`relative w-full bg-cover bg-center px-4 md:px-6 mb-60 md:mb-5 ${className}`}
+        className={`relative w-full bg-cover bg-center px-4 md:px-6 mb-8 md:mb-5 ${className}`}
         style={{ backgroundImage: `url('${backgroundImage}')` }}
         {...props}
       >
@@ -43,12 +28,6 @@ export default function HeroBanner({
             <div className="self-stretch inline-flex justify-center items-center gap-1">
               <div className="text-center justify-center">
                 <h2 className={titleClassName}>{title}</h2>
-                {/* <div className="w-full flex flex-col md:flex-row justify-center items-center gap-5 md:items-end">
-                  {children}
-                </div> */}
-                {/* <span class="text-white text-5xl font-medium font-['Montserrat'] leading-[64px]">
-                MEMBER
-              </span> */}
               </div>
             </div>
           </div>
