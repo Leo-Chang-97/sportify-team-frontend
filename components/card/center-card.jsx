@@ -20,6 +20,7 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
+import { getCenterImageUrl } from '@/api/venue/image'
 
 export function CenterCard({
   className,
@@ -68,17 +69,17 @@ export function CenterCard({
     )
   }
 
-  const sportItems = [
-    { icon: BasketballIcon, label: '籃球' },
-    { icon: BadmintonIcon, label: '羽球' },
-    { icon: TableTennisIcon, label: '桌球' },
-    { icon: TennisIcon, label: '網球' },
-    { icon: VolleyballIcon, label: '排球' },
-    { icon: TennisRacketIcon, label: '壁球' },
-    { icon: SoccerIcon, label: '足球' },
-    { icon: BaseballBatIcon, label: '棒球' },
-    { icon: BilliardBallIcon, label: '撞球' },
-  ]
+  const sportIconMap = {
+    basketball: BasketballIcon,
+    badminton: BadmintonIcon,
+    tabletennis: TableTennisIcon,
+    tennis: TennisIcon,
+    volleyball: VolleyballIcon,
+    squash: TennisRacketIcon,
+    soccer: SoccerIcon,
+    baseball: BaseballBatIcon,
+    billiard: BilliardBallIcon,
+  }
 
   return (
     <div className={cn('group', className)} {...props}>
@@ -95,7 +96,7 @@ export function CenterCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
-          {data.image && (
+          {data.images && data.images.length > 0 && (
             <Image
               alt={data.name}
               className={cn(
@@ -104,7 +105,7 @@ export function CenterCard({
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src={data.image}
+              src={getCenterImageUrl(data.images[0])}
             />
           )}
 
@@ -159,9 +160,9 @@ export function CenterCard({
             <>
               <div>{renderStars()}</div>
 
-              <div className="flex flex-wrap gap-2">
-                {sportItems.map((item, idx) => {
-                  const IconComponent = item.icon
+              <div className="flex flex-wrap md:h-[74px] gap-2">
+                {data.sports.map((item, idx) => {
+                  const IconComponent = sportIconMap[item.iconKey]
                   return (
                     <Link href="#" key={idx}>
                       <Button
@@ -169,8 +170,10 @@ export function CenterCard({
                         size="sm"
                         className="hover:bg-primary/10"
                       >
-                        <IconComponent className="!w-6 !h-6" />
-                        {item.label}
+                        {IconComponent && (
+                          <IconComponent className="!w-6 !h-6" />
+                        )}
+                        {item.name}
                       </Button>
                     </Link>
                   )

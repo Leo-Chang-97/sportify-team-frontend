@@ -202,7 +202,7 @@ export default function TeamPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
+      <ScrollAreaSport sportItems={sports} />
       <section>
         <div className="container mx-auto max-w-screen-xl px-4 gap-8">
           <div className="self-stretch text-center justify-start text-white text-2xl font-normal font-['Noto_Sans_TC'] leading-loose tracking-[24px]">

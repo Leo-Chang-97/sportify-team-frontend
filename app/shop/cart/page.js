@@ -103,16 +103,16 @@ export default function ProductListPage() {
             <Table className="w-full table-fixed">
               <TableHeader className="border-b-2 border-card-foreground">
                 <TableRow className="text-lg">
-                  <TableHead className="font-bold w-1/2 text-accent-foreground">
+                  <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
                     商品名稱
                   </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground">
+                  <TableHead className="font-bold w-1/4 text-accent-foreground p-2">
                     單價
                   </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center">
+                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
                     數量
                   </TableHead>
-                  <TableHead className="font-bold w-1/4 text-right hidden md:table-cell text-accent-foreground">
+                  <TableHead className="font-bold w-1/4 text-right hidden md:table-cell text-accent-foreground p-2">
                     總計
                   </TableHead>
                 </TableRow>
@@ -139,7 +139,7 @@ export default function ProductListPage() {
                               height={40}
                             />
                           </div>
-                          <span className="text-base whitespace-normal text-accent-foreground">
+                          <span className="text-sm whitespace-normal text-accent-foreground">
                             {product.name}
                           </span>
                         </div>

@@ -198,13 +198,13 @@ export default function VenueListPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
+      <ScrollAreaSport sportItems={sports} />
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
           <h3 className="text-lg text-center">精選課程</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-15">
             <CourseCard />
-            <CourseCard />  
+            <CourseCard />
             <CourseCard />
             <CourseCard />
           </div>
