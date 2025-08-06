@@ -83,7 +83,25 @@ export const reservationColumns = [
     accessorKey: 'status',
     header: '狀態',
     cell: ({ row, table }) => {
-      const value = row.original.statusName ?? '—'
+      const value = row.original.status?.name ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'payment',
+    header: '付款方式',
+    cell: ({ row, table }) => {
+      const value = row.original.payment?.name ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'invoice',
+    header: '發票種類',
+    cell: ({ row, table }) => {
+      const value = row.original.invoice?.name ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },

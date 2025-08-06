@@ -1,11 +1,33 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+// hooks
+import React, { useState, useEffect } from 'react'
+import { useVenue } from '@/contexts/venue-context'
+
+// Icon
 import { ClipboardCheck } from 'lucide-react'
+
+// API 請求
+import {
+  fetchLocationOptions,
+  fetchCenterOptions,
+  fetchSportOptions,
+} from '@/api'
+import { fetchCenter } from '@/api/venue/center'
+import {
+  fetchCourtTimeSlotsByCenterAndSport,
+  fetchAvailableCourtTimeSlotsByMonth,
+} from '@/api/venue/court-time-slot'
+import { getCenterImageUrl } from '@/api/venue/image'
+
+// next 元件
 import Link from 'next/link'
 import Image from 'next/image'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import {
   Card,
   CardContent,
@@ -13,25 +35,6 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import {
-  createReservation,
-  fetchReservation,
-  updateReservation,
-  fetchMemberOptions,
-  fetchLocationOptions,
-  fetchTimePeriodOptions,
-  fetchCenterOptions,
-  fetchSportOptions,
-  fetchCourtOptions,
-  fetchTimeSlotOptions,
-  fetchCourtTimeSlotOptions,
-  fetchStatusOptions,
-} from '@/api'
 import {
   Select,
   SelectContent,
@@ -39,6 +42,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+// 自訂元件
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
 import {
   CalendarBody,
   CalendarDate,
@@ -49,123 +58,60 @@ import {
   CalendarProvider,
   CalendarYearPicker,
   useInitializeCurrentDate,
+  useCalendarMonth,
+  useCalendarYear,
 } from '@/components/date-picker-calendar'
 import { TimeSlotTable } from '@/components/timeslot-table'
-import { useReservation } from '@/contexts/reservation-context'
+import { SimpleLoadingText } from '@/components/loading-states'
+
 import fakeData from '@/app/venue/fake-data.json'
-const data = fakeData[0] // 使用第一筆資料
-const steps = [
-  { id: 1, title: '選擇場地與時間', active: true },
-  { id: 2, title: '填寫付款資訊', completed: false },
-  { id: 3, title: '完成訂單', completed: false },
-]
-
-// 日期狀態設定
-const dateStatuses = {
-  available: {
-    label: '可預約',
-    color: 'bg-green-100 text-green-800',
-    clickable: true,
-  },
-  full: { label: '已額滿', color: 'bg-red-100 text-red-800', clickable: false },
-  closed: {
-    label: '未開放',
-    color: 'bg-gray-100 text-gray-500',
-    clickable: false,
-  },
-}
-
-// 生成帶狀態的日期資料 (使用固定的模式避免hydration錯誤)
-const generateDateWithStatus = () => {
-  const today = new Date()
-  const dateData = {}
-
-  // 生成未來30天的資料
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    const dateKey = date.toISOString().split('T')[0]
-
-    // 使用日期作為種子來決定狀態，確保每次都一樣
-    const dayOfMonth = date.getDate()
-    let status = 'available'
-    let availableSlots = 5
-
-    // 根據日期模式分配狀態
-    if (dayOfMonth % 7 === 0) {
-      status = 'closed'
-      availableSlots = 0
-    } else if (dayOfMonth % 5 === 0) {
-      status = 'full'
-      availableSlots = 0
-    } else {
-      status = 'available'
-      availableSlots = Math.max(1, dayOfMonth % 8)
-    }
-
-    dateData[dateKey] = {
-      date: date,
-      status: status,
-      availableSlots: availableSlots,
-    }
-  }
-
-  return dateData
-}
-
-// 計算年份範圍
-const currentYear = new Date().getFullYear()
-const earliestYear = currentYear - 1
-const latestYear = currentYear + 2
+const data = fakeData[0]
 
 export default function ReservationPage() {
-  const { reservationData, setReservationData } = useReservation()
+  // #region 路由和URL參數
+  const { venueData, setVenueData } = useVenue()
+
+  // #region 組件狀態管理
+  const [data, setData] = React.useState(null)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState(null)
+
   const [selectedDate, setSelectedDate] = useState(null)
   const [dateData, setDateData] = useState({})
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // ===== 組件狀態管理 =====
-  const [isLoading, setIsLoading] = useState(false)
-  // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
-
-  const [memberId, setMemberId] = useState('')
-  const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
+  const [locationId, setLocationId] = useState(
+    venueData.locationId?.toString() || ''
+  )
+  const [centerId, setCenterId] = useState(venueData.centerId?.toString() || '')
   const [sportId, setSportId] = useState('')
-  const [courtId, setCourtIds] = useState('')
-  const [timePeriodId, setTimePeriodId] = useState('')
-  const [timeSlotId, setTimeSlotIds] = useState('')
-  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
-  const [statusId, setStatusId] = useState('')
-  const [date, setDate] = useState(null)
-  const [price, setPrice] = useState('')
 
-  const [members, setMembers] = useState([])
   const [locations, setLocations] = useState([])
   const [centers, setCenters] = useState([])
   const [sports, setSports] = useState([])
-  const [courts, setCourts] = useState([])
-  const [timePeriods, setTimePeriods] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
   const [courtTimeSlots, setCourtTimeSlots] = useState([])
-  const [status, setStatus] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
 
   // 使用 context 來管理訂單摘要狀態
-  const orderSummary = reservationData
+  const orderSummary = venueData
   const setOrderSummary = (updater) => {
     if (typeof updater === 'function') {
-      setReservationData((prev) => updater(prev))
+      setVenueData((prev) => updater(prev))
     } else {
-      setReservationData(updater)
+      setVenueData(updater)
     }
   }
 
   // 初始化當前日期
   useInitializeCurrentDate()
+
+  // 獲取日曆的年月狀態
+  const [currentMonth] = useCalendarMonth()
+  const [calendarYear] = useCalendarYear()
+
+  // 計算 yearMonth 格式 (YYYY-MM)
+  const yearMonth = `${calendarYear}-${String(currentMonth + 1).padStart(2, '0')}`
+
+  // #region 副作用處理
 
   // 在客戶端生成資料，避免 hydration 錯誤
   useEffect(() => {
@@ -173,57 +119,28 @@ export default function ReservationPage() {
     setIsLoaded(true)
   }, [])
 
-  const handleDateSelect = (date, dateInfo) => {
-    if (dateInfo && dateStatuses[dateInfo.status].clickable) {
-      setSelectedDate(date)
-      setOrderSummary((prev) => {
-        // 檢查日期是否真的不同
-        if (prev.selectedDate?.getTime() !== date?.getTime()) {
-          return {
-            ...prev,
-            selectedDate: date,
-          }
-        }
-        return prev
-      })
-      console.log('選擇的日期:', date, '狀態:', dateInfo.status)
-    }
-  }
-
-  // 處理場地時段選擇
-  const handleTimeSlotSelection = (selectionData) => {
-    setOrderSummary((prev) => {
-      // 檢查是否真的有變化
-      if (
-        JSON.stringify(prev.timeSlots) !==
-          JSON.stringify(selectionData.details) ||
-        prev.totalPrice !== selectionData.totalPrice
-      ) {
-        return {
-          ...prev,
-          timeSlots: selectionData.details,
-          totalPrice: selectionData.totalPrice,
-        }
+  useEffect(() => {
+    const fetchCenterData = async () => {
+      try {
+        setLoading(true)
+        // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+        const centerData = await fetchCenter(centerId)
+        setData(centerData.record)
+      } catch (err) {
+        console.error('Error fetching center detail:', err)
+        setError(err.message)
+        toast.error('載入場館資料失敗')
+      } finally {
+        setLoading(false)
       }
-      return prev
-    })
-  }
+    }
+
+    if (centerId) {
+      fetchCenterData()
+    }
+  }, [centerId])
 
   // 更新訂單摘要中的選項 - 分別處理每個欄位
-  useEffect(() => {
-    const selectedLocation = locations.find(
-      (loc) => loc.id.toString() === locationId
-    )
-    const newLocationName = selectedLocation?.name || ''
-
-    setOrderSummary((prev) => {
-      if (prev.location !== newLocationName) {
-        return { ...prev, location: newLocationName }
-      }
-      return prev
-    })
-  }, [locationId, locations])
-
   useEffect(() => {
     const selectedCenter = centers.find(
       (center) => center.id.toString() === centerId
@@ -237,7 +154,6 @@ export default function ReservationPage() {
       return prev
     })
   }, [centerId, centers])
-
   useEffect(() => {
     const selectedSport = sports.find(
       (sport) => sport.id.toString() === sportId
@@ -251,7 +167,8 @@ export default function ReservationPage() {
       return prev
     })
   }, [sportId, sports])
-  // ===== 載入下拉選單選項 =====
+
+  // 載入下拉選單選項
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -297,6 +214,167 @@ export default function ReservationPage() {
     }
     loadData()
   }, [locationId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let courtTimeSlotData
+        if (centerId && sportId) {
+          courtTimeSlotData = await fetchCourtTimeSlotsByCenterAndSport(
+            Number(centerId),
+            Number(sportId)
+          )
+          setCourtTimeSlots(courtTimeSlotData.rows || [])
+        } else {
+          setCourtTimeSlots([])
+        }
+      } catch (err) {
+        console.error('載入場地時段失敗:', err)
+        if (err.response && err.response.status === 404) {
+          setCourtTimeSlots([])
+        } else {
+          setCourtTimeSlots([])
+        }
+      }
+    }
+    loadData()
+  }, [centerId, sportId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let courtTimeSlotData
+        if (centerId && sportId && yearMonth) {
+          courtTimeSlotData = await fetchAvailableCourtTimeSlotsByMonth(
+            Number(centerId),
+            Number(sportId),
+            yearMonth
+          )
+          setCourtTimeSlots(courtTimeSlotData.rows || [])
+        } else {
+          setCourtTimeSlots([])
+        }
+      } catch (err) {
+        console.error('載入場地時段失敗:', err)
+        if (err.response && err.response.status === 404) {
+          setCourtTimeSlots([])
+        } else {
+          setCourtTimeSlots([])
+        }
+      }
+    }
+    loadData()
+  }, [centerId, sportId, yearMonth])
+
+  // #region 事件處理函數
+  const handleDateSelect = (date, dateInfo) => {
+    if (dateInfo && dateStatuses[dateInfo.status].clickable) {
+      setSelectedDate(date)
+      setOrderSummary((prev) => {
+        // 檢查日期是否真的不同
+        if (prev.selectedDate?.getTime() !== date?.getTime()) {
+          return {
+            ...prev,
+            selectedDate: date,
+          }
+        }
+        return prev
+      })
+      console.log('選擇的日期:', date, '狀態:', dateInfo.status)
+    }
+  }
+
+  // 處理場地時段選擇
+  const handleTimeSlotSelection = (selectionData) => {
+    setOrderSummary((prev) => {
+      // 檢查是否真的有變化
+      if (
+        JSON.stringify(prev.timeSlots) !==
+          JSON.stringify(selectionData.details) ||
+        prev.totalPrice !== selectionData.totalPrice
+      ) {
+        return {
+          ...prev,
+          timeSlots: selectionData.details,
+          totalPrice: selectionData.totalPrice,
+        }
+      }
+      return prev
+    })
+  }
+
+  // #region 資料顯示選項
+  // 步驟選項設定
+  const steps = [
+    { id: 1, title: '選擇場地與時間', active: true },
+    { id: 2, title: '填寫付款資訊', completed: false },
+    { id: 3, title: '完成訂單', completed: false },
+  ]
+
+  // 日期狀態設定
+  const dateStatuses = {
+    available: {
+      label: '可預約',
+      color: 'bg-green-100 text-green-800',
+      clickable: true,
+    },
+    full: {
+      label: '已額滿',
+      color: 'bg-red-100 text-red-800',
+      clickable: false,
+    },
+    closed: {
+      label: '未開放',
+      color: 'bg-gray-100 text-gray-500',
+      clickable: false,
+    },
+  }
+
+  // 生成帶狀態的日期資料 (使用固定的模式避免hydration錯誤)
+  const generateDateWithStatus = () => {
+    const today = new Date()
+    const dateData = {}
+
+    // 生成未來30天的資料
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+      const dateKey = date.toISOString().split('T')[0]
+
+      // 使用日期作為種子來決定狀態，確保每次都一樣
+      const dayOfMonth = date.getDate()
+      let status = 'available'
+      let availableSlots = 5
+
+      // 根據日期模式分配狀態
+      if (dayOfMonth % 7 === 0) {
+        status = 'closed'
+        availableSlots = 0
+      } else if (dayOfMonth % 5 === 0) {
+        status = 'full'
+        availableSlots = 0
+      } else {
+        status = 'available'
+        availableSlots = Math.max(1, dayOfMonth % 8)
+      }
+
+      dateData[dateKey] = {
+        date: date,
+        status: status,
+        availableSlots: availableSlots,
+      }
+    }
+
+    return dateData
+  }
+
+  // 計算年份範圍
+  const currentYear = new Date().getFullYear()
+  const earliestYear = currentYear - 1
+  const latestYear = currentYear + 2
+  // #endregion 資料顯示選項
+
+  // #region Markup
   return (
     <>
       <Navbar />
@@ -375,17 +453,21 @@ export default function ReservationPage() {
                         <SelectValue placeholder="請選擇運動" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sports?.length === 0 ? (
+                        {data &&
+                        data.centerSports &&
+                        data.centerSports.length === 0 ? (
                           <div className="px-3 py-2 text-gray-400">
                             沒有符合資料
                           </div>
                         ) : (
-                          sports.map((sport) => (
+                          data &&
+                          data.centerSports &&
+                          data.centerSports.map((cs) => (
                             <SelectItem
-                              key={sport.id}
-                              value={sport.id.toString()}
+                              key={cs.sportId}
+                              value={cs.sportId.toString()}
                             >
-                              {sport.name || sport.id}
+                              {cs.sport.name || cs.sport.id}
                             </SelectItem>
                           ))
                         )}
@@ -423,15 +505,18 @@ export default function ReservationPage() {
                     />
                   </CalendarProvider>
                 ) : (
-                  <div className="bg-card border rounded-lg p-6 text-center">
-                    <p className="text-muted-foreground">載入中...</p>
+                  <div className="bg-card border rounded-lg p-6">
+                    <SimpleLoadingText message="載入日曆資料中..." />
                   </div>
                 )}
               </section>
               {/* 選擇場地與時段 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇場地與時段</h2>
-                <TimeSlotTable onSelectionChange={handleTimeSlotSelection} />
+                <TimeSlotTable
+                  courtTimeSlots={courtTimeSlots}
+                  onSelectionChange={handleTimeSlotSelection}
+                />
               </section>
             </section>
 
@@ -442,20 +527,20 @@ export default function ReservationPage() {
               <Card>
                 <CardHeader>
                   {/* 預約圖片 */}
-                  {data.image && (
-                    <div className="overflow-hidden rounded-lg">
-                      <AspectRatio ratio={4 / 3} className="bg-muted">
+                  <div className="overflow-hidden rounded-lg">
+                    <AspectRatio ratio={4 / 3} className="bg-muted">
+                      {data && data.images && (
                         <Image
                           alt={data.name}
                           className="object-cover"
                           fill
                           priority
                           sizes="(max-width: 768px) 100vw, 320px"
-                          src={data.image}
+                          src={getCenterImageUrl(data.images[0])}
                         />
-                      </AspectRatio>
-                    </div>
-                  )}
+                      )}
+                    </AspectRatio>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* 場館資訊 */}
@@ -464,7 +549,7 @@ export default function ReservationPage() {
                       場館資訊
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>地區: {orderSummary.location || '未選擇'}</div>
+                      {/* <div>地區: {orderSummary.location || '未選擇'}</div> */}
                       <div>中心: {orderSummary.center || '未選擇'}</div>
                       <div>運動: {orderSummary.sport || '未選擇'}</div>
                     </div>

@@ -6,7 +6,7 @@ import { FaXmark, FaCheck } from 'react-icons/fa6'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
-import { useReservation } from '@/contexts/reservation-context'
+import { useVenue } from '@/contexts/venue-context'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -40,10 +40,10 @@ const steps = [
 ]
 
 export default function SuccessPage() {
-  const { reservationData } = useReservation()
+  const { venueData } = useVenue()
   const [isSuccess, setIsSuccess] = useState(true)
   // 使用 context 中的訂單資料
-  const orderSummary = reservationData
+  const orderSummary = venueData
 
   return (
     <>
@@ -92,7 +92,7 @@ export default function SuccessPage() {
                       場館資訊
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>地區: {orderSummary.location || '未選擇'}</div>
+                      {/* <div>地區: {orderSummary.location || '未選擇'}</div> */}
                       <div>中心: {orderSummary.center || '未選擇'}</div>
                       <div>運動: {orderSummary.sport || '未選擇'}</div>
                     </div>

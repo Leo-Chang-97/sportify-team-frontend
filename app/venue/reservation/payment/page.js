@@ -1,13 +1,21 @@
 'use client'
 
+// hooks
 import React, { useState, useEffect, useMemo } from 'react'
+import { useVenue } from '@/contexts/venue-context'
+
+// Icon
 import { CreditCard } from 'lucide-react'
+
+// next 元件
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useReservation } from '@/contexts/reservation-context'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
@@ -15,21 +23,14 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
+
+// 自訂元件
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Input } from '@/components/ui/input'
-import {
-  Choicebox,
-  ChoiceboxItem,
-  ChoiceboxItemContent,
-  ChoiceboxItemHeader,
-  ChoiceboxItemIndicator,
-  ChoiceboxItemSubtitle,
-  ChoiceboxItemTitle,
-} from '@/components/ui/choicebox'
+
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
@@ -40,17 +41,14 @@ import ReceiptTypeSelector, {
 import fakeData from '@/app/venue/fake-data.json'
 const data = fakeData[0] // 使用第一筆資料
 
-const steps = [
-  { id: 1, title: '選擇場地與時間', completed: true },
-  { id: 2, title: '填寫付款資訊', active: true },
-  { id: 3, title: '完成訂單', completed: false },
-]
-
 export default function PaymentPage() {
+  // #region 路由和URL參數
   const router = useRouter()
-  const { reservationData, setReservationData } = useReservation()
+
+  // #region 狀態管理
+  const { venueData, setVenueData } = useVenue()
   // 使用 context 中的訂單資料
-  const orderSummary = reservationData
+  const orderSummary = venueData
 
   // 付款和發票選項狀態
   const [selectedPayment, setSelectedPayment] = useState('1')
@@ -63,6 +61,7 @@ export default function PaymentPage() {
     email: '',
   })
 
+  // #region 事件處理函數
   // 處理表單輸入變更
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -85,7 +84,15 @@ export default function PaymentPage() {
       receiptType: selectedReceiptOption?.label || '',
     }
   }
+  // #region 資料顯示選項
+  const steps = [
+    { id: 1, title: '選擇場地與時間', completed: true },
+    { id: 2, title: '填寫付款資訊', active: true },
+    { id: 3, title: '完成訂單', completed: false },
+  ]
+  // #endregion 資料顯示選項
 
+  // #region Markup
   return (
     <>
       <Navbar />
@@ -194,7 +201,7 @@ export default function PaymentPage() {
                       場館資訊
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>地區: {orderSummary.location || '未選擇'}</div>
+                      {/* <div>地區: {orderSummary.location || '未選擇'}</div> */}
                       <div>中心: {orderSummary.center || '未選擇'}</div>
                       <div>運動: {orderSummary.sport || '未選擇'}</div>
                     </div>
@@ -263,7 +270,7 @@ export default function PaymentPage() {
                     className="w-full"
                     onClick={() => {
                       // 更新 context 包含用戶資料和付款資訊
-                      setReservationData({
+                      setVenueData({
                         ...orderSummary,
                         userInfo: formData,
                         ...getSelectedOptions(),

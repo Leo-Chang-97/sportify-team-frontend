@@ -1,5 +1,10 @@
 'use client'
 
+// hooks
+import * as React from 'react'
+import { useVenue } from '@/contexts/venue-context'
+
+// Icon
 import {
   Heart,
   Share,
@@ -19,20 +24,6 @@ import {
   IconTreadmill,
   IconWifi,
 } from '@tabler/icons-react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useParams, useRouter } from 'next/navigation'
-import * as React from 'react'
-import { toast } from 'sonner'
-import dynamic from 'next/dynamic'
-
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Footer from '@/components/footer'
 import {
   BasketballIcon,
   BadmintonIcon,
@@ -44,33 +35,52 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
-import { getCenterDetail } from '@/api/venue/center'
+
+// API 請求
+import { fetchCenter } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
+
+// next 元件
+import Link from 'next/link'
+import Image from 'next/image'
+import { useParams, useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
+// UI 元件
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { toast } from 'sonner'
+
+// 自訂元件
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Footer from '@/components/footer'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 
 // 使用 Map 提供互動式地圖功能
 const Map = dynamic(() => import('@/components/map'), {
   ssr: false,
 })
 
-/** Build an integer array `[0,…,length-1]` once */
-const range = (length) => Array.from({ length }, (_, i) => i)
-
 export default function CenterDetailPage() {
-  /* Routing */
+  // #region 路由和URL參數
   const { id } = useParams()
   const router = useRouter()
+  const { setVenueData } = useVenue()
 
-  /* State for API data */
+  // #region 組件狀態管理
   const [data, setData] = React.useState(null)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
 
-  /* Fetch data from API */
+  // #region 副作用處理
   React.useEffect(() => {
     const fetchCenterData = async () => {
       try {
         setLoading(true)
-        const centerData = await getCenterDetail(id)
+        // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+        const centerData = await fetchCenter(id)
         setData(centerData.record)
       } catch (err) {
         console.error('Error fetching center detail:', err)
@@ -86,42 +96,57 @@ export default function CenterDetailPage() {
     }
   }, [id])
 
-  /* Handlers */
+  // #region 事件處理函數
+  const handleReservation = (e) => {
+    e.preventDefault()
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      location: data.location.name,
+      centerId: data.id,
+      locationId: data.location.id,
+    }))
+    // 跳轉到預約頁面
+    router.push('/venue/reservation')
+  }
 
-  /* Loading state */
+  //  #region 載入和錯誤狀態處理
   if (loading) {
+    return <LoadingState message="載入場館資料中..." />
+  }
+
+  if (error || !data) {
+    const retryFetch = () => {
+      const fetchCenterData = async () => {
+        try {
+          setLoading(true)
+          setError(null)
+          const centerData = await fetchCenter(id)
+          setData(centerData.record)
+        } catch (err) {
+          console.error('Error fetching center detail:', err)
+          setError(err.message)
+          toast.error('載入場館資料失敗')
+        } finally {
+          setLoading(false)
+        }
+      }
+      fetchCenterData()
+    }
+
     return (
-      <div className="flex min-h-screen flex-col">
-        <main className="flex-1 py-10">
-          <div className="container px-4 md:px-6">
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">載入中...</p>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+      <ErrorState
+        title="場館資料載入失敗"
+        message={error || '找不到您要查看的場館資料'}
+        onRetry={retryFetch}
+        backUrl="/venue"
+        backLabel="返回場館列表"
+      />
     )
   }
 
-  /* Error or not found state */
-  if (error || !data) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <main className="flex-1 py-10">
-          <div className="container px-4 md:px-6">
-            <h1 className="text-3xl font-bold">場館資料載入失敗</h1>
-            <p className="mt-4">{error || '找不到您要查看的場館資料'}</p>
-            <Button className="mt-6" onClick={() => router.push('/venue')}>
-              返回場館列表
-            </Button>
-          </div>
-        </main>
-      </div>
-    )
-  }
+  // #region 資料顯示選項
+  const range = (length) => Array.from({ length }, (_, i) => i)
   const sportIconMap = {
     basketball: BasketballIcon,
     badminton: BadmintonIcon,
@@ -154,13 +179,13 @@ export default function CenterDetailPage() {
     星期六: '08:00-20:00',
     星期日: '休館',
   }
-
   // 使用 API 資料的位置，如果沒有則使用預設位置
   const position = [data.latitude, data.longitude] || [
     25.116592439309592, 121.50983159645816,
   ]
+  // #endregion 資料顯示選項
 
-  /*  Markup  */
+  // #region Markup
   return (
     <>
       <Navbar />
@@ -203,7 +228,12 @@ export default function CenterDetailPage() {
             {/* Buttons */}
             <div className="flex flex-col md:flex-row gap-2 w-full sm:w-auto">
               <Link href={`/venue/reservation`} className="w-full sm:w-auto">
-                <Button variant="highlight" size="lg" className="w-full">
+                <Button
+                  onClick={handleReservation}
+                  variant="highlight"
+                  size="lg"
+                  className="w-full"
+                >
                   預訂
                   <ClipboardCheck />
                 </Button>

@@ -4,6 +4,7 @@ import { Heart, Star, Eye, ClipboardCheck } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +22,7 @@ import {
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
 import { getCenterImageUrl } from '@/api/venue/image'
+import { useVenue } from '@/contexts/venue-context'
 
 export function CenterCard({
   className,
@@ -29,6 +31,8 @@ export function CenterCard({
   variant = 'default',
   ...props
 }) {
+  const router = useRouter()
+  const { setVenueData } = useVenue()
   const [isHovered, setIsHovered] = React.useState(false)
   const [isInWishlist, setIsInWishlist] = React.useState(false)
 
@@ -38,6 +42,18 @@ export function CenterCard({
       setIsInWishlist(!isInWishlist)
       onAddToWishlist(data.id)
     }
+  }
+
+  const handleReservation = (e) => {
+    e.preventDefault()
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      location: data.location.name,
+      centerId: data.id,
+      locationId: data.location.id,
+    }))
+    router.push('/venue/reservation')
   }
 
   const renderStars = () => {
@@ -185,21 +201,18 @@ export function CenterCard({
 
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
-            <Link href={`/venue/${data.id}`} className="w-full flex-1">
-              <Button
-                variant="secondary"
-                className="w-full hover:bg-primary/10"
-              >
-                詳細
-                <Eye />
-              </Button>
-            </Link>
-            <Link href="/venue/reservation" className="w-full flex-1">
-              <Button className="w-full">
-                預訂
-                <ClipboardCheck />
-              </Button>
-            </Link>
+            <Button
+              onClick={() => router.push(`/venue/${data.id}`)}
+              variant="secondary"
+              className="hover:bg-primary/10 w-full flex-1"
+            >
+              詳細
+              <Eye />
+            </Button>
+            <Button onClick={handleReservation} className="w-full flex-1">
+              預訂
+              <ClipboardCheck />
+            </Button>
           </CardFooter>
         )}
 
