@@ -256,9 +256,16 @@ export default function VenueListPage() {
           </div>
         </div>
       </section>
-      <div className='px-20  flex w-full justify-center pb-16'>
+      <div className='px-4 sm:px-20 flex w-full justify-center pb-8'>
         <CourseImg imgs={courseImages}/>
       </div>
+      <div className="flex justify-center pb-16">
+      <Button asChild variant="outline" size="lg">
+        <Link href="/course">
+          返回課程總覽
+        </Link>
+      </Button>
+    </div>
       <Footer />
     </>
   )
