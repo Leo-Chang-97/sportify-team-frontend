@@ -61,8 +61,15 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
     setSelectedTimeSlots([])
   }, [courtTimeSlots])
 
-  // 切換選擇狀態
+  // 切換選擇狀態（只允許選擇可預約的時段）
   const toggleTimeSlot = (courtId, timeSlotId) => {
+    const slotInfo = getSlotInfo(courtId, timeSlotId)
+
+    // 只有可預約的時段才能被選擇
+    if (!slotInfo || !slotInfo.isAvailable) {
+      return
+    }
+
     setSelectedTimeSlots((prev) => {
       const existingIndex = prev.findIndex(
         (item) => item.courtId === courtId && item.timeSlotId === timeSlotId
@@ -85,12 +92,24 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
     )
   }
 
-  // 獲取場地時間段的價格
-  const getPrice = (courtId, timeSlotId) => {
+  // 獲取場地時間段的價格和預約狀態
+  const getSlotInfo = (courtId, timeSlotId) => {
     const courtTimeSlot = courtTimeSlots.find(
       (item) => item.court?.id === courtId && item.timeSlot?.id === timeSlotId
     )
-    return courtTimeSlot ? courtTimeSlot.price : null
+    return courtTimeSlot
+      ? {
+          price: courtTimeSlot.price,
+          isAvailable: courtTimeSlot.isAvailable !== false, // 預設為可用，除非明確標示不可用
+          status: courtTimeSlot.status || '可預約',
+        }
+      : null
+  }
+
+  // 獲取場地時間段的價格（保持向後兼容）
+  const getPrice = (courtId, timeSlotId) => {
+    const slotInfo = getSlotInfo(courtId, timeSlotId)
+    return slotInfo ? slotInfo.price : null
   }
 
   // 計算總價格
@@ -137,7 +156,7 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
 
             <TableHeader>
               <TableRow>
-                <TableHead className="text-muted-foreground w-[120px]">
+                <TableHead className="text-muted-foreground w-[100px]">
                   時間
                 </TableHead>
                 {courts.map((court) => (
@@ -153,44 +172,60 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
             <TableBody>
               {timeSlots.map((timeSlot) => (
                 <TableRow key={timeSlot.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium w-[100px]">
                     {timeSlot.label}
                   </TableCell>
                   {courts.map((court) => {
-                    const price = getPrice(court.id, timeSlot.id)
+                    const slotInfo = getSlotInfo(court.id, timeSlot.id)
                     const selected = isSelected(court.id, timeSlot.id)
 
                     return (
                       <TableCell key={court.id} className="text-center">
-                        {price ? (
-                          <Button
-                            variant={selected ? 'default' : 'secondary'}
-                            size="sm"
-                            onClick={() =>
-                              toggleTimeSlot(court.id, timeSlot.id)
-                            }
-                            className={cn(
-                              'w-full',
-                              selected &&
-                                'bg-primary/10 text-primary hover:bg-primary/20'
-                            )}
-                          >
-                            <div className="flex gap-2">
-                              <span className="text-xs">NT$ {price}</span>
-                              <span
-                                style={{ width: 20, display: 'inline-block' }}
-                              >
-                                {selected ? (
-                                  <CircleCheckBig />
-                                ) : (
-                                  <span className="text-muted-foreground">
-                                    <Circle />
-                                  </span>
-                                )}
-                              </span>
+                        {slotInfo ? (
+                          slotInfo.isAvailable ? (
+                            // 可預約的時段
+                            <Button
+                              variant={selected ? 'default' : 'secondary'}
+                              size="sm"
+                              onClick={() =>
+                                toggleTimeSlot(court.id, timeSlot.id)
+                              }
+                              className={cn(
+                                'w-full',
+                                selected &&
+                                  'bg-primary/10 text-primary hover:bg-primary/20'
+                              )}
+                            >
+                              <div className="flex gap-2">
+                                <span className="text-xs">
+                                  NT$ {slotInfo.price}
+                                </span>
+                                <span
+                                  style={{ width: 20, display: 'inline-block' }}
+                                >
+                                  {selected ? (
+                                    <CircleCheckBig />
+                                  ) : (
+                                    <span className="text-muted-foreground">
+                                      <Circle />
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            </Button>
+                          ) : (
+                            // 已被預約的時段
+                            <div className="w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
+                              <div className="flex flex-col gap-1">
+                                {/* <span>NT$ {slotInfo.price}</span> */}
+                                <span className="text-red-500">
+                                  {slotInfo.status}
+                                </span>
+                              </div>
                             </div>
-                          </Button>
+                          )
                         ) : (
+                          // 沒有資料的時段
                           <span className="text-muted-foreground text-sm">
                             不可預約
                           </span>

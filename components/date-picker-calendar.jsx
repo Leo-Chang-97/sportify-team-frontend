@@ -1,442 +1,206 @@
 'use client'
 
 import * as React from 'react'
-import { getDay, getDaysInMonth, isSameDay } from 'date-fns'
-import { atom, useAtom } from 'jotai'
 import {
-  Check,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChevronsUpDown,
 } from 'lucide-react'
-import {
-  createContext,
-  memo,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-} from 'react'
-import { Button } from '@/components/ui/button'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { DayPicker, getDefaultClassNames } from 'react-day-picker'
+
 import { cn } from '@/lib/utils'
+import { Button, buttonVariants } from '@/components/ui/button'
 
-// 使用固定的初始值避免 hydration 錯誤
-const monthAtom = atom(new Date().getMonth())
-const yearAtom = atom(new Date().getFullYear())
-
-export const useCalendarMonth = () => useAtom(monthAtom)
-export const useCalendarYear = () => useAtom(yearAtom)
-
-// 初始化當前月份的 Hook
-export const useInitializeCurrentDate = () => {
-  const [, setMonth] = useCalendarMonth()
-  const [, setYear] = useCalendarYear()
-
-  useEffect(() => {
-    const now = new Date()
-    setMonth(now.getMonth())
-    setYear(now.getFullYear())
-  }, [setMonth, setYear])
-}
-
-const CalendarContext = createContext({
-  locale: 'zh-TW',
-  startDay: 0,
-})
-
-export const monthsForLocale = (localeName, monthFormat = 'long') => {
-  const format = new Intl.DateTimeFormat(localeName, { month: monthFormat })
-    .format
-  return [...new Array(12).keys()].map((m) =>
-    format(new Date(Date.UTC(2021, m, 2)))
-  )
-}
-
-export const daysForLocale = (locale, startDay) => {
-  const weekdays = []
-  const baseDate = new Date(2024, 0, startDay)
-
-  for (let i = 0; i < 7; i++) {
-    weekdays.push(
-      new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(baseDate)
-    )
-    baseDate.setDate(baseDate.getDate() + 1)
-  }
-
-  return weekdays
-}
-
-const Combobox = ({ value, setValue, data, labels, className }) => {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger asChild>
-        <Button
-          aria-expanded={open}
-          className={cn('w-40 justify-between capitalize', className)}
-          variant="secondary"
-        >
-          {value
-            ? data.find((item) => item.value === value)?.label
-            : labels.button}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-40 p-0">
-        <Command
-          filter={(value, search) => {
-            const label = data.find((item) => item.value === value)?.label
-            return label?.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-          }}
-        >
-          <CommandInput placeholder={labels.search} />
-          <CommandList>
-            <CommandEmpty>{labels.empty}</CommandEmpty>
-            <CommandGroup>
-              {data.map((item) => (
-                <CommandItem
-                  className="capitalize text-accent-foreground"
-                  key={item.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? '' : currentValue)
-                    setOpen(false)
-                  }}
-                  value={item.value}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      value === item.value ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                  {item.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-const OutOfBoundsDay = ({ day }) => (
-  <div className="relative h-full w-full bg-gray-100 p-1 text-muted-foreground text-xs text-center">
-    {day}
-  </div>
-)
-
-export const CalendarBody = ({
-  dateData = {},
-  dateStatuses = {},
-  selectedDate,
-  onDateSelect,
-}) => {
-  const [month] = useCalendarMonth()
-  const [year] = useCalendarYear()
-  const { startDay } = useContext(CalendarContext)
-
-  // Memoize expensive date calculations
-  const currentMonthDate = useMemo(
-    () => new Date(year, month, 1),
-    [year, month]
-  )
-  const daysInMonth = useMemo(
-    () => getDaysInMonth(currentMonthDate),
-    [currentMonthDate]
-  )
-  const firstDay = useMemo(
-    () => (getDay(currentMonthDate) - startDay + 7) % 7,
-    [currentMonthDate, startDay]
-  )
-
-  // Memoize previous month calculations
-  const prevMonthData = useMemo(() => {
-    const prevMonth = month === 0 ? 11 : month - 1
-    const prevMonthYear = month === 0 ? year - 1 : year
-    const prevMonthDays = getDaysInMonth(new Date(prevMonthYear, prevMonth, 1))
-    const prevMonthDaysArray = Array.from(
-      { length: prevMonthDays },
-      (_, i) => i + 1
-    )
-    return { prevMonthDays, prevMonthDaysArray }
-  }, [month, year])
-
-  // Memoize next month calculations
-  const nextMonthData = useMemo(() => {
-    const nextMonth = month === 11 ? 0 : month + 1
-    const nextMonthYear = month === 11 ? year + 1 : year
-    const nextMonthDays = getDaysInMonth(new Date(nextMonthYear, nextMonth, 1))
-    const nextMonthDaysArray = Array.from(
-      { length: nextMonthDays },
-      (_, i) => i + 1
-    )
-    return { nextMonthDaysArray }
-  }, [month, year])
-
-  const days = []
-
-  // Previous month days
-  for (let i = 0; i < firstDay; i++) {
-    const day =
-      prevMonthData.prevMonthDaysArray[
-        prevMonthData.prevMonthDays - firstDay + i
-      ]
-    if (day) {
-      days.push(<OutOfBoundsDay day={day} key={`prev-${i}`} />)
-    }
-  }
-
-  // Current month days
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day)
-    const dateKey = date.toISOString().split('T')[0]
-    const dateInfo = dateData[dateKey]
-    const isSelected =
-      selectedDate && selectedDate.toDateString() === date.toDateString()
-    const isToday = isSameDay(new Date(), new Date(year, month, day))
-
-    let statusConfig = {
-      label: '可預約',
-      color: 'bg-green-100 text-green-800',
-      clickable: true,
-    }
-    if (dateInfo && dateStatuses[dateInfo.status]) {
-      statusConfig = dateStatuses[dateInfo.status]
-    }
-
-    days.push(
-      <div
-        className={cn(
-          'relative flex h-full w-full flex-col gap-1 p-1 text-xs cursor-pointer transition-colors',
-          statusConfig.clickable
-            ? 'cursor-pointer hover:bg-gray-50'
-            : 'cursor-not-allowed',
-          isSelected && 'bg-blue-100 border-blue-500',
-          isToday ? 'bg-blue-50 text-blue-800 font-bold' : 'text-gray-800'
-        )}
-        key={day}
-        onClick={() => statusConfig.clickable && onDateSelect?.(date, dateInfo)}
-      >
-        <div className="text-center">{day}</div>
-        {dateInfo && (
-          <div
-            className={cn(
-              'text-[10px] md:text-sm px-1 py-0.5 rounded text-center',
-              statusConfig.color
-            )}
-          >
-            {dateInfo.status === 'available' && dateInfo.availableSlots
-              ? `${dateInfo.availableSlots}位`
-              : statusConfig.label}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // Next month days
-  const remainingDays = 7 - ((firstDay + daysInMonth) % 7)
-  if (remainingDays < 7) {
-    for (let i = 0; i < remainingDays; i++) {
-      const day = nextMonthData.nextMonthDaysArray[i]
-      if (day) {
-        days.push(<OutOfBoundsDay day={day} key={`next-${i}`} />)
-      }
-    }
-  }
-
-  return (
-    <div className="grid flex-grow grid-cols-7">
-      {days.map((day, index) => (
-        <div
-          className={cn(
-            'relative aspect-square md:aspect-2/1 overflow-hidden border-t border-r border-border',
-            index % 7 === 6 && 'border-r-0'
-          )}
-          key={index}
-        >
-          {day}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export const CalendarDatePicker = ({ className, children }) => (
-  <div
-    className={cn('flex flex-col md:flex-row items-center gap-1', className)}
-  >
-    {children}
-  </div>
-)
-
-export const CalendarMonthPicker = ({ className }) => {
-  const [month, setMonth] = useCalendarMonth()
-  const { locale } = useContext(CalendarContext)
-
-  // Memoize month data to avoid recalculating date formatting
-  const monthData = useMemo(() => {
-    return monthsForLocale(locale).map((month, index) => ({
-      value: index.toString(),
-      label: month,
-    }))
-  }, [locale])
-
-  return (
-    <Combobox
-      className={className}
-      data={monthData}
-      labels={{
-        button: 'Select month',
-        empty: 'No month found',
-        search: 'Search month',
-      }}
-      setValue={(value) => setMonth(Number.parseInt(value))}
-      value={month.toString()}
-    />
-  )
-}
-
-export const CalendarYearPicker = ({ className, start, end }) => {
-  const [year, setYear] = useCalendarYear()
-
-  return (
-    <Combobox
-      className={className}
-      data={Array.from({ length: end - start + 1 }, (_, i) => ({
-        value: (start + i).toString(),
-        label: (start + i).toString(),
-      }))}
-      labels={{
-        button: 'Select year',
-        empty: 'No year found',
-        search: 'Search year',
-      }}
-      setValue={(value) => setYear(Number.parseInt(value))}
-      value={year.toString()}
-    />
-  )
-}
-
-export const CalendarDatePagination = ({ className }) => {
-  const [month, setMonth] = useCalendarMonth()
-  const [year, setYear] = useCalendarYear()
-
-  const handlePreviousMonth = useCallback(() => {
-    if (month === 0) {
-      setMonth(11)
-      setYear(year - 1)
-    } else {
-      setMonth(month - 1)
-    }
-  }, [month, year, setMonth, setYear])
-
-  const handleNextMonth = useCallback(() => {
-    if (month === 11) {
-      setMonth(0)
-      setYear(year + 1)
-    } else {
-      setMonth(month + 1)
-    }
-  }, [month, year, setMonth, setYear])
-
-  return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <Button onClick={handlePreviousMonth} size="icon" variant="secondary">
-        <ChevronLeftIcon size={16} />
-      </Button>
-      <Button onClick={handleNextMonth} size="icon" variant="secondary">
-        <ChevronRightIcon size={16} />
-      </Button>
-    </div>
-  )
-}
-
-export const CalendarDate = ({ children }) => (
-  <div className="flex items-start justify-between p-3">{children}</div>
-)
-
-export const CalendarHeader = ({ className }) => {
-  const { locale, startDay } = useContext(CalendarContext)
-
-  // Memoize days data to avoid recalculating date formatting
-  const daysData = useMemo(() => {
-    return daysForLocale(locale, startDay)
-  }, [locale, startDay])
-
-  return (
-    <div className={cn('grid flex-grow grid-cols-7', className)}>
-      {daysData.map((day) => (
-        <div
-          className="p-3 text-center text-muted-foreground text-xs"
-          key={day}
-        >
-          {day}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export const CalendarProvider = ({
-  locale = 'zh-TW',
-  startDay = 0,
-  children,
+function Calendar({
   className,
-  dateData = {},
-  dateStatuses = {},
-  selectedDate,
-  onDateSelect,
-}) => (
-  // CalendarProvider：日曆元件的最外層，提供 context 與主要結構
-  <CalendarContext.Provider value={{ locale, startDay }}>
-    <div
+  classNames,
+  showOutsideDays = true,
+  captionLayout = 'label',
+  buttonVariant = 'ghost',
+  formatters,
+  components,
+  ...props
+}) {
+  const defaultClassNames = getDefaultClassNames()
+
+  return (
+    <DayPicker
+      showOutsideDays={showOutsideDays}
       className={cn(
-        'relative flex flex-col bg-card border rounded-lg',
+        'w-full bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
+        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
       )}
-    >
-      {/* children：日曆主體（標頭、天數格子等） */}
-      {children}
+      captionLayout={captionLayout}
+      formatters={{
+        formatMonthDropdown: (date) =>
+          date.toLocaleString('default', { month: 'short' }),
+        ...formatters,
+      }}
+      classNames={{
+        root: cn('w-fit', defaultClassNames.root),
+        months: cn(
+          'flex gap-4 flex-col md:flex-row relative',
+          defaultClassNames.months
+        ),
+        month: cn('flex flex-col w-full gap-4', defaultClassNames.month),
+        nav: cn(
+          'flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between',
+          defaultClassNames.nav
+        ),
+        button_previous: cn(
+          buttonVariants({ variant: buttonVariant }),
+          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none',
+          defaultClassNames.button_previous
+        ),
+        button_next: cn(
+          buttonVariants({ variant: buttonVariant }),
+          'size-(--cell-size) aria-disabled:opacity-50 p-0 select-none',
+          defaultClassNames.button_next
+        ),
+        month_caption: cn(
+          'flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)',
+          defaultClassNames.month_caption
+        ),
+        dropdowns: cn(
+          'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5',
+          defaultClassNames.dropdowns
+        ),
+        dropdown_root: cn(
+          'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md',
+          defaultClassNames.dropdown_root
+        ),
+        dropdown: cn(
+          'absolute bg-popover inset-0 opacity-0',
+          defaultClassNames.dropdown
+        ),
+        caption_label: cn(
+          'select-none font-medium',
+          captionLayout === 'label'
+            ? 'text-sm'
+            : 'rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5',
+          defaultClassNames.caption_label
+        ),
+        table: 'w-full border-collapse',
+        weekdays: cn('flex', defaultClassNames.weekdays),
+        weekday: cn(
+          'text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none',
+          defaultClassNames.weekday
+        ),
+        week: cn('flex w-full mt-2', defaultClassNames.week),
+        week_number_header: cn(
+          'select-none w-(--cell-size)',
+          defaultClassNames.week_number_header
+        ),
+        week_number: cn(
+          'text-[0.8rem] select-none text-muted-foreground',
+          defaultClassNames.week_number
+        ),
+        day: cn(
+          'relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-4/3 select-none',
+          defaultClassNames.day
+        ),
+        range_start: cn(
+          'rounded-l-md bg-accent',
+          defaultClassNames.range_start
+        ),
+        range_middle: cn('rounded-none', defaultClassNames.range_middle),
+        range_end: cn('rounded-r-md bg-accent', defaultClassNames.range_end),
+        today: cn(
+          'bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none',
+          defaultClassNames.today
+        ),
+        outside: cn(
+          'text-muted-foreground aria-selected:text-muted-foreground',
+          defaultClassNames.outside
+        ),
+        disabled: cn(
+          'text-muted-foreground opacity-50',
+          defaultClassNames.disabled
+        ),
+        hidden: cn('invisible', defaultClassNames.hidden),
+        ...classNames,
+      }}
+      components={{
+        Root: ({ className, rootRef, ...props }) => {
+          return (
+            <div
+              data-slot="calendar"
+              ref={rootRef}
+              className={cn(className)}
+              {...props}
+            />
+          )
+        },
+        Chevron: ({ className, orientation, ...props }) => {
+          if (orientation === 'left') {
+            return (
+              <ChevronLeftIcon className={cn('size-4', className)} {...props} />
+            )
+          }
 
-      {/* 選中的日期顯示區塊（如果有選擇日期才會顯示） */}
-      {selectedDate && (
-        <div className="mx-3 my-3 p-3 bg-blue-50 rounded">
-          <p className="text-sm text-blue-800">
-            已選擇：{selectedDate.toLocaleDateString('zh-TW')}
-          </p>
-        </div>
+          if (orientation === 'right') {
+            return (
+              <ChevronRightIcon
+                className={cn('size-4', className)}
+                {...props}
+              />
+            )
+          }
+
+          return (
+            <ChevronDownIcon className={cn('size-4', className)} {...props} />
+          )
+        },
+        DayButton: CalendarDayButton,
+        WeekNumber: ({ children, ...props }) => {
+          return (
+            <td {...props}>
+              <div className="flex size-(--cell-size) items-center justify-center text-center">
+                {children}
+              </div>
+            </td>
+          )
+        },
+        ...components,
+      }}
+      {...props}
+    />
+  )
+}
+
+function CalendarDayButton({ className, day, modifiers, ...props }) {
+  const defaultClassNames = getDefaultClassNames()
+
+  const ref = React.useRef(null)
+  React.useEffect(() => {
+    if (modifiers.focused) ref.current?.focus()
+  }, [modifiers.focused])
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      data-day={day.date.toLocaleDateString()}
+      data-selected-single={
+        modifiers.selected &&
+        !modifiers.range_start &&
+        !modifiers.range_end &&
+        !modifiers.range_middle
+      }
+      data-range-start={modifiers.range_start}
+      data-range-end={modifiers.range_end}
+      data-range-middle={modifiers.range_middle}
+      className={cn(
+        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-4/3 size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70',
+        defaultClassNames.day,
+        className
       )}
+      {...props}
+    />
+  )
+}
 
-      {/* 圖例區塊：顯示每種狀態的顏色與說明文字 */}
-      <div className="mx-3 mb-3 flex flex-wrap justify-center gap-2 text-xs">
-        {Object.entries(dateStatuses).map(([key, status]) => (
-          <div key={key} className="flex items-center gap-1">
-            {/* 狀態顏色圓點 */}
-            <div className={cn('w-3 h-3 rounded', status.color)} />
-            {/* 狀態說明文字 */}
-            <span className="text-gray-800">{status.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </CalendarContext.Provider>
-)
-
-export default CalendarProvider
+export { Calendar, CalendarDayButton }

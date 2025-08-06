@@ -8,11 +8,14 @@ export const fetchCourtTimeSlots = async (params = {}) => {
 
 export const fetchCourtTimeSlotsByCenterAndSport = async (
   centerId,
-  sportId
+  sportId,
+  date = null
 ) => {
-  const res = await apiClient.get(
-    `/venue/court-time-slot/by-center-sport?centerId=${centerId}&sportId=${sportId}`
-  )
+  let url = `/venue/court-time-slot/by-center-sport?centerId=${centerId}&sportId=${sportId}`
+  if (date) {
+    url += `&date=${date}`
+  }
+  const res = await apiClient.get(url)
   return res.data
 }
 

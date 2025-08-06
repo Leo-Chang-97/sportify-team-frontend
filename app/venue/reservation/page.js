@@ -42,30 +42,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Calendar } from '@/components/date-picker-calendar'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-import {
-  CalendarBody,
-  CalendarDate,
-  CalendarDatePagination,
-  CalendarDatePicker,
-  CalendarHeader,
-  CalendarMonthPicker,
-  CalendarProvider,
-  CalendarYearPicker,
-  useInitializeCurrentDate,
-  useCalendarMonth,
-  useCalendarYear,
-} from '@/components/date-picker-calendar'
 import { TimeSlotTable } from '@/components/timeslot-table'
-import { SimpleLoadingText } from '@/components/loading-states'
-
-import fakeData from '@/app/venue/fake-data.json'
-const data = fakeData[0]
 
 export default function ReservationPage() {
   // #region 路由和URL參數
@@ -74,11 +58,7 @@ export default function ReservationPage() {
   // #region 組件狀態管理
   const [data, setData] = React.useState(null)
   const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
-
-  const [selectedDate, setSelectedDate] = useState(null)
-  const [dateData, setDateData] = useState({})
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [errors, setErrors] = React.useState(null)
 
   const [locationId, setLocationId] = useState(
     venueData.locationId?.toString() || ''
@@ -90,6 +70,9 @@ export default function ReservationPage() {
   const [centers, setCenters] = useState([])
   const [sports, setSports] = useState([])
   const [courtTimeSlots, setCourtTimeSlots] = useState([])
+  const [date, setDate] = useState(null)
+  const [monthlyAvailability, setMonthlyAvailability] = useState([])
+  const [currentMonth, setCurrentMonth] = useState(new Date())
 
   // 使用 context 來管理訂單摘要狀態
   const orderSummary = venueData
@@ -101,24 +84,12 @@ export default function ReservationPage() {
     }
   }
 
-  // 初始化當前日期
-  useInitializeCurrentDate()
-
-  // 獲取日曆的年月狀態
-  const [currentMonth] = useCalendarMonth()
-  const [calendarYear] = useCalendarYear()
-
-  // 計算 yearMonth 格式 (YYYY-MM)
-  const yearMonth = `${calendarYear}-${String(currentMonth + 1).padStart(2, '0')}`
+  // 計算 yearMonth 格式 (YYYY-MM) - 基於當前顯示的月份
+  const yearMonth = currentMonth ? currentMonth.toISOString().slice(0, 7) : null
 
   // #region 副作用處理
 
-  // 在客戶端生成資料，避免 hydration 錯誤
-  useEffect(() => {
-    setDateData(generateDateWithStatus())
-    setIsLoaded(true)
-  }, [])
-
+  // #region Center資料
   useEffect(() => {
     const fetchCenterData = async () => {
       try {
@@ -128,7 +99,7 @@ export default function ReservationPage() {
         setData(centerData.record)
       } catch (err) {
         console.error('Error fetching center detail:', err)
-        setError(err.message)
+        setErrors(err.message)
         toast.error('載入場館資料失敗')
       } finally {
         setLoading(false)
@@ -140,7 +111,7 @@ export default function ReservationPage() {
     }
   }, [centerId])
 
-  // 更新訂單摘要中的選項 - 分別處理每個欄位
+  // #region 訂單摘要
   useEffect(() => {
     const selectedCenter = centers.find(
       (center) => center.id.toString() === centerId
@@ -168,7 +139,7 @@ export default function ReservationPage() {
     })
   }, [sportId, sports])
 
-  // 載入下拉選單選項
+  // #region 下拉選單
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -215,16 +186,22 @@ export default function ReservationPage() {
     loadData()
   }, [locationId])
 
+  // #region 中心、運動與日期篩選可選時段
   useEffect(() => {
     const loadData = async () => {
       try {
         let courtTimeSlotData
-        if (centerId && sportId) {
+        if (centerId && sportId && date) {
+          // 將選擇的日期轉換為 YYYY-MM-DD 格式
+          const dateStr = date.toISOString().split('T')[0]
           courtTimeSlotData = await fetchCourtTimeSlotsByCenterAndSport(
             Number(centerId),
-            Number(sportId)
+            Number(sportId),
+            dateStr
           )
+          // 從 API 回應中取得 rows，這些資料包含預約狀態
           setCourtTimeSlots(courtTimeSlotData.rows || [])
+          console.log('載入的場地時段資料:', courtTimeSlotData)
         } else {
           setCourtTimeSlots([])
         }
@@ -238,50 +215,40 @@ export default function ReservationPage() {
       }
     }
     loadData()
-  }, [centerId, sportId])
+  }, [centerId, sportId, date])
 
+  // #region 獲取月份可預約數據
   useEffect(() => {
-    const loadData = async () => {
+    const loadMonthlyData = async () => {
       try {
-        let courtTimeSlotData
         if (centerId && sportId && yearMonth) {
-          courtTimeSlotData = await fetchAvailableCourtTimeSlotsByMonth(
+          const monthlyData = await fetchAvailableCourtTimeSlotsByMonth(
             Number(centerId),
             Number(sportId),
             yearMonth
           )
-          setCourtTimeSlots(courtTimeSlotData.rows || [])
+          setMonthlyAvailability(monthlyData.rows || [])
+          console.log('載入的月份可預約資料:', monthlyData)
         } else {
-          setCourtTimeSlots([])
+          setMonthlyAvailability([])
         }
       } catch (err) {
-        console.error('載入場地時段失敗:', err)
-        if (err.response && err.response.status === 404) {
-          setCourtTimeSlots([])
-        } else {
-          setCourtTimeSlots([])
-        }
+        console.error('載入月份可預約資料失敗:', err)
+        setMonthlyAvailability([])
       }
     }
-    loadData()
+    loadMonthlyData()
   }, [centerId, sportId, yearMonth])
 
   // #region 事件處理函數
-  const handleDateSelect = (date, dateInfo) => {
-    if (dateInfo && dateStatuses[dateInfo.status].clickable) {
-      setSelectedDate(date)
-      setOrderSummary((prev) => {
-        // 檢查日期是否真的不同
-        if (prev.selectedDate?.getTime() !== date?.getTime()) {
-          return {
-            ...prev,
-            selectedDate: date,
-          }
-        }
-        return prev
-      })
-      console.log('選擇的日期:', date, '狀態:', dateInfo.status)
-    }
+
+  // 獲取特定日期的可預約數量
+  const getAvailableCount = (date) => {
+    if (!date || !monthlyAvailability.length) return null
+
+    const dateStr = date.toISOString().split('T')[0]
+    const dayData = monthlyAvailability.find((day) => day.date === dateStr)
+    return dayData ? dayData.availableCount : null
   }
 
   // 處理場地時段選擇
@@ -311,67 +278,6 @@ export default function ReservationPage() {
     { id: 3, title: '完成訂單', completed: false },
   ]
 
-  // 日期狀態設定
-  const dateStatuses = {
-    available: {
-      label: '可預約',
-      color: 'bg-green-100 text-green-800',
-      clickable: true,
-    },
-    full: {
-      label: '已額滿',
-      color: 'bg-red-100 text-red-800',
-      clickable: false,
-    },
-    closed: {
-      label: '未開放',
-      color: 'bg-gray-100 text-gray-500',
-      clickable: false,
-    },
-  }
-
-  // 生成帶狀態的日期資料 (使用固定的模式避免hydration錯誤)
-  const generateDateWithStatus = () => {
-    const today = new Date()
-    const dateData = {}
-
-    // 生成未來30天的資料
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      const dateKey = date.toISOString().split('T')[0]
-
-      // 使用日期作為種子來決定狀態，確保每次都一樣
-      const dayOfMonth = date.getDate()
-      let status = 'available'
-      let availableSlots = 5
-
-      // 根據日期模式分配狀態
-      if (dayOfMonth % 7 === 0) {
-        status = 'closed'
-        availableSlots = 0
-      } else if (dayOfMonth % 5 === 0) {
-        status = 'full'
-        availableSlots = 0
-      } else {
-        status = 'available'
-        availableSlots = Math.max(1, dayOfMonth % 8)
-      }
-
-      dateData[dateKey] = {
-        date: date,
-        status: status,
-        availableSlots: availableSlots,
-      }
-    }
-
-    return dateData
-  }
-
-  // 計算年份範圍
-  const currentYear = new Date().getFullYear()
-  const earliestYear = currentYear - 1
-  const latestYear = currentYear + 2
   // #endregion 資料顯示選項
 
   // #region Markup
@@ -476,40 +382,66 @@ export default function ReservationPage() {
                   </div>
                 </div>
               </section>
+
               {/* 選擇預約日期 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇預約日期</h2>
-                {isLoaded ? (
-                  <CalendarProvider
-                    dateData={dateData}
-                    dateStatuses={dateStatuses}
-                    selectedDate={selectedDate}
-                    onDateSelect={handleDateSelect}
-                  >
-                    <CalendarDate>
-                      <CalendarDatePicker>
-                        <CalendarYearPicker
-                          end={latestYear}
-                          start={earliestYear}
-                        />
-                        <CalendarMonthPicker />
-                      </CalendarDatePicker>
-                      <CalendarDatePagination />
-                    </CalendarDate>
-                    <CalendarHeader />
-                    <CalendarBody
-                      dateData={dateData}
-                      dateStatuses={dateStatuses}
-                      selectedDate={selectedDate}
-                      onDateSelect={handleDateSelect}
-                    />
-                  </CalendarProvider>
-                ) : (
-                  <div className="bg-card border rounded-lg p-6">
-                    <SimpleLoadingText message="載入日曆資料中..." />
-                  </div>
-                )}
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  captionLayout="dropdown"
+                  month={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  onSelect={(selectedDate) => {
+                    setDate(selectedDate)
+                    // 更新訂單摘要中的選擇日期
+                    setOrderSummary((prev) => ({
+                      ...prev,
+                      selectedDate: selectedDate,
+                    }))
+                    console.log(selectedDate)
+                  }}
+                  className="bg-accent text-accent-foreground rounded [--cell-size:3.5rem]"
+                  components={{
+                    DayButton: ({ day, modifiers, ...props }) => {
+                      const availableCount = getAvailableCount(day.date)
+                      const hasData = centerId && sportId
+
+                      return (
+                        <button
+                          {...props}
+                          className={`
+                            flex flex-col items-center justify-center w-full h-full p-1 text-sm
+                            ${modifiers.selected ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}
+                            ${modifiers.today ? 'bg-accent' : ''}
+                            ${modifiers.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                            rounded-md transition-colors
+                          `}
+                          disabled={modifiers.disabled}
+                        >
+                          <span className="font-medium">
+                            {day.date.getDate()}
+                          </span>
+                          {hasData && availableCount !== null && (
+                            <span
+                              className={`text-xs ${
+                                availableCount === 0
+                                  ? 'text-red-500 font-medium'
+                                  : 'text-green-600'
+                              }`}
+                            >
+                              {availableCount === 0
+                                ? '已額滿'
+                                : `${availableCount}個`}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    },
+                  }}
+                />
               </section>
+
               {/* 選擇場地與時段 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇場地與時段</h2>
