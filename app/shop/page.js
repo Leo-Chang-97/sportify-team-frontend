@@ -32,6 +32,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from '@/components/ui/sheet'
 import {
   Accordion,
@@ -41,13 +42,26 @@ import {
 } from '@/components/ui/accordion'
 // import products from '../datas.json'
 import { toast } from 'sonner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
+// 手機側邊欄
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-50">
+      <SheetContent side="left" className="w-60">
         <SheetHeader>
           <SheetTitle>商品分類</SheetTitle>
+          <SheetDescription>選擇運動種類或品牌</SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto p-4">
           <Accordion
@@ -65,8 +79,22 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                   <Label
                     key={sport.id}
                     className="flex items-center space-x-2 cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      const newParams = new URLSearchParams(
+                        searchParams.toString()
+                      )
+                      newParams.set('sportId', sport.id.toString())
+                      newParams.delete('brandId') // 清除其他篩選條件
+                      newParams.delete('keyword')
+                      newParams.delete('sort')
+                      newParams.set('page', '1') // 重置到第一頁
+                      router.push(`?${newParams.toString()}`)
+                      onClose() // 關閉側邊欄
+                    }}
                   >
-                    <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-foreground hover:border-b hover:border-muted">
                       {sport.name}
                     </span>
                   </Label>
@@ -83,8 +111,22 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                   <Label
                     key={brand.id}
                     className="flex items-center space-x-2 cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      const newParams = new URLSearchParams(
+                        searchParams.toString()
+                      )
+                      newParams.set('brandId', brand.id.toString())
+                      newParams.delete('sportId') // 清除其他篩選條件
+                      newParams.delete('keyword')
+                      newParams.delete('sort')
+                      newParams.set('page', '1') // 重置到第一頁
+                      router.push(`?${newParams.toString()}`)
+                      onClose() // 關閉側邊欄
+                    }}
                   >
-                    <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-foreground hover:border-b hover:border-muted">
                       {brand.name}
                     </span>
                   </Label>
@@ -109,6 +151,11 @@ export default function ProductListPage() {
   const [sports, setSports] = useState([])
   const [brands, setBrands] = useState([])
   const [products, setProducts] = useState([])
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState({
+    name: '',
+    count: 0,
+  })
 
   // ===== URL 參數處理 =====
   const queryParams = useMemo(() => {
@@ -122,11 +169,18 @@ export default function ProductListPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['products', queryParams], async ([, params]) =>
-    getProducts(params)
-  )
+  } = useSWR(['products', queryParams], async ([, params]) => {
+    const result = await getProducts(params)
+    console.log('Products API response:', result)
+    return result
+  })
 
-  // ===== 載入下拉選單選項 =====
+  // ===== 載入選項 =====
+  useEffect(() => {
+    // 同步搜尋關鍵字與 URL 參數
+    setSearchKeyword(queryParams.keyword || '')
+  }, [queryParams.keyword])
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -150,19 +204,83 @@ export default function ProductListPage() {
     if (data && data.data) {
       setProducts(data.data)
       console.log('Products loaded:', data.data)
+
+      // 更新選中分類的商品數量、名稱
+      const sportId = queryParams.sportId
+      const brandId = queryParams.brandId
+      const keyword = queryParams.keyword
+
+      if (sportId) {
+        const sport = sports.find((s) => s.id === parseInt(sportId))
+        if (sport) {
+          setSelectedCategory({
+            name: sport.sport_name || sport.name,
+            count: data.totalRows || 0,
+          })
+        }
+      } else if (brandId) {
+        const brand = brands.find((b) => b.id === parseInt(brandId))
+        if (brand) {
+          setSelectedCategory({
+            name: brand.name,
+            count: data.totalRows || 0,
+          })
+        }
+      } else if (keyword) {
+        setSelectedCategory({
+          name: keyword,
+          count: data.totalRows || 0,
+        })
+      } else {
+        // 如果沒有篩選條件，清空選中分類
+        setSelectedCategory({ name: '', count: data.totalRows || 0 })
+      }
     }
-  }, [data])
+  }, [data, queryParams, sports, brands])
 
   // ===== 事件處理函數 =====
-  const handleSearch = (keyword) => {
+  const handleSearch = (event) => {
+    if (event.key === 'Enter') {
+      const keyword = event.target.value.trim()
+      const newParams = new URLSearchParams(searchParams.toString())
+      // 執行搜尋時，清除分類篩選
+      newParams.delete('sportId')
+      newParams.delete('brandId')
+      newParams.delete('sort')
+      if (keyword) {
+        newParams.set('keyword', keyword)
+      } else {
+        newParams.delete('keyword')
+      }
+      newParams.set('page', '1')
+      router.push(`?${newParams.toString()}`)
+    }
+  }
+
+  const handleSearchClick = () => {
+    const keyword = searchKeyword.trim()
     const newParams = new URLSearchParams(searchParams.toString())
+    // 執行搜尋時，清除分類篩選
+    newParams.delete('sportId')
+    newParams.delete('brandId')
+    newParams.delete('sort')
     if (keyword) {
       newParams.set('keyword', keyword)
-      newParams.set('page', '1')
     } else {
       newParams.delete('keyword')
-      newParams.set('page', '1')
     }
+    newParams.set('page', '1')
+    router.push(`?${newParams.toString()}`)
+  }
+
+  const handleSortChange = (sortValue) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+    if (sortValue) {
+      newParams.set('sort', sortValue)
+    } else {
+      newParams.delete('sort')
+    }
+    newParams.set('page', '1')
     router.push(`?${newParams.toString()}`)
   }
 
@@ -206,51 +324,69 @@ export default function ProductListPage() {
       <BreadcrumbAuto />
       <section className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-          {/* 桌面版：標題和搜尋排序在同一行，使用 space-between */}
-          <div className="hidden md:flex justify-between items-end mb-8">
-            <div className="flex flex-col items-start justify-center gap-3">
-              <p className="text-2xl font-bold text-foreground">籃球</p>
-              <p className="text-base font-regular text-foreground">
-                共有16筆商品
-              </p>
-            </div>
+          {/* 桌面版標題和搜尋排序 */}
+          <div
+            className={`hidden md:flex items-end ${
+              selectedCategory.name ? 'justify-between' : 'justify-end'
+            }`}
+          >
+            {selectedCategory.name && (
+              <div className="flex flex-col items-start justify-center gap-3">
+                <p className="text-2xl font-bold text-foreground">
+                  "{selectedCategory.name}" 的結果
+                </p>
+                <p className="text-base font-regular text-foreground">
+                  共有{selectedCategory.count}筆商品
+                </p>
+              </div>
+            )}
             {/* 桌面版搜尋和排序區域 */}
             <div className="flex items-center gap-4">
               <div className="relative flex items-center w-[200px]">
                 <Input
                   type="search"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyDown={handleSearch}
                   className="w-full bg-accent text-accent-foreground !h-10 pr-10"
                   placeholder="請輸入關鍵字"
                 />
                 <Button
                   variant={'outline'}
-                  onClick={handleSearch}
+                  onClick={handleSearchClick}
                   className="h-8 w-8 absolute right-2 flex items-center justify-center"
                 >
                   <Search size={20} />
                 </Button>
               </div>
-              <Select>
+              <Select
+                onValueChange={handleSortChange}
+                value={queryParams.sort || ''}
+              >
                 <SelectTrigger className="bg-accent text-accent-foreground !h-10 w-[150px]">
                   <SelectValue placeholder="請選擇排序" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="price-asc">價格遞增排序</SelectItem>
-                  <SelectItem value="price-desc">價格遞減排序</SelectItem>
+                  <SelectItem value="price-asc">價格：由低到高</SelectItem>
+                  <SelectItem value="price-desc">價格：由高到低</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           {/* 手機版：分層布局 */}
-          <div className="block md:hidden space-y-4 mb-8">
+          <div className="block md:hidden space-y-4">
             {/* 標題區域 */}
-            <div className="flex flex-col items-start justify-center gap-3">
-              <p className="text-2xl font-bold text-foreground">籃球</p>
-              <p className="text-base font-regular text-foreground">
-                共有16筆商品
-              </p>
-            </div>
+            {selectedCategory.name && (
+              <div className="flex flex-col items-start justify-center gap-3">
+                <p className="text-2xl font-bold text-foreground">
+                  "{selectedCategory.name}" 的結果
+                </p>
+                <p className="text-base font-regular text-foreground">
+                  共有{selectedCategory.count}筆商品
+                </p>
+              </div>
+            )}
 
             {/* 功能按鈕區域 */}
             <div className="flex items-center justify-between gap-3">
@@ -266,26 +402,45 @@ export default function ProductListPage() {
                 <div className="relative flex items-center flex-1">
                   <Input
                     type="search"
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={handleSearch}
                     className="w-full bg-accent text-accent-foreground !h-10 pr-10 text-sm"
                     placeholder="請輸入關鍵字"
                   />
                   <Button
                     variant={'outline'}
-                    onClick={handleSearch}
+                    onClick={handleSearchClick}
                     className="h-7 w-7 absolute right-1 flex items-center justify-center"
                   >
                     <Search size={16} />
                   </Button>
                 </div>
               </div>
-
-              <Button
-                variant="secondary"
-                onClick={() => setSidebarOpen(true)}
-                className="!h-10 flex items-center gap-2"
-              >
-                <Funnel size={16} />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    className="!h-10 flex items-center gap-2"
+                  >
+                    <Funnel size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>請選擇排序</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => handleSortChange('price-asc')}
+                  >
+                    價格：由低到高
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSortChange('price-desc')}
+                  >
+                    價格：由高到低
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           <div className="flex">
@@ -300,8 +455,21 @@ export default function ProductListPage() {
                     <label
                       key={sport.id}
                       className="flex items-center space-x-2 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const newParams = new URLSearchParams(
+                          searchParams.toString()
+                        )
+                        newParams.set('sportId', sport.id.toString())
+                        newParams.delete('brandId') // 清除其他篩選條件
+                        newParams.delete('keyword')
+                        newParams.delete('sort')
+                        newParams.set('page', '1') // 重置到第一頁
+                        router.push(`?${newParams.toString()}`)
+                      }}
                     >
-                      <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-foreground hover:border-b hover:border-muted">
                         {sport.name}
                       </span>
                     </label>
@@ -315,6 +483,19 @@ export default function ProductListPage() {
                     <label
                       key={brand.id}
                       className="flex items-center space-x-2 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const newParams = new URLSearchParams(
+                          searchParams.toString()
+                        )
+                        newParams.set('brandId', brand.id.toString())
+                        newParams.delete('sportId') // 清除其他篩選條件
+                        newParams.delete('keyword')
+                        newParams.delete('sort')
+                        newParams.set('page', '1') // 重置到第一頁
+                        router.push(`?${newParams.toString()}`)
+                      }}
                     >
                       <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
                         {brand.name}
@@ -330,22 +511,37 @@ export default function ProductListPage() {
               sports={sports}
               brands={brands}
             />
-
+            {/* 商品列表 */}
             <div className="flex-1">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    variant="compact"
-                    isFavorited={product?.favorited} // 從後端資料中取出是否已收藏
-                    onAddToWishlist={() => handleAddToWishlist(product.id)}
-                    onAddToCart={() => handleAddToCart(product.id, 1)}
-                  />
-                ))}
-              </div>
+              {isDataLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <p>載入中...</p>
+                </div>
+              ) : error ? (
+                <div className="flex justify-center items-center h-64">
+                  <p>載入失敗，請重新嘗試</p>
+                </div>
+              ) : products.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      variant="compact"
+                      isFavorited={product?.favorite} // 從後端資料中取出是否已收藏
+                      onAddToWishlist={() => handleAddToWishlist(product.id)}
+                      onAddToCart={() => handleAddToCart(product.id, 1)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex justify-center items-center h-64">
+                  <p>查無此商品</p>
+                </div>
+              )}
             </div>
           </div>
+          {/* 分頁 */}
           {data && (
             <PaginationBar
               page={data.page}

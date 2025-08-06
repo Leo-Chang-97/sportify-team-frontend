@@ -3,16 +3,12 @@
 import { Heart, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import * as React from 'react'
-
+import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { se } from 'date-fns/locale'
-
-// ...existing code...
 
 export function ProductCard({
   className,
@@ -23,16 +19,19 @@ export function ProductCard({
   variant = 'default',
   ...props
 }) {
-  const [isHovered, setIsHovered] = React.useState(false)
-  const [isAddingToCart, setIsAddingToCart] = React.useState(false)
-  const [isInWishlist, setIsInWishlist] = React.useState(
-    initialIsFavorited || false
-  ) // 初始狀態從 props 傳入
-  const [isMounted, setIsMounted] = React.useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isInWishlist, setIsInWishlist] = useState(initialIsFavorited || false) // 初始狀態從 props 傳入
+  const [isMounted, setIsMounted] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // 當 initialIsFavorited prop 改變時，更新本地狀態
+  useEffect(() => {
+    setIsInWishlist(initialIsFavorited || false)
+  }, [initialIsFavorited])
 
   // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
   const image = product?.img || product?.image // 支援 img 和 image 兩種屬性名稱
@@ -60,7 +59,7 @@ export function ProductCard({
   return (
     <div className={cn('group', className)} {...props}>
       {/* <Link href={`/shop/1`}> */}
-        <Link href={`/shop/${product?.id}`}>
+      <Link href={`/shop/${product?.id}`}>
         <Card
           className={cn(
             `

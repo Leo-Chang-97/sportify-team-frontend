@@ -2,7 +2,14 @@
 
 import { Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+import useSWR from 'swr'
+import {
+  getProducts,
+  getProductDetail,
+  toggleFavorite,
+  addProductCart,
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -15,7 +22,6 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { useParams, useRouter } from 'next/navigation'
-import products from '../datas.json'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -33,8 +39,45 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
 })
 
 export default function ProductListPage() {
-  // 新增：目前選中的大圖 index
+  // ===== 路由和搜尋參數處理 =====
+  const router = useRouter()
+  const { id } = useParams()
+
+  // ===== 組件狀態管理 =====
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [quantity, setQuantity] = useState(1)
+  const [product, setProduct] = useState(null)
+
+  // ===== 數據獲取 =====
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(id ? ['product', id] : null, () => getProduct(id))
+
+  // ===== 載入選項 =====
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const memberData = await fetchMemberOptions()
+        setMembers(memberData.rows || [])
+      } catch (error) {
+        console.error('載入失敗:', error)
+        toast.error('載入失敗')
+      }
+    }
+    loadData()
+  }, [])
+
+  useEffect(() => {
+    if (data && data.data) {
+      setProduct(data.data)
+      console.log('Product loaded:', data.data)
+    }
+  }, [data])
+
+  // ===== 事件處理函數 =====
   const totalImages = 10
   const handlePrev = () => {
     setSelectedIndex((prev) => (prev - 1 + totalImages) % totalImages)
@@ -42,27 +85,40 @@ export default function ProductListPage() {
   const handleNext = () => {
     setSelectedIndex((prev) => (prev + 1) % totalImages)
   }
-  const { id } = useParams()
-  const [quantity, setQuantity] = React.useState(1)
-  const product = React.useMemo(
-    () => products.find((p) => String(p.id) === String(id)),
-    [id]
-  )
   const handleQuantityChange = React.useCallback((newQty) => {
     setQuantity((prev) => (newQty >= 1 ? newQty : prev))
   }, [])
+
+  const handleAddToWishlist = async (productId) => {
+    const result = await toggleFavorite(productId)
+    mutate()
+    if (result?.favorited) {
+      toast('已加入我的收藏', {
+        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+      })
+    } else {
+      toast('已從我的收藏移除', {
+        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+      })
+    }
+    return result
+  }
+
+  const handleAddToCart = async (productId, quantity) => {
+    const result = await addProductCart(productId, quantity)
+    mutate()
+    if (result?.success) {
+      toast('已加入購物車', {
+        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+      })
+      return result
+    }
+  }
 
   // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
   const image = product?.img
   const imageFileName =
     typeof image === 'object' && image !== null ? image.url : image
-
-  const handleViewDetails = React.useCallback(() => {
-    if (!product) return
-    toast.success(`查看 ${product.name} 的詳細資訊`)
-    // 這裡可以添加其他邏輯，比如跳轉到詳細頁面或顯示更多資訊
-  }, [product])
-
   const imageGroup = (
     <div className="w-full max-w-[350px] md:max-w-[400px] lg:max-w-[450px] flex items-center justify-center mb-4 md:mb-6">
       {imageFileName ? (
@@ -126,7 +182,7 @@ export default function ProductListPage() {
                         >
                           <Image
                             src={getProductImageUrl(imageFileName)}
-                            alt={product.name}
+                            alt={product.images}
                             width={100}
                             height={100}
                             className="w-full h-full object-contain"
@@ -181,34 +237,31 @@ export default function ProductListPage() {
                   </p>
                 </div>
               </div>
-              {/* Quantity */}
-              <div className="flex items-center justify-between rounded-sm gap-2 bg-foreground w-[300px] md:w-full">
-                <Button
-                  aria-label="Decrease quantity"
-                  disabled={quantity <= 1}
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  size="icon"
-                  variant="secondary"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-12 text-center select-none text-muted-foreground">
-                  {quantity}
-                </span>
-                <Button
-                  aria-label="Increase quantity"
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  size="icon"
-                  variant="secondary"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
+              {/* 數量、價格 */}
               <div className="flex flex-col md:flex-row items-center justify-between w-full gap-3 md:gap-4">
-                <Button className="w-[300px] md:w-auto flex-1 text-base">
-                  加入最愛
-                </Button>
-                <Button className="w-[300px] md:w-auto flex-1 text-base">
+                <div className="flex flex-1 items-center justify-between rounded-sm gap-2 bg-foreground">
+                  <Button
+                    aria-label="Decrease quantity"
+                    disabled={quantity <= 1}
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    size="icon"
+                    variant="secondary"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-12 text-center select-none text-muted-foreground">
+                    {quantity}
+                  </span>
+                  <Button
+                    aria-label="Increase quantity"
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    size="icon"
+                    variant="secondary"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button className="flex-1 h-full text-base" variant="highlight">
                   加入購物車
                 </Button>
               </div>
