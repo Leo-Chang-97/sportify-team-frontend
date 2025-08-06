@@ -171,7 +171,7 @@ export default function ProductListPage() {
     mutate,
   } = useSWR(['products', queryParams], async ([, params]) => {
     const result = await getProducts(params)
-    console.log('Products API response:', result)
+    // console.log('Products API response:', result) // Debug用
     return result
   })
 
@@ -203,7 +203,7 @@ export default function ProductListPage() {
   useEffect(() => {
     if (data && data.data) {
       setProducts(data.data)
-      console.log('Products loaded:', data.data)
+      // console.log('Products loaded:', data.data)
 
       // 更新選中分類的商品數量、名稱
       const sportId = queryParams.sportId
@@ -313,6 +313,16 @@ export default function ProductListPage() {
     if (result?.success) {
       toast('已加入購物車', {
         style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        action: {
+          label: '查看',
+          onClick: () => router.push('/shop/order'),
+        },
+        actionButtonStyle: {
+          background: '#000',
+          color: '#fff',
+          borderRadius: 4,
+          fontWeight: 500,
+        },
       })
       return result
     }

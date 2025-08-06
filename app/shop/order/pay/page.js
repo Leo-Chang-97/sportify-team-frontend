@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -34,6 +35,7 @@ import PaymentMethodSelector, {
 import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
+import { getCarts, getCheckoutData } from '@/api'
 
 const steps = [
   { id: 1, title: '確認購物車', completed: true },
@@ -41,69 +43,15 @@ const steps = [
   { id: 3, title: '完成訂單', completed: false },
 ]
 
-const products = [
-  {
-    id: 1,
-    name: '極限飛馳籃球鞋',
-    brand_name: 'Anta',
-    sport_name: '籃球',
-    price: 880,
-    stock: 50,
-    specs: {
-      商品名稱: '極限飛馳籃球鞋',
-      品牌: 'Anta',
-      運動種類: '籃球',
-      材質: '透氣網布與耐磨橡膠',
-      尺寸: '27',
-      重量: 380,
-      產地: '越南',
-    },
-    img: 'spec01.jpeg', // 改為檔案名稱
-  },
-  {
-    id: 2,
-    name: '標準七號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 650,
-    stock: 100,
-    specs: {
-      商品名稱: '標準七號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '高級合成皮革',
-      尺寸: '24',
-      重量: 600,
-      產地: '泰國',
-    },
-    img: 'spec02.jpeg', // 改為檔案名稱
-  },
-  {
-    id: 3,
-    name: '7號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 720,
-    stock: 14,
-    specs: {
-      商品名稱: '7號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '合成皮',
-      尺寸: '24.5',
-      重量: 600,
-      產地: '中國',
-    },
-    img: 'spec03.jpeg', // 改為檔案名稱
-  },
-]
-
 export default function ProductListPage() {
-  const [quantity, setQuantity] = React.useState(1)
   const searchParams = useSearchParams()
+
   // 付款和發票選項狀態
   const [selectedPayment, setSelectedPayment] = useState('1')
   const [selectedReceipt, setSelectedReceipt] = useState('1')
+
+  // 購物車資料狀態
+  const [carts, setCarts] = useState([])
 
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
@@ -111,6 +59,35 @@ export default function ProductListPage() {
     phone: '',
     email: '',
   })
+
+  // 獲取購物車資料
+  const {
+    data: cartData,
+    isLoading: isCartLoading,
+    error: cartError,
+  } = useSWR('carts-checkout', async () => {
+    const result = await getCarts()
+    return result
+  })
+
+  // 計算總價和總數量
+  const { totalPrice, itemCount } = useMemo(() => {
+    const totalPrice = carts.reduce((sum, cartItem) => {
+      return sum + cartItem.product.price * cartItem.quantity
+    }, 0)
+    const itemCount = carts.reduce(
+      (sum, cartItem) => sum + cartItem.quantity,
+      0
+    )
+    return { totalPrice, itemCount }
+  }, [carts])
+
+  // 載入購物車資料
+  useEffect(() => {
+    if (cartData?.data?.cart?.cartItems) {
+      setCarts(cartData.data.cart.cartItems)
+    }
+  }, [cartData])
 
   // 處理表單輸入變更
   const handleInputChange = (field, value) => {
@@ -133,6 +110,40 @@ export default function ProductListPage() {
       paymentMethod: selectedPaymentOption?.label || '',
       receiptType: selectedReceiptOption?.label || '',
     }
+  }
+
+  // 載入狀態處理
+  if (isCartLoading) {
+    return (
+      <>
+        <Navbar />
+        <BreadcrumbAuto />
+        <section className="px-4 md:px-6 py-10">
+          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+            <div className="text-center py-20">載入中...</div>
+          </div>
+        </section>
+        <Footer />
+      </>
+    )
+  }
+
+  // 錯誤狀態處理
+  if (cartError) {
+    return (
+      <>
+        <Navbar />
+        <BreadcrumbAuto />
+        <section className="px-4 md:px-6 py-10">
+          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+            <div className="text-center py-20 text-red-500">
+              載入失敗: {cartError.message}
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </>
+    )
   }
 
   return (
@@ -162,51 +173,59 @@ export default function ProductListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-card-foreground">
-                {products.map((product) => {
-                  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
-                  const image = product.img
-                  const imageFileName =
-                    typeof image === 'object' && image !== null
-                      ? image.url
-                      : image
+                {carts && carts.length > 0 ? (
+                  carts.map((cartItem) => {
+                    // 處理圖片路徑
+                    const product = cartItem.product
+                    const imageFileName = product.images?.[0]?.url || ''
 
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <Image
-                              className="object-cover w-full h-full"
-                              src={getProductImageUrl(imageFileName)}
-                              alt={product.name}
-                              width={40}
-                              height={40}
-                            />
+                    return (
+                      <TableRow key={cartItem.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                              <Image
+                                className="object-cover w-full h-full"
+                                src={getProductImageUrl(imageFileName)}
+                                alt={product.name}
+                                width={40}
+                                height={40}
+                              />
+                            </div>
+                            <span className="text-base whitespace-normal text-accent-foreground">
+                              {product.name}
+                            </span>
                           </div>
-                          <span className="text-base whitespace-normal text-accent-foreground">
-                            {product.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        ${product.price}
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="w-12 text-center select-none">
-                            {quantity}
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                        </TableCell>
+                        <TableCell className="text-accent-foreground">
+                          ${product.price}
+                        </TableCell>
+                        <TableCell className="text-accent-foreground">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="w-12 text-center select-none">
+                              {cartItem.quantity}
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={3}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      購物車是空的
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
           <Card>
             <CardContent className="flex flex-col gap-6">
-              {/* 預訂人資料 */}
+              {/* 收件人資料 */}
               <div className="space-y-3">
                 <Label className="text-base font-medium">訂單人資料</Label>
                 <div className="space-y-2 grid gap-3">
@@ -274,7 +293,7 @@ export default function ProductListPage() {
                 </Link> */}
               <div className="flex flex-col">
                 <span className="text-base text-right p-2 text-muted-foreground">
-                  共有3件商品
+                  共有{itemCount}件商品
                 </span>
                 <Table className="table-fixed flex justify-end">
                   <TableBody>
@@ -283,7 +302,7 @@ export default function ProductListPage() {
                         商品金額
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        $2250
+                        ${totalPrice}
                       </TableCell>
                     </TableRow>
                     <TableRow className="border-b border-card-foreground">
@@ -299,7 +318,7 @@ export default function ProductListPage() {
                         商品小計
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        $2350
+                        ${totalPrice + 100}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -316,10 +335,10 @@ export default function ProductListPage() {
             <Link
               href={`/shop/order/success?data=${encodeURIComponent(
                 JSON.stringify({
-                  products: products,
+                  carts: carts,
                   userInfo: formData,
-                  totalPrice: 2350,
-                  itemCount: 3,
+                  totalPrice: totalPrice + 100,
+                  itemCount: itemCount,
                   ...getSelectedOptions(),
                 })
               )}`}

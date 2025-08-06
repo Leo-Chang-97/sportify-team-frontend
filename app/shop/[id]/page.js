@@ -1,15 +1,16 @@
 'use client'
 
-import { Minus, Plus } from 'lucide-react'
+import { Minus, Plus, Heart } from 'lucide-react'
 import Image from 'next/image'
 import React, { useState, useEffect, useMemo } from 'react'
-import useSWR from 'swr'
 import {
-  getProducts,
-  getProductDetail,
-  toggleFavorite,
-  addProductCart,
-} from '@/api'
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api/common'
+import { toast } from 'sonner'
+import useSWR from 'swr'
+import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -38,15 +39,18 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
   currency: 'TWD',
 })
 
-export default function ProductListPage() {
+export default function ProductDetailPage() {
   // ===== 路由和搜尋參數處理 =====
   const router = useRouter()
   const { id } = useParams()
 
   // ===== 組件狀態管理 =====
-  const [selectedIndex, setSelectedIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [sports, setSports] = useState([])
+  const [brands, setBrands] = useState([])
   const [product, setProduct] = useState(null)
+  const [members, setMembers] = useState([])
+  const [isFavorited, setIsFavorited] = useState(false)
 
   // ===== 數據獲取 =====
   const {
@@ -54,14 +58,20 @@ export default function ProductListPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(id ? ['product', id] : null, () => getProduct(id))
+  } = useSWR(id ? ['product', id] : null, () => getProductDetail(id))
 
   // ===== 載入選項 =====
   useEffect(() => {
     const loadData = async () => {
       try {
-        const memberData = await fetchMemberOptions()
+        const [memberData, sportData, brandData] = await Promise.all([
+          fetchMemberOptions(),
+          fetchSportOptions(),
+          fetchBrandOptions(),
+        ])
         setMembers(memberData.rows || [])
+        setSports(sportData.rows || [])
+        setBrands(brandData.rows || [])
       } catch (error) {
         console.error('載入失敗:', error)
         toast.error('載入失敗')
@@ -73,18 +83,39 @@ export default function ProductListPage() {
   useEffect(() => {
     if (data && data.data) {
       setProduct(data.data)
-      console.log('Product loaded:', data.data)
+      setIsFavorited(data.data.favorite || false)
+      // console.log('Product loaded:', data.data) // Debug用
     }
   }, [data])
 
+  const totalImages = product?.images?.length || 0
+
+  // ===== 輔助函數 =====
+  const getSportName = (sportId) => {
+    const sport = sports.find((s) => s.id === sportId)
+    return sport ? sport.name : sportId
+  }
+
+  const getBrandName = (brandId) => {
+    const brand = brands.find((b) => b.id === brandId)
+    return brand ? brand.name : brandId
+  }
+
+  const spec = [
+    { key: 'name', label: '商品名稱', value: product?.name },
+    {
+      key: 'sportId',
+      label: '運動類型',
+      value: getSportName(product?.sportId),
+    },
+    { key: 'brandId', label: '品牌', value: getBrandName(product?.brandId) },
+    { key: 'size', label: '尺寸', value: product?.size },
+    { key: 'weight', label: '重量', value: product?.weight },
+    { key: 'material', label: '材質', value: product?.material },
+    { key: 'origin', label: '產地', value: product?.origin },
+  ]
+
   // ===== 事件處理函數 =====
-  const totalImages = 10
-  const handlePrev = () => {
-    setSelectedIndex((prev) => (prev - 1 + totalImages) % totalImages)
-  }
-  const handleNext = () => {
-    setSelectedIndex((prev) => (prev + 1) % totalImages)
-  }
   const handleQuantityChange = React.useCallback((newQty) => {
     setQuantity((prev) => (newQty >= 1 ? newQty : prev))
   }, [])
@@ -93,10 +124,12 @@ export default function ProductListPage() {
     const result = await toggleFavorite(productId)
     mutate()
     if (result?.favorited) {
+      setIsFavorited(true)
       toast('已加入我的收藏', {
         style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
       })
     } else {
+      setIsFavorited(false)
       toast('已從我的收藏移除', {
         style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
       })
@@ -108,138 +141,108 @@ export default function ProductListPage() {
     const result = await addProductCart(productId, quantity)
     mutate()
     if (result?.success) {
+      setQuantity(1) // 重置數量為1
       toast('已加入購物車', {
         style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        action: {
+          label: '查看',
+          onClick: () => router.push('/shop/order'),
+        },
+        actionButtonStyle: {
+          background: '#000',
+          color: '#fff',
+          borderRadius: 4,
+          fontWeight: 500,
+        },
       })
       return result
     }
   }
 
-  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
-  const image = product?.img
-  const imageFileName =
-    typeof image === 'object' && image !== null ? image.url : image
-  const imageGroup = (
-    <div className="w-full max-w-[350px] md:max-w-[400px] lg:max-w-[450px] flex items-center justify-center mb-4 md:mb-6">
-      {imageFileName ? (
-        <Image
-          src={getProductImageUrl(imageFileName)}
-          alt={product.name}
-          width={450}
-          height={450}
-          className="w-full h-full object-contain"
-          key={selectedIndex}
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-          無商品圖片
-        </div>
-      )}
-    </div>
-  )
-
+  if (!product || isDataLoading) return <div>載入中...</div>
   return (
     <>
       <Navbar />
       <BreadcrumbAuto />
       <section className="px-4 md:px-6 py-10">
-        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6 mb-10">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-4">
+        <div className="flex flex-col container mx-auto max-w-5xl gap-8 mb-10">
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* 左側商品圖片區塊 */}
-            <div className="flex-1 flex flex-col items-center justify-center">
-              {/* 上方大圖 */}
-              <div className="w-full max-w-[400px] md:max-w-[450px] lg:max-w-[500px] flex items-center justify-center mb-4">
-                {imageFileName ? (
-                  <Image
-                    src={getProductImageUrl(imageFileName)}
-                    alt={product.name}
-                    width={500}
-                    height={500}
-                    className="w-full h-full object-contain"
-                    key={selectedIndex}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                    無商品圖片
-                  </div>
-                )}
-              </div>
-              {/* 下方小圖輪播 */}
-              <div className="flex w-full max-w-[280px] md:max-w-[320px] lg:max-w-[360px] relative items-center">
-                <Carousel opts={{ align: 'start' }} className="w-full px-10">
-                  <CarouselContent>
-                    {[...Array(totalImages)].map((_, idx) => (
-                      <CarouselItem
-                        key={idx}
-                        className="basis-1/5 flex justify-center"
-                      >
-                        <button
-                          onClick={() => setSelectedIndex(idx)}
-                          style={{
-                            border:
-                              selectedIndex === idx ? '1px solid gray' : 'none',
-                          }}
-                        >
-                          <Image
-                            src={getProductImageUrl(imageFileName)}
-                            alt={product.images}
-                            width={100}
-                            height={100}
-                            className="w-full h-full object-contain"
-                          />
-                        </button>
+            <div className="lg:w-2/5 flex flex-col items-center justify-center">
+              <Carousel className="w-full max-w-sm relative">
+                <CarouselContent>
+                  {product?.images && product.images.length > 0 ? (
+                    product.images.map((img, idx) => (
+                      <CarouselItem key={idx} className="flex justify-center">
+                        <Image
+                          src={getProductImageUrl(img.url)}
+                          alt={product.name}
+                          width={380}
+                          height={380}
+                          className="object-contain"
+                        />
                       </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious
-                    onClick={handlePrev}
-                    className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 items-center justify-center"
-                  />
-                  <CarouselNext
-                    onClick={handleNext}
-                    className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 items-center justify-center"
-                  />
-                </Carousel>
-              </div>
+                    ))
+                  ) : (
+                    <CarouselItem className="flex justify-center">
+                      <div className="w-[380px] h-[380px] flex items-center justify-center bg-gray-100 text-gray-400">
+                        無商品圖片
+                      </div>
+                    </CarouselItem>
+                  )}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 bg-ring hover:bg-muted-foreground border shadow-md" />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 bg-ring hover:bg-muted-foreground border shadow-md" />
+              </Carousel>
             </div>
             {/* 右側商品資訊區*/}
-            <div className="flex-1 flex flex-col items-center md:items-start justify-start gap-6 md:gap-8 lg:gap-10 mt-6 lg:mt-0 w-full">
-              {/* Title*/}
-              <div className="flex flex-col gap-2 md:gap-3">
-                <h1 className="text-xl font-bold">{product.name}</h1>
-                <p className="text-base font-medium text-muted-foreground">
-                  {product.sport_name}/{product.brand_name}
+            <div className="lg:w-3/5 flex flex-col justify-center space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h1 className="text-2xl lg:text-3xl font-bold">
+                    {product.name}
+                  </h1>
+                  <Heart
+                    className={`h-6 w-6 cursor-pointer transition-colors
+                      ${
+                        isFavorited
+                          ? 'fill-destructive text-destructive'
+                          : 'text-destructive hover:fill-destructive hover:text-destructive'
+                      }
+                    `}
+                    onClick={() => handleAddToWishlist(product.id)}
+                  />
+                </div>
+                <p className="text-lg text-muted-foreground">
+                  {getSportName(product.sportId)} /{' '}
+                  {getBrandName(product.brandId)}
                 </p>
-                <div className="mt-1 md:mt-2 flex items-center gap-2">
-                  <span className="text-lg font-medium text-destructive">
-                    NTD${CURRENCY_FORMATTER.format(product.price)}
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-destructive">
+                    NT${product.price?.toLocaleString('zh-TW') || '0'}
                   </span>
                 </div>
               </div>
-              <div>
-                <h1 className="text-base font-medium mb-2 md:mb-3">配送方式</h1>
-                <div className="flex gap-2 mb-1">
-                  <p className="text-base font-regular">宅配</p>
-                  <p className="text-base font-regular text-muted-foreground">
-                    NTD$100
-                  </p>
-                </div>
-                <div className="flex gap-2 mb-1">
-                  <p className="text-base font-regular">7-11取貨</p>
-                  <p className="text-base font-regular text-muted-foreground">
-                    NTD$60
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <p className="text-base font-regular">全家取貨</p>
-                  <p className="text-base font-regular text-muted-foreground">
-                    NTD$60
-                  </p>
+              <div className="space-y-3">
+                <h2 className="text-lg font-bold">配送方式</h2>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <span>宅配</span>
+                    <span className="text-muted-foreground">NT$100</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span>7-11取貨</span>
+                    <span className="text-muted-foreground">NT$60</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span>全家取貨</span>
+                    <span className="text-muted-foreground">NT$60</span>
+                  </div>
                 </div>
               </div>
-              {/* 數量、價格 */}
-              <div className="flex flex-col md:flex-row items-center justify-between w-full gap-3 md:gap-4">
-                <div className="flex flex-1 items-center justify-between rounded-sm gap-2 bg-foreground">
+              {/* 數量和購物車按鈕 */}
+              <div className="flex items-center gap-4">
+                <div className="flex flex-1 items-center justify-between bg-muted rounded-lg p-1">
                   <Button
                     aria-label="Decrease quantity"
                     disabled={quantity <= 1}
@@ -249,7 +252,7 @@ export default function ProductListPage() {
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="w-12 text-center select-none text-muted-foreground">
+                  <span className="w-12 text-center text-base text-muted-foreground">
                     {quantity}
                   </span>
                   <Button
@@ -261,47 +264,65 @@ export default function ProductListPage() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button className="flex-1 h-full text-base" variant="highlight">
+
+                <Button
+                  onClick={() => handleAddToCart(product.id, quantity)}
+                  className="flex flex-1 h-full text-base"
+                  variant="highlight"
+                >
                   加入購物車
                 </Button>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6 px-">
-          <Tabs defaultValue="imgs" className="w-full items-center">
-            <TabsList className="mb-6 md:mb-8">
-              <TabsTrigger value="imgs" className="text-sm">
-                商品圖片
-              </TabsTrigger>
-              <TabsTrigger value="spec" className="text-sm">
-                詳細規格
-              </TabsTrigger>
-            </TabsList>
+        <div className="flex flex-col container mx-auto max-w-5xl gap-6 px-4">
+          <Tabs defaultValue="imgs" className="w-full">
+            <div className="flex justify-center">
+              <TabsList className="mb-6 md:mb-8">
+                <TabsTrigger value="imgs" className="text-sm">
+                  商品圖片
+                </TabsTrigger>
+                <TabsTrigger value="spec" className="text-sm">
+                  詳細規格
+                </TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="imgs">
-              {imageGroup}
-              {imageGroup}
-              {imageGroup}
-              {imageGroup}
-              {imageGroup}
+              <div className="flex flex-col gap-4">
+                {product && product.images && product.images.length > 0 ? (
+                  product.images.map((img, idx) => (
+                    <div key={idx} className="flex justify-center">
+                      <Image
+                        src={getProductImageUrl(img.url)}
+                        alt={`${product.name} - 圖片 ${idx + 1}`}
+                        width={450}
+                        height={450}
+                        className="object-contain"
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center py-12 text-muted-foreground">
+                    此商品暫無圖片
+                  </div>
+                )}
+              </div>
             </TabsContent>
             <TabsContent value="spec">
-              <div className="bg-card rounded-lg p-5">
-                <Table className="w-full table-fixed">
-                  <TableBody className="divide-y divide-foreground">
-                    {Object.entries(product.specs).map(([key, value]) => (
+              <div className="bg-card rounded-lg p-4 md:p-8">
+                <Table className="w-full">
+                  <TableBody className="divide-y divide-card-foreground">
+                    {spec.map(({ key, label, value }) => (
                       <TableRow
                         key={key}
                         className="border-b border-card-foreground"
                       >
-                        <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        <TableCell className="font-bold text-sm md:text-base text-card-foreground w-1/3 md:w-1/5 py-3 px-2 md:px-4">
+                          {label}
                         </TableCell>
-                        <TableCell
-                          className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                          style={{ width: '100%' }}
-                        >
-                          {value}
+                        <TableCell className="text-sm md:text-base text-card-foreground w-2/3 md:w-4/5 py-3 px-2 md:px-4 break-words">
+                          {value || ''}
                         </TableCell>
                       </TableRow>
                     ))}
