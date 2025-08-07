@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 
-// 額外
+// utils
 import { format as formatDate } from 'date-fns'
 import { cn } from '@/lib/utils'
 

@@ -1,7 +1,7 @@
 // hooks
 import { useState, useEffect, useMemo } from 'react'
 
-// 額外
+// utils
 import { cn } from '@/lib/utils'
 
 // Icon

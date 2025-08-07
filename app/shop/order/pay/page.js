@@ -31,14 +31,15 @@ import {
 } from '@/components/ui/table'
 import PaymentMethodSelector, {
   paymentOptions,
-} from '@/components/shop-payment-method-selector'
+} from '@/components/payment-method-selector'
 import ReceiptTypeSelector, {
   receiptOptions,
-} from '@/components/shop-receipt-type-selector'
+} from '@/components/receipt-type-selector'
 import DeliveryMethodSelector, {
   DeliveryOptions,
-} from '@/components/shop-delivery-method-selector'
+} from '@/components/delivery-method-selector'
 import { getCarts, getCheckoutData } from '@/api'
+import { validateField } from '@/lib/utils'
 
 const steps = [
   { id: 1, title: '確認購物車', completed: true },
@@ -71,74 +72,6 @@ export default function ProductListPage() {
 
   // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
   const [touchedFields, setTouchedFields] = useState({})
-
-  // 簡單驗證函數
-  const validateField = (
-    field,
-    value,
-    showFormatError = false,
-    deliveryType = selectedDelivery
-  ) => {
-    switch (field) {
-      case 'recipient':
-        if (!value.trim()) return '收件人姓名為必填'
-        return ''
-      case 'phone':
-        if (!value.trim()) return '手機號碼為必填'
-        // 只有在明確要求顯示格式錯誤，或者值看起來像是完整輸入時才顯示格式錯誤
-        if (
-          showFormatError ||
-          (value.length >= 10 && !/^09\d{8}$/.test(value))
-        ) {
-          if (!/^09\d{8}$/.test(value))
-            return '手機號碼格式錯誤，請輸入09開頭的10位數字'
-        }
-        return ''
-      case 'address':
-        // 只有選擇宅配時才需要驗證地址
-        if (deliveryType === '3') {
-          if (!value.trim()) return '收件地址為必填'
-          if (showFormatError && value.trim().length < 5)
-            return '收件地址至少5個字'
-        }
-        return ''
-      case 'delivery':
-        return !value ? '請選擇配送方式' : ''
-      case 'payment':
-        return !value ? '請選擇付款方式' : ''
-      case 'receipt':
-        return !value ? '請選擇發票類型' : ''
-      case 'carrierId':
-        // 只有選擇電子載具時才需要驗證
-        if (selectedReceipt === '3') {
-          if (!value.trim()) return '載具號碼為必填'
-          // 只有在明確要求或輸入看起來完整時才顯示格式錯誤
-          if (
-            showFormatError ||
-            (value.length >= 8 && !/^\/[A-Z0-9.\-+]{7}$/.test(value))
-          ) {
-            if (!/^\/[A-Z0-9.\-+]{7}$/.test(value))
-              return '載具號碼格式錯誤，請輸入正確格式 (例：/A12345B)'
-          }
-        }
-        return ''
-      case 'companyId':
-        // 只有選擇統一編號時才需要驗證
-        if (selectedReceipt === '2') {
-          if (!value.trim()) return '統一編號為必填'
-          // 只有在明確要求或輸入看起來完整時才顯示格式錯誤
-          if (
-            showFormatError ||
-            (value.length >= 8 && !/^\d{8}$/.test(value))
-          ) {
-            if (!/^\d{8}$/.test(value)) return '統一編號格式錯誤，請輸入8位數字'
-          }
-        }
-        return ''
-      default:
-        return ''
-    }
-  }
 
   // 獲取購物車資料
   const {
@@ -602,6 +535,11 @@ export default function ProductListPage() {
                   onPaymentChange={(value) =>
                     handleSelectChange('payment', value, setSelectedPayment)
                   }
+                  options={[
+                    paymentOptions[0],
+                    paymentOptions[1],
+                    paymentOptions[3],
+                  ]}
                   errors={errors}
                 />
               </div>
