@@ -184,9 +184,28 @@ export default function OrderForm({
       if (value === '1' || value === '2')
         fee = 60 // 7-11 或全家
       else if (value === '3') fee = 100 // 宅配
-      setFormData((prev) => ({ ...prev, delivery: value, fee }))
+
+      // 如果不是宅配，清空地址
+      const addressValue = value === '3' ? formData.address : ''
+      setFormData((prev) => ({
+        ...prev,
+        delivery: value,
+        fee,
+        address: addressValue,
+      }))
+
+      // 清除地址相關錯誤
+      if (value !== '3') {
+        setErrors((prev) => ({ ...prev, address: '' }))
+      }
     } else if (name === 'delivery') {
-      setFormData((prev) => ({ ...prev, delivery: value }))
+      // 初始載入時的處理
+      const addressValue = value === '3' ? formData.address : ''
+      setFormData((prev) => ({
+        ...prev,
+        delivery: value,
+        address: addressValue,
+      }))
     } else if (name === 'invoice') {
       // 清空發票相關欄位當切換發票類型時
       setFormData((prev) => ({
@@ -320,7 +339,7 @@ export default function OrderForm({
         fee: Number(formData.fee),
         recipient: formData.recipient,
         phone: formData.phone,
-        address: formData.address,
+        address: formData.delivery === '3' ? formData.address : '', // 只有宅配才送出地址
         deliveryId: formData.delivery,
         paymentId: formData.payment,
         statusId: formData.status,
@@ -460,20 +479,6 @@ export default function OrderForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address">地址</Label>
-              <Input
-                id="address"
-                type="text"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="請輸入地址"
-                className={errors.address ? 'border-red-500' : ''}
-              />
-              {errors.address && (
-                <p className="text-sm text-red-500 mt-1">{errors.address}</p>
-              )}
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="delivery">
                 物流方式<span className="text-red-500">*</span>
               </Label>
@@ -505,6 +510,25 @@ export default function OrderForm({
                 <p className="text-sm text-red-500 mt-1">{errors.delivery}</p>
               )}
             </div>
+            {/* 只有選擇宅配時才顯示地址欄位 */}
+            {formData.delivery === '3' && (
+              <div className="space-y-2">
+                <Label htmlFor="address">
+                  收件地址<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="address"
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="請輸入收件地址"
+                  className={errors.address ? 'border-red-500' : ''}
+                />
+                {errors.address && (
+                  <p className="text-sm text-red-500 mt-1">{errors.address}</p>
+                )}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="fee">運費</Label>
               <Input

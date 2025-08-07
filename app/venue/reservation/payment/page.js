@@ -34,7 +34,7 @@ import PaymentMethodSelector, {
 } from '@/components/payment-method-selector'
 import ReceiptTypeSelector, {
   receiptOptions,
-} from '@/components/receipt-type-selector'
+} from '@/components/shop-receipt-type-selector'
 
 import fakeData from '@/app/venue/fake-data.json'
 const data = fakeData[0] // 使用第一筆資料

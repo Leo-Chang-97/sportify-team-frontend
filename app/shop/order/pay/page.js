@@ -31,10 +31,13 @@ import {
 } from '@/components/ui/table'
 import PaymentMethodSelector, {
   paymentOptions,
-} from '@/components/payment-method-selector'
+} from '@/components/shop-payment-method-selector'
 import ReceiptTypeSelector, {
   receiptOptions,
-} from '@/components/receipt-type-selector'
+} from '@/components/shop-receipt-type-selector'
+import DeliveryMethodSelector, {
+  DeliveryOptions,
+} from '@/components/shop-delivery-method-selector'
 import { getCarts, getCheckoutData } from '@/api'
 
 const steps = [
@@ -46,19 +49,96 @@ const steps = [
 export default function ProductListPage() {
   const searchParams = useSearchParams()
 
-  // 付款和發票選項狀態
-  const [selectedPayment, setSelectedPayment] = useState('1')
-  const [selectedReceipt, setSelectedReceipt] = useState('1')
+  // 物流和付款和發票選項狀態
+  const [selectedPayment, setSelectedPayment] = useState('')
+  const [selectedReceipt, setSelectedReceipt] = useState('')
+  const [selectedDelivery, setSelectedDelivery] = useState('')
 
   // 購物車資料狀態
   const [carts, setCarts] = useState([])
 
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
-    name: '',
+    recipient: '',
     phone: '',
-    email: '',
+    address: '',
+    carrierId: '', // 載具號碼
+    companyId: '', // 統一編號
   })
+
+  // 錯誤狀態
+  const [errors, setErrors] = useState({})
+
+  // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
+  const [touchedFields, setTouchedFields] = useState({})
+
+  // 簡單驗證函數
+  const validateField = (
+    field,
+    value,
+    showFormatError = false,
+    deliveryType = selectedDelivery
+  ) => {
+    switch (field) {
+      case 'recipient':
+        if (!value.trim()) return '收件人姓名為必填'
+        return ''
+      case 'phone':
+        if (!value.trim()) return '手機號碼為必填'
+        // 只有在明確要求顯示格式錯誤，或者值看起來像是完整輸入時才顯示格式錯誤
+        if (
+          showFormatError ||
+          (value.length >= 10 && !/^09\d{8}$/.test(value))
+        ) {
+          if (!/^09\d{8}$/.test(value))
+            return '手機號碼格式錯誤，請輸入09開頭的10位數字'
+        }
+        return ''
+      case 'address':
+        // 只有選擇宅配時才需要驗證地址
+        if (deliveryType === '3') {
+          if (!value.trim()) return '收件地址為必填'
+          if (showFormatError && value.trim().length < 5)
+            return '收件地址至少5個字'
+        }
+        return ''
+      case 'delivery':
+        return !value ? '請選擇配送方式' : ''
+      case 'payment':
+        return !value ? '請選擇付款方式' : ''
+      case 'receipt':
+        return !value ? '請選擇發票類型' : ''
+      case 'carrierId':
+        // 只有選擇電子載具時才需要驗證
+        if (selectedReceipt === '3') {
+          if (!value.trim()) return '載具號碼為必填'
+          // 只有在明確要求或輸入看起來完整時才顯示格式錯誤
+          if (
+            showFormatError ||
+            (value.length >= 8 && !/^\/[A-Z0-9.\-+]{7}$/.test(value))
+          ) {
+            if (!/^\/[A-Z0-9.\-+]{7}$/.test(value))
+              return '載具號碼格式錯誤，請輸入正確格式 (例：/A12345B)'
+          }
+        }
+        return ''
+      case 'companyId':
+        // 只有選擇統一編號時才需要驗證
+        if (selectedReceipt === '2') {
+          if (!value.trim()) return '統一編號為必填'
+          // 只有在明確要求或輸入看起來完整時才顯示格式錯誤
+          if (
+            showFormatError ||
+            (value.length >= 8 && !/^\d{8}$/.test(value))
+          ) {
+            if (!/^\d{8}$/.test(value)) return '統一編號格式錯誤，請輸入8位數字'
+          }
+        }
+        return ''
+      default:
+        return ''
+    }
+  }
 
   // 獲取購物車資料
   const {
@@ -71,7 +151,7 @@ export default function ProductListPage() {
   })
 
   // 計算總價和總數量
-  const { totalPrice, itemCount } = useMemo(() => {
+  const { totalPrice, itemCount, shippingFee } = useMemo(() => {
     const totalPrice = carts.reduce((sum, cartItem) => {
       return sum + cartItem.product.price * cartItem.quantity
     }, 0)
@@ -79,8 +159,15 @@ export default function ProductListPage() {
       (sum, cartItem) => sum + cartItem.quantity,
       0
     )
-    return { totalPrice, itemCount }
-  }, [carts])
+
+    // 計算運費
+    const selectedDeliveryOption = DeliveryOptions.find(
+      (option) => option.id === selectedDelivery
+    )
+    const shippingFee = selectedDeliveryOption?.fee || 0
+
+    return { totalPrice, itemCount, shippingFee }
+  }, [carts, selectedDelivery])
 
   // 載入購物車資料
   useEffect(() => {
@@ -95,6 +182,92 @@ export default function ProductListPage() {
       ...prev,
       [field]: value,
     }))
+
+    // 如果欄位已被觸碰過，才進行即時驗證
+    if (touchedFields[field]) {
+      const error = validateField(field, value, false)
+      setErrors((prev) => ({
+        ...prev,
+        [field]: error,
+      }))
+    } else {
+      // 清除可能存在的錯誤（例如必填錯誤）
+      if (value.trim() && errors[field]) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: '',
+        }))
+      }
+    }
+  }
+
+  // 處理輸入框失焦事件
+  const handleInputBlur = (field, value) => {
+    setTouchedFields((prev) => ({
+      ...prev,
+      [field]: true,
+    }))
+
+    // 失焦時進行完整驗證
+    const error = validateField(field, value, true)
+    setErrors((prev) => ({
+      ...prev,
+      [field]: error,
+    }))
+  }
+
+  // 處理下拉選單變更
+  const handleSelectChange = (field, value, setter) => {
+    setter(value)
+
+    // 標記為已觸碰並進行驗證
+    setTouchedFields((prev) => ({
+      ...prev,
+      [field]: true,
+    }))
+
+    const error = validateField(field, value, true)
+    setErrors((prev) => ({
+      ...prev,
+      [field]: error,
+    }))
+
+    // 如果改變發票類型，清除相關欄位的錯誤和觸碰狀態
+    if (field === 'receipt') {
+      setErrors((prev) => ({
+        ...prev,
+        carrierId: '',
+        companyId: '',
+      }))
+      setTouchedFields((prev) => ({
+        ...prev,
+        carrierId: false,
+        companyId: false,
+      }))
+      // 清除相關欄位的值
+      setFormData((prev) => ({
+        ...prev,
+        carrierId: '',
+        companyId: '',
+      }))
+    }
+
+    // 如果改變配送方式，清除地址相關的錯誤和觸碰狀態（如果不是宅配）
+    if (field === 'delivery' && value !== '3') {
+      setErrors((prev) => ({
+        ...prev,
+        address: '',
+      }))
+      setTouchedFields((prev) => ({
+        ...prev,
+        address: false,
+      }))
+      // 清除地址欄位的值
+      setFormData((prev) => ({
+        ...prev,
+        address: '',
+      }))
+    }
   }
 
   // 獲取選中的付款和發票選項
@@ -109,6 +282,144 @@ export default function ProductListPage() {
     return {
       paymentMethod: selectedPaymentOption?.label || '',
       receiptType: selectedReceiptOption?.label || '',
+    }
+  }
+
+  // 驗證所有表單欄位
+  const validateAllFields = () => {
+    const newErrors = {}
+    newErrors.recipient = validateField(
+      'recipient',
+      formData.recipient || '',
+      true
+    )
+    newErrors.phone = validateField('phone', formData.phone || '', true)
+    newErrors.address = validateField(
+      'address',
+      formData.address || '',
+      true,
+      selectedDelivery
+    )
+    newErrors.delivery = validateField('delivery', selectedDelivery || '', true)
+    newErrors.payment = validateField('payment', selectedPayment || '', true)
+    newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
+    newErrors.carrierId = validateField(
+      'carrierId',
+      formData.carrierId || '',
+      true
+    )
+    newErrors.companyId = validateField(
+      'companyId',
+      formData.companyId || '',
+      true
+    )
+
+    setErrors(newErrors)
+
+    // 標記所有欄位為已觸碰
+    setTouchedFields({
+      recipient: true,
+      phone: true,
+      address: true,
+      delivery: true,
+      payment: true,
+      receipt: true,
+      carrierId: true,
+      companyId: true,
+    })
+
+    // 檢查是否有任何錯誤
+    return !Object.values(newErrors).some((error) => error !== '')
+  }
+
+  // 處理付款按鈕點擊
+  const handlePayment = () => {
+    // 先執行驗證並獲取錯誤
+    const newErrors = {}
+    newErrors.recipient = validateField(
+      'recipient',
+      formData.recipient || '',
+      true
+    )
+    newErrors.phone = validateField('phone', formData.phone || '', true)
+    newErrors.address = validateField(
+      'address',
+      formData.address || '',
+      true,
+      selectedDelivery
+    )
+    newErrors.delivery = validateField('delivery', selectedDelivery || '', true)
+    newErrors.payment = validateField('payment', selectedPayment || '', true)
+    newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
+    newErrors.carrierId = validateField(
+      'carrierId',
+      formData.carrierId || '',
+      true
+    )
+    newErrors.companyId = validateField(
+      'companyId',
+      formData.companyId || '',
+      true
+    )
+
+    setErrors(newErrors)
+
+    // 標記所有欄位為已觸碰
+    setTouchedFields({
+      recipient: true,
+      phone: true,
+      address: true,
+      delivery: true,
+      payment: true,
+      receipt: true,
+      carrierId: true,
+      companyId: true,
+    })
+
+    // 檢查是否有任何錯誤
+    const hasErrors = Object.values(newErrors).some((error) => error !== '')
+
+    if (!hasErrors) {
+      // 表單驗證通過，導向成功頁面
+      const orderData = {
+        carts: carts,
+        userInfo: formData,
+        totalPrice: totalPrice + shippingFee,
+        itemCount: itemCount,
+        shippingFee: shippingFee,
+        ...getSelectedOptions(),
+      }
+      window.location.href = `/shop/order/success?data=${encodeURIComponent(JSON.stringify(orderData))}`
+    } else {
+      // 表單驗證失敗，滾動到第一個錯誤欄位
+      const errorFields = [
+        { field: 'recipient', selector: '#recipient' },
+        { field: 'phone', selector: '#phone' },
+        { field: 'address', selector: '#address' },
+        { field: 'delivery', selector: '[data-field="delivery"]' },
+        { field: 'payment', selector: '[data-field="payment"]' },
+        { field: 'receipt', selector: '[data-field="receipt"]' },
+        { field: 'carrierId', selector: '#carrierId' },
+        { field: 'companyId', selector: '#companyId' },
+      ]
+
+      // 找到第一個有錯誤的欄位並跳轉
+      setTimeout(() => {
+        for (const errorField of errorFields) {
+          if (newErrors[errorField.field]) {
+            const element = document.querySelector(errorField.selector)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              // 如果是輸入框，則聚焦
+              const input = element.querySelector('input') || element
+              if (input && input.focus) {
+                input.focus()
+              }
+              break
+            }
+          }
+        }
+      }, 100) // 稍微延遲確保 DOM 更新完成
     }
   }
 
@@ -234,52 +545,79 @@ export default function ProductListPage() {
                     <Input
                       type="text"
                       id="recipient"
-                      placeholder="收件人姓名"
-                      className="w-full"
-                      value={formData.recipient}
+                      placeholder="請填寫收件人姓名"
+                      className={`w-full ${errors.recipient ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
+                      value={formData.recipient || ''}
                       onChange={(e) =>
                         handleInputChange('recipient', e.target.value)
                       }
+                      onBlur={(e) =>
+                        handleInputBlur('recipient', e.target.value)
+                      }
                     />
+                    {errors.recipient && (
+                      <span className="text-destructive text-sm">
+                        {errors.recipient}
+                      </span>
+                    )}
                   </div>
                   <div className="grid w-full items-center gap-3">
-                    <Label htmlFor="phone">電話</Label>
+                    <Label htmlFor="phone">手機號碼</Label>
                     <Input
                       type="text"
                       id="phone"
-                      placeholder="電話"
-                      className="w-full"
-                      value={formData.phone}
+                      placeholder="請填寫電話號碼(例：0912345678)"
+                      className={`w-full ${errors.phone ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
+                      value={formData.phone || ''}
                       onChange={(e) =>
                         handleInputChange('phone', e.target.value)
                       }
+                      onBlur={(e) => handleInputBlur('phone', e.target.value)}
                     />
-                  </div>
-                  <div className="grid w-full items-center gap-3">
-                    <Label htmlFor="address">收件地址</Label>
-                    <Input
-                      type="text"
-                      id="address"
-                      placeholder="收件地址"
-                      className="w-full"
-                      value={formData.address}
-                      onChange={(e) =>
-                        handleInputChange('address', e.target.value)
-                      }
-                    />
+                    {errors.phone && (
+                      <span className="text-destructive text-sm">
+                        {errors.phone}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
+              {/* 物流方式 */}
+              <div data-field="delivery">
+                <DeliveryMethodSelector
+                  selectedDelivery={selectedDelivery}
+                  onDeliveryChange={(value) =>
+                    handleSelectChange('delivery', value, setSelectedDelivery)
+                  }
+                  errors={errors}
+                  formData={formData}
+                  onInputChange={handleInputChange}
+                  onInputBlur={handleInputBlur}
+                />
+              </div>
               {/* 付款方式 */}
-              <PaymentMethodSelector
-                selectedPayment={selectedPayment}
-                onPaymentChange={setSelectedPayment}
-              />
+              <div data-field="payment">
+                <PaymentMethodSelector
+                  selectedPayment={selectedPayment}
+                  onPaymentChange={(value) =>
+                    handleSelectChange('payment', value, setSelectedPayment)
+                  }
+                  errors={errors}
+                />
+              </div>
               {/* 發票類型 */}
-              <ReceiptTypeSelector
-                selectedReceipt={selectedReceipt}
-                onReceiptChange={setSelectedReceipt}
-              />
+              <div data-field="receipt">
+                <ReceiptTypeSelector
+                  selectedReceipt={selectedReceipt}
+                  formData={formData}
+                  onInputChange={handleInputChange}
+                  onInputBlur={handleInputBlur}
+                  errors={errors}
+                  onReceiptChange={(value) =>
+                    handleSelectChange('receipt', value, setSelectedReceipt)
+                  }
+                />
+              </div>
             </CardContent>
             <CardFooter className="flex justify-end">
               {/* <Link
@@ -310,7 +648,7 @@ export default function ProductListPage() {
                         運費
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground text-right">
-                        $100
+                        ${shippingFee}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -318,7 +656,7 @@ export default function ProductListPage() {
                         商品小計
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        ${totalPrice + 100}
+                        ${totalPrice + shippingFee}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -332,21 +670,13 @@ export default function ProductListPage() {
                 返回購物車
               </Button>
             </Link>
-            <Link
-              href={`/shop/order/success?data=${encodeURIComponent(
-                JSON.stringify({
-                  carts: carts,
-                  userInfo: formData,
-                  totalPrice: totalPrice + 100,
-                  itemCount: itemCount,
-                  ...getSelectedOptions(),
-                })
-              )}`}
+            <Button
+              variant="highlight"
+              className="w-[120px]"
+              onClick={handlePayment}
             >
-              <Button variant="highlight" className="w-[120px]">
-                付款
-              </Button>
-            </Link>
+              付款
+            </Button>
           </div>
         </div>
       </section>
