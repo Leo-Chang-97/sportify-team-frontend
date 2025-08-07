@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ChevronDownIcon, ArrowRight, Search } from 'lucide-react'
+import ourteam from './ourteam/page'
 
 export default function TeamPage() {
   // ===== 組件狀態管理 =====
@@ -186,6 +187,139 @@ export default function TeamPage() {
       isNews: false,
       imageUrl: 'https://placehold.co/256x192/83b593/ffffff?text=Team+D',
     },
+    // 以下是新增的 12 隊假資料
+    {
+      teamName: '夜鷹籃球隊',
+      sportType: '籃球',
+      currentMembers: 7,
+      maxMembers: 10,
+      location: '信義運動中心',
+      time: '星期(二、五) 晚上8點',
+      skillLevel: '熟手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/475569/ffffff?text=Team+E',
+    },
+    {
+      teamName: '飛毛腿足球隊',
+      sportType: '足球',
+      currentMembers: 15,
+      maxMembers: 20,
+      location: '新莊田徑場',
+      time: '星期(三、日) 下午4點',
+      skillLevel: '老手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/dc2626/ffffff?text=Team+F',
+    },
+    {
+      teamName: '排球之星',
+      sportType: '排球',
+      currentMembers: 8,
+      maxMembers: 12,
+      location: '中正紀念堂排球場',
+      time: '星期(一、四) 晚上7點',
+      skillLevel: '中手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/facc15/ffffff?text=Team+G',
+    },
+    {
+      teamName: '單車挑戰者',
+      sportType: '單車',
+      currentMembers: 5,
+      maxMembers: 8,
+      location: '淡水河自行車道',
+      time: '星期(六) 早上6點',
+      skillLevel: '老手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/22c55e/ffffff?text=Team+H',
+    },
+    {
+      teamName: '游泳健將',
+      sportType: '游泳',
+      currentMembers: 6,
+      maxMembers: 8,
+      location: '板橋游泳池',
+      time: '星期(二、五) 早上6點',
+      skillLevel: '中手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/3b82f6/ffffff?text=Team+I',
+    },
+    {
+      teamName: '棒球魂',
+      sportType: '棒球',
+      currentMembers: 10,
+      maxMembers: 15,
+      location: '社子島棒球場',
+      time: '星期(六) 下午1點',
+      skillLevel: '新手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/8b5cf6/ffffff?text=Team+J',
+    },
+    {
+      teamName: '桌球小隊',
+      sportType: '桌球',
+      currentMembers: 4,
+      maxMembers: 6,
+      location: '新店運動中心',
+      time: '星期(三) 晚上8點',
+      skillLevel: '新手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/ec4899/ffffff?text=Team+K',
+    },
+    {
+      teamName: '網球好手',
+      sportType: '網球',
+      currentMembers: 7,
+      maxMembers: 8,
+      location: '公館網球場',
+      time: '星期(日) 早上10點',
+      skillLevel: '熟手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/f97316/ffffff?text=Team+L',
+    },
+    {
+      teamName: '拳擊鬥士',
+      sportType: '拳擊',
+      currentMembers: 3,
+      maxMembers: 5,
+      location: '萬華拳擊館',
+      time: '星期(一、四) 晚上9點',
+      skillLevel: '老手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/6b7280/ffffff?text=Team+M',
+    },
+    {
+      teamName: '瑜珈修行者',
+      sportType: '瑜珈',
+      currentMembers: 12,
+      maxMembers: 15,
+      location: '東區瑜珈會館',
+      time: '星期(二、六) 早上7點',
+      skillLevel: '中手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/a16207/ffffff?text=Team+N',
+    },
+    {
+      teamName: '健身狂人',
+      sportType: '健身',
+      currentMembers: 20,
+      maxMembers: 30,
+      location: '中和健身房',
+      time: '每天 下午3點',
+      skillLevel: '熟手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/4c4c4c/ffffff?text=Team+O',
+    },
+    {
+      teamName: '街舞新秀',
+      sportType: '街舞',
+      currentMembers: 9,
+      maxMembers: 10,
+      location: '西門町廣場',
+      time: '星期(五) 晚上8點',
+      skillLevel: '新手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/991b1b/ffffff?text=Team+P',
+    },
   ]
 
   return (
@@ -210,7 +344,7 @@ export default function TeamPage() {
             推·薦·隊·伍
           </div>
           {/* 這個 div 是包含「創建隊伍」按鈕和右側排序下拉菜單的容器 */}
-          <div className="self-stretch flex justify-between items-center">
+          <div className="self-stretch flex justify-between items-center gap-2">
             {/* 創建隊伍按鈕 (使用 shadcn/ui 的 Button 組件) */}
             {/* 如果你想讓它變成可點擊的按鈕，建議使用 shadcn/ui 的 Button 元件 */}
             <Link href="/team/create" passHref>
@@ -221,6 +355,17 @@ export default function TeamPage() {
                 className="bg-gradient-to-r from-orange-500 to-blue-600"
               >
                 創建隊伍
+                <ArrowRight />
+              </Button>
+            </Link>
+            <Link href="/team/ourteam" passHref>
+              <Button
+                onClick={ourteam}
+                variant="default"
+                size="lg"
+                className="bg-gradient-to-r from-orange-500 to-blue-600"
+              >
+                我的隊伍
                 <ArrowRight />
               </Button>
             </Link>
@@ -273,12 +418,6 @@ export default function TeamPage() {
                 imageUrl={team.imageUrl}
               />
             ))}
-          </div>
-          <div className="w-full flex flex-col justify-start items-start gap-8">
-            <TeamCard></TeamCard>
-            <TeamCard></TeamCard>
-            <TeamCard></TeamCard>
-            <TeamCard></TeamCard>
           </div>
         </div>
       </main>

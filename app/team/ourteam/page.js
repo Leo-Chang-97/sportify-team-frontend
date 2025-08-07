@@ -1,411 +1,275 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
-import {
-  UserIcon,
-  PlusIcon,
-  ChevronLeft,
-  ChevronRight,
-  XCircle,
-  CheckCircle,
-} from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link' // 保留 Link 元件
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
+import { Button } from '@/components/ui/button'
+import { twMerge } from 'tailwind-merge'
+import clsx from 'clsx'
 
-// 使用這個來獲取隨機使用者頭像
-const avatarUrls = [
-  'https://randomuser.me/api/portraits/women/1.jpg',
-  'https://randomuser.me/api/portraits/men/2.jpg',
-  'https://randomuser.me/api/portraits/women/3.jpg',
-  'https://randomuser.me/api/portraits/men/4.jpg',
-  'https://randomuser.me/api/portraits/women/5.jpg',
-  'https://randomuser.me/api/portraits/men/6.jpg',
-]
-
-// 輔助函數來為給定的月份/年份生成日曆網格
-const generateCalendarDays = (year, month) => {
-  const days = []
-  const date = new Date(year, month, 1) // Start with the 1st of the month
-
-  // 找到日曆視圖的第一個星期一
-  let startDay = new Date(date)
-  startDay.setDate(
-    startDay.getDate() - (startDay.getDay() === 0 ? 6 : startDay.getDay() - 1)
+const cn = (...inputs) => {
+  return twMerge(clsx(inputs))
+}
+const Table = ({ className, ...props }) => {
+  return (
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto rounded-lg shadow-lg border-2 border-secondary-foreground"
+    >
+      <table
+        data-slot="table"
+        className={cn(
+          'w-full caption-bottom text-sm bg-card dark:bg-card-foreground',
+          className
+        )}
+        {...props}
+      />
+    </div>
   )
-
-  for (let i = 0; i < 42; i++) {
-    const currentDate = new Date(startDay)
-    currentDate.setDate(startDay.getDate() + i)
-    days.push({
-      date: currentDate,
-      isCurrentMonth: currentDate.getMonth() === month,
-    })
-  }
-
-  return days
 }
 
-// 團隊頁面主組件
-const App = () => {
-  // 頁面的模擬數據，稍後可以用資料庫讀取取代
-  const [teamMembers, setTeamMembers] = useState([
-    {
-      id: 1,
-      name: '洪XX',
-      role: 'Leader',
-      skill: '擅長籃球 / 程度中手',
-      email: 'test1@gmail.com',
-      avatar: avatarUrls[0],
-    },
-    {
-      id: 2,
-      name: '林XX',
-      role: 'member',
-      skill: '擅長足球 / 程度新手',
-      avatar: avatarUrls[1],
-    },
-    {
-      id: 3,
-      name: '陳XX',
-      role: 'member',
-      skill: '擅長籃球 / 程度老手',
-      avatar: avatarUrls[2],
-    },
-    { id: 4, name: '蔡XX', role: 'member', skill: '', avatar: avatarUrls[3] },
-    { id: 5, name: '張XX', role: 'member', skill: '', avatar: avatarUrls[4] },
-    { id: 6, name: '王XX', role: 'member', skill: '', avatar: avatarUrls[5] },
-  ])
+const TableHeader = ({ className, ...props }) => {
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn('[&_tr]:border-b', className)}
+      {...props}
+    />
+  )
+}
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      name: 'name 1',
-      message: 'message XXXXXXXX',
-      avatar: avatarUrls[0],
-    },
-    {
-      id: 2,
-      name: 'name 2',
-      message: 'message XXXXXXXX',
-      avatar: avatarUrls[1],
-    },
-    {
-      id: 3,
-      name: 'name 3',
-      message: 'message XXXXXXXX',
-      avatar: avatarUrls[2],
-    },
-  ])
+const TableBody = ({ className, ...props }) => {
+  return (
+    <tbody
+      data-slot="table-body"
+      className={cn('[&_tr:last-child]:border-0', className)}
+      {...props}
+    />
+  )
+}
 
-  const [newMessage, setNewMessage] = useState('')
-  // 使用 useState 來管理日曆顯示的日期，預設為當前日期
-  const [displayDate, setDisplayDate] = useState(new Date())
-  // 新增狀態來追蹤已選擇的日期，使用 ISO 格式字串作為唯一鍵
-  const [selectedDates, setSelectedDates] = useState(new Set())
-  // 新增狀態來追蹤日曆的當前模式
-  const [currentMode, setCurrentMode] = useState('select') // 'select' or 'clear'
+const TableRow = ({ className, ...props }) => {
+  return (
+    <tr
+      data-slot="table-row"
+      className={cn(
+        'border-b border-gray-200 dark:border-gray-700 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700',
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-  // 根據 displayDate 產生日曆
-  const currentYear = displayDate.getFullYear()
-  const currentMonth = displayDate.getMonth()
-  const calendarDays = generateCalendarDays(currentYear, currentMonth)
+const TableHead = ({ className, ...props }) => {
+  return (
+    <th
+      data-slot="table-head"
+      className={cn(
+        'h-12 px-4 text-center align-middle text-lg text-gray-700 dark:text-ring bg-gray-50 dark:bg-gray-900 whitespace-nowrap',
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-  // 處理月份切換的函數
-  const handleMonthChange = (offset) => {
-    const newDate = new Date(displayDate)
-    newDate.setMonth(newDate.getMonth() + offset)
-    setDisplayDate(newDate)
-  }
+const TableCell = ({ className, ...props }) => {
+  return (
+    <td
+      data-slot="table-cell"
+      className={cn(
+        'p-4 align-middle text-gray-800 dark:text-gray-200 text-center',
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-  // 處理日期點擊事件
-  const handleDayClick = (day) => {
-    // 只允許選擇當月日期
-    if (!day.isCurrentMonth) return
+const TableCaption = ({ className, ...props }) => {
+  return (
+    <caption
+      data-slot="table-caption"
+      className={cn(
+        'text-muted-foreground bg-card text-base text-center whitespace-nowrap',
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-    // 使用 ISO 字串作為唯一鍵來判斷日期
-    const dateString = day.date.toISOString().split('T')[0]
-    setSelectedDates((prevDates) => {
-      const newDates = new Set(prevDates)
-      if (currentMode === 'select') {
-        // 在圈選模式下，點擊可選取或取消選取
-        if (newDates.has(dateString)) {
-          newDates.delete(dateString)
-        } else {
-          newDates.add(dateString)
-        }
-      } else if (currentMode === 'clear') {
-        // 在清除模式下，點擊只會取消選取
-        if (newDates.has(dateString)) {
-          newDates.delete(dateString)
-        }
-      }
-      return newDates
-    })
-  }
+// Mock data to simulate fetching from a database
+// 這是模擬的資料庫資料，用來在應用程式中呈現。
+// 實際應用中，您會從資料庫中獲取這些資料。
+const mockTeams = [
+  {
+    id: 1,
+    teamName: '雄獅籃球隊',
+    establishmentDate: '2023-01-15',
+    memberCount: 12,
+    sport: '籃球',
+    venue: '台北市立體育館',
+  },
+  {
+    id: 2,
+    teamName: '飛羽隊',
+    establishmentDate: '2022-05-20',
+    memberCount: 8,
+    sport: '羽球',
+    venue: '新北羽球館',
+  },
+  {
+    id: 3,
+    teamName: '桌球達人',
+    establishmentDate: '2021-09-01',
+    memberCount: 6,
+    sport: '桌球',
+    venue: '台中運動中心',
+  },
+  {
+    id: 4,
+    teamName: '網球旋風',
+    establishmentDate: '2020-03-10',
+    memberCount: 15,
+    sport: '網球',
+    venue: '高雄小巨蛋',
+  },
+  {
+    id: 5,
+    teamName: '排球戰神',
+    establishmentDate: '2022-07-07',
+    memberCount: 10,
+    sport: '排球',
+    venue: '台南體育場',
+  },
+]
 
-  // 處理切換到圈選模式
-  const handleSelectMode = () => {
-    setCurrentMode('select')
-  }
+export default function ourTeam() {
+  // const router = useRouter() // <--- 移除 useRouter Hook
 
-  // 處理切換到清除模式
-  const handleClearMode = () => {
-    setCurrentMode('clear')
-  }
-
-  // 為每個隊員卡片創建引用
-  const memberRefs = useRef(new Map())
-
-  const handleSendMessage = () => {
-    if (newMessage.trim() !== '') {
-      // 添加訊息的邏輯 (將來會被資料庫呼叫取代)
-      const newMsg = {
-        id: messages.length + 1,
-        name: 'You', // 當前使用者的佔位符
-        message: newMessage,
-        avatar: avatarUrls[1], // 當前使用者頭像的佔位符
-      }
-      setMessages([...messages, newMsg])
-      setNewMessage('')
-    }
-  }
-
-  // 處理點擊頭像時的平滑滾動
-  const scrollToMember = (id) => {
-    const node = memberRefs.current.get(id)
-    if (node) {
-      node.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    }
+  // 處理儲存的點擊事件（您可以將您的表單提交邏輯放在這裡）
+  const handleSave = () => {
+    console.log('儲存按鈕被點擊！')
+    // 在這裡處理表單資料並發送到後端
   }
 
   return (
     <>
       <Navbar />
       <BreadcrumbAuto />
-      <main className="px-4 md:px-6 py-10">
-        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-          {/* 標題 - 隊伍名稱 */}
-          <header className="py-8 text-center border-b border-gray-700">
-            <h2 className="text-2xl sm:text-2xl font-bold text-white">
-              你 · 的 · 隊 · 伍
-            </h2>
-          </header>
-          {/* 隊伍成員資訊區塊 */}
-          <section className="bg-white border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">隊伍成員資訊</h2>
-            {/* 滾動式表單容器 */}
-            <div className="overflow-y-auto h-[300px] border border-gray-300 rounded-lg p-2">
-              <div className="flex flex-col gap-4">
-                {teamMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    ref={(node) => memberRefs.current.set(member.id, node)} // 附加引用
-                    className={`flex items-start gap-4 p-4 rounded-lg border border-gray-200 ${member.role === 'Leader' ? 'bg-gray-100' : 'bg-gray-50'}`}
-                  >
-                    <img
-                      src={member.avatar}
-                      alt={member.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src =
-                          'https://placehold.co/48x48/E0E0E0/333333?text=user'
-                      }}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-lg">{member.name}</div>
-                        {member.role === 'Leader' && (
-                          <span className="text-sm font-medium text-blue-600">
-                            Leader
-                          </span>
-                        )}
-                      </div>
-                      {member.skill && (
-                        <p className="text-sm text-gray-600">{member.skill}</p>
-                      )}
-                      {member.email && (
-                        <p className="text-sm text-gray-600">{member.email}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* 日曆區塊 */}
-          <section className="bg-white border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300">
-              團 · 練 · 時 · 間
-            </h2>
-            <div className="flex justify-between items-center mb-4">
-              {/* 月份切換按鈕 */}
-              <button
-                onClick={() => handleMonthChange(-1)}
-                className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-                aria-label="上一個月"
-              >
-                <ChevronLeft className="w-6 h-6 text-gray-600" />
-              </button>
-              {/* 顯示當前年月 */}
-              <div className="text-2xl font-bold text-gray-900">
-                {displayDate.toLocaleDateString('zh-TW', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </div>
-              <button
-                onClick={() => handleMonthChange(1)}
-                className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-                aria-label="下一個月"
-              >
-                <ChevronRight className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
-            {/* 新增的「圈選」和「清除」按鈕 */}
-            <div className="flex justify-end gap-2 mb-4">
-              <button
-                onClick={handleSelectMode}
-                className={`flex items-center gap-1 text-sm rounded-lg px-2 py-1 transition-colors ${currentMode === 'select' ? 'bg-green-100 text-green-600' : 'text-gray-600 hover:bg-gray-200'}`}
-              >
-                <CheckCircle className="w-4 h-4" />
-                圈選
-              </button>
-              <button
-                onClick={handleClearMode}
-                className={`flex items-center gap-1 text-sm rounded-lg px-2 py-1 transition-colors ${currentMode === 'clear' ? 'bg-red-100 text-red-500' : 'text-gray-600 hover:bg-gray-200'}`}
-              >
-                <XCircle className="w-4 h-4" />
-                清除
-              </button>
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center font-bold text-gray-600 mb-2">
-              <div>一</div>
-              <div>二</div>
-              <div>三</div>
-              <div>四</div>
-              <div>五</div>
-              <div>六</div>
-              <div>日</div>
-            </div>
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map((day, index) => {
-                const dateString = day.date.toISOString().split('T')[0]
-                const isSelected = selectedDates.has(dateString)
-                const isToday =
-                  day.date.toDateString() === new Date().toDateString()
-
-                return (
-                  <div
-                    key={index}
-                    onClick={() => handleDayClick(day)}
-                    className={`
-                      p-2 rounded-full transition-colors duration-200 cursor-pointer text-center relative
-                      ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
-                      ${isSelected ? 'bg-red-500 text-white' : 'hover:bg-blue-200'}
-                      ${isToday && !isSelected ? 'border-2 border-blue-500 rounded-full' : ''}
-                    `}
-                  >
-                    {day.date.getDate()}
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
-          {/* 訊息板區塊 */}
-          <section className="bg-white border border-gray-300 rounded-lg p-6 flex flex-col">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300">
-              Team XXXXXX
-            </h2>
-
-            {/* 新增的隊員頭像列表 (點擊可滾動) */}
-            <div className="flex justify-center -space-x-2 mb-4">
-              {teamMembers.map((member) => (
-                <img
-                  key={member.id}
-                  className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer hover:scale-110 transition-transform"
-                  src={member.avatar}
-                  alt={member.name}
-                  onClick={() => scrollToMember(member.id)} // 添加點擊事件
-                  onError={(e) => {
-                    e.target.onerror = null
-                    e.target.src =
-                      'https://placehold.co/40x40/E0E0E0/333333?text=user'
-                  }}
-                />
+      <HeroBanner
+        backgroundImage="/banner/team-banner.jpg"
+        title="馬上加入團隊"
+        overlayOpacity="bg-primary/10"
+      ></HeroBanner>
+      <div className="container mx-auto max-w-screen-xl px-4 gap-8">
+        <div className="w-full h-[814px] max-w-[1140px] py-20 flex flex-col justify-center items-center gap-8">
+          <h1 className="text-3xl font-bold mb-6 text-center text-popover dark:text-popover-foreground">
+            你隸屬的隊伍資訊
+          </h1>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">隊伍名稱</TableHead>
+                <TableHead>隊伍成立時間</TableHead>
+                <TableHead>隊伍人數</TableHead>
+                <TableHead>運動種類</TableHead>
+                <TableHead>運動場館地點</TableHead>
+                <TableHead>傳送門</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockTeams.map((team) => (
+                <TableRow key={team.id}>
+                  <TableCell className="font-medium text-lg text-blue-600 dark:text-blue-400">
+                    {team.teamName}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground dark:text-ring">
+                    {team.establishmentDate}
+                  </TableCell>
+                  <TableCell className="text-center font-mono">
+                    {team.memberCount}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground dark:text-ring">
+                    {team.sport}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground dark:text-ring">
+                    {team.venue}
+                  </TableCell>
+                  <TableCell>
+                    <Link href="/team/ourteam/teampage" passHref>
+                      <Button
+                        variant="default"
+                        size="lg"
+                        className="bg-gradient-to-r from-highlight to-primary relative group"
+                      >
+                        {/* 遮罩效果 */}
+                        <div
+                          className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out
+                                 group-hover:opacity-30 pointer-events-none z-0"
+                        ></div>
+                        {/* 按鈕文字 */}
+                        <span className="justify-start text-popover font-bold leading-7 z-10">
+                          Door
+                        </span>
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
               ))}
-            </div>
+              <TableCaption className="text-muted-foreground dark:text-ting">
+                一份模擬的運動隊伍列表。
+              </TableCaption>
+            </TableBody>
+          </Table>
 
-            {/* 訊息容器，有固定高度和滾動條 */}
-            <div className="flex-1 overflow-y-auto h-[200px] border border-gray-300 rounded-lg p-4 mb-4">
-              <div className="flex flex-col gap-4">
-                {messages.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-4">
-                    <img
-                      src={msg.avatar}
-                      alt={msg.name}
-                      className="w-8 h-8 rounded-full object-cover" // 縮小頭像尺寸
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src =
-                          'https://placehold.co/32x32/E0E0E0/333333?text=user'
-                      }}
-                    />
-                    <div>
-                      <p className="font-bold">{msg.name}</p>
-                      <p className="text-sm text-gray-600">{msg.message}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* <--- 這裡開始是按鈕群組的修改 ---> */}
+          <div className="self-stretch inline-flex justify-between items-start">
+            {/* 使用 <Link> 包裹 <Button>，導航至 /team */}
+            <Link href="/team" passHref>
+              <Button
+                variant="default"
+                size="lg"
+                className="bg-gradient-to-r from-highlight to-primary relative group"
+              >
+                {/* 遮罩效果 */}
+                <div
+                  className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out
+                                 group-hover:opacity-30 pointer-events-none z-0"
+                ></div>
+                {/* 按鈕文字 */}
+                <span className="justify-start text-popover font-bold leading-7 z-10">
+                  返回上一頁
+                </span>
+              </Button>
+            </Link>
 
-            {/* 訊息輸入框 */}
-            <div className="mt-auto flex items-center gap-2">
-              <img
-                src={avatarUrls[1]} // 當前使用者的頭像佔位符
-                alt="user avatar"
-                className="w-10 h-10 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null
-                  e.target.src =
-                    'https://placehold.co/40x40/E0E0E0/333333?text=user'
-                }}
-              />
-              <div className="flex-1 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="請輸入訊息內容"
-                  className="flex-1 p-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSendMessage()
-                  }}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  發送
-                </button>
-              </div>
-            </div>
-          </section>
-          <h2 className="text-2xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-white">
-            更 · 多 · 可 · 能
-          </h2>
+            {/* 「儲存」按鈕 */}
+            <Button
+              variant="default"
+              size="lg"
+              className="bg-gradient-to-r from-highlight to-primary relative group"
+            >
+              {/* 遮罩效果 */}
+              <div
+                className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out
+                                 group-hover:opacity-30 pointer-events-none z-0"
+              ></div>
+              {/* 按鈕文字 */}
+              <span className="justify-start text-popover font-bold leading-7 z-10">
+                儲存
+              </span>
+            </Button>
+          </div>
+          {/* <--- 按鈕群組的修改結束 ---> */}
         </div>
-      </main>
+      </div>
       <Footer />
     </>
   )
 }
-
-export default App
