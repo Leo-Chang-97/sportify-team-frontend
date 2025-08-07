@@ -4,6 +4,7 @@ import { Heart, Star, Eye, ClipboardCheck } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +22,7 @@ import {
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
 import { getCenterImageUrl } from '@/api/venue/image'
+import { useVenue } from '@/contexts/venue-context'
 
 export function CenterCard({
   className,
@@ -29,6 +31,8 @@ export function CenterCard({
   variant = 'default',
   ...props
 }) {
+  const router = useRouter()
+  const { setVenueData } = useVenue()
   const [isHovered, setIsHovered] = React.useState(false)
   const [isInWishlist, setIsInWishlist] = React.useState(false)
 
@@ -40,8 +44,20 @@ export function CenterCard({
     }
   }
 
+  const handleReservation = (e) => {
+    e.preventDefault()
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      location: data.location.name,
+      centerId: data.id,
+      locationId: data.location.id,
+    }))
+    router.push('/venue/reservation')
+  }
+
   const renderStars = () => {
-    const rating = data.rating ?? 0
+    const rating = data.averageRating ?? 0
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 >= 0.5
 
@@ -55,14 +71,14 @@ export function CenterCard({
                 ? 'fill-yellow-400 text-yellow-400'
                 : i === fullStars && hasHalfStar
                   ? 'fill-yellow-400/50 text-yellow-400'
-                  : 'stroke-muted/40 text-muted'
+                  : 'stroke-yellow-400 text-muted'
             )}
             key={`star-${data.id}-position-${i + 1}`}
           />
         ))}
         {rating > 0 && (
           <span className="ml-1 text-xs text-muted-foreground">
-            {rating.toFixed(1)}
+            {Number(rating).toFixed(1)}
           </span>
         )}
       </div>
@@ -185,21 +201,18 @@ export function CenterCard({
 
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
-            <Link href={`/venue/${data.id}`} className="w-full flex-1">
-              <Button
-                variant="secondary"
-                className="w-full hover:bg-primary/10"
-              >
-                詳細
-                <Eye />
-              </Button>
-            </Link>
-            <Link href="/venue/reservation" className="w-full flex-1">
-              <Button className="w-full">
-                預訂
-                <ClipboardCheck />
-              </Button>
-            </Link>
+            <Button
+              onClick={() => router.push(`/venue/${data.id}`)}
+              variant="secondary"
+              className="hover:bg-primary/10 w-full flex-1"
+            >
+              詳細
+              <Eye />
+            </Button>
+            <Button onClick={handleReservation} className="w-full flex-1">
+              預訂
+              <ClipboardCheck />
+            </Button>
           </CardFooter>
         )}
 
