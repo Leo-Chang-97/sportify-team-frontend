@@ -90,6 +90,7 @@ const paymentOptions = [
     ),
     component: <CreditCardForm />,
   },
+
   {
     id: '2',
     label: 'LINE Pay',
@@ -106,11 +107,11 @@ const paymentOptions = [
   },
   {
     id: '3',
-    label: 'Apple Pay',
+    label: '綠界金流',
     subtitle: (
       <Image
-        src="/payment-pic/applepay.svg"
-        alt="Apple Pay"
+        src="/payment-pic/ecpay.svg"
+        alt="ECPay"
         width={80}
         height={24}
         style={{ display: 'inline-block' }}

@@ -63,15 +63,15 @@ const paymentOptions = [
   {
     id: '2',
     label: '綠界金流',
-    // subtitle: (
-    //   <Image
-    //     src="/payment-pic/linepay.svg"
-    //     alt="LINE Pay"
-    //     width={80}
-    //     height={24}
-    //     style={{ display: 'inline-block' }}
-    //   />
-    // ),
+    subtitle: (
+      <Image
+        src="/payment-pic/ecpay.svg"
+        alt="ECPay"
+        width={80}
+        height={24}
+        style={{ display: 'inline-block' }}
+      />
+    ),
     component: null,
   },
   {
