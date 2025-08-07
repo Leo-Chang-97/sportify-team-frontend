@@ -2,6 +2,7 @@
 
 // ===== 依賴項匯入 =====
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   createProduct,
@@ -496,9 +497,11 @@ export default function ProductForm({
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.images.map((image, index) => (
                       <div key={index} className="relative">
-                        <img
+                        <Image
                           src={URL.createObjectURL(image)}
                           alt={`預覽 ${index + 1}`}
+                          width={80}
+                          height={80}
                           className="w-20 h-20 object-cover rounded border"
                         />
                         <button
@@ -525,9 +528,11 @@ export default function ProductForm({
                         typeof image === 'object' ? image.url : image
                       return (
                         <div key={index} className="relative">
-                          <img
+                          <Image
                             src={getProductImageUrl(imageFileName)}
                             alt={`現有圖片 ${index + 1}`}
+                            width={80}
+                            height={80}
                             className="w-20 h-20 object-cover rounded border"
                             onError={(e) => {
                               e.target.style.border = '2px solid red'

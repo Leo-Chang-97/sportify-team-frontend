@@ -30,7 +30,7 @@ export const orderColumns = [
   },
   { accessorKey: 'id', header: '編號', sortable: true },
   {
-    accessorKey: 'memberId',
+    accessorKey: 'member_id',
     header: '會員ID',
     cell: ({ row, table }) => {
       const value = row.original.memberId ?? row.original.member_id ?? '—'
@@ -57,46 +57,65 @@ export const orderColumns = [
     },
   },
   {
-    accessorKey: 'delivery',
+    accessorKey: 'delivery_name',
     header: '物流方式',
     cell: ({ row, table }) => {
-      const value = row.original.delivery ?? '—'
+      const value = row.original.delivery_name || '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
   },
   {
-    accessorKey: 'payment',
+    accessorKey: 'payment_name',
     header: '付款方式',
     cell: ({ row, table }) => {
-      const value = row.original.payment ?? '—'
+      const value = row.original.payment_name || '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
   },
   {
-    accessorKey: 'status',
+    accessorKey: 'invoice_name',
+    header: '發票類型',
+    cell: ({ row, table }) => {
+      const value = row.original.invoice_name || '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'invoice_number',
+    header: '發票號碼',
+    cell: ({ row, table }) => {
+      const value =
+        row.original.invoice_number ?? row.original.invoiceNumber ?? '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'status_name',
     header: '訂單狀態',
     cell: ({ row, table }) => {
-      const value = row.original.status ?? '—'
+      const value = row.original.status_name || '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
   },
   {
-    accessorKey: 'createdAt',
+    accessorKey: 'created_at',
     header: '創建時間',
     cell: ({ row, table }) => {
-      const value = row.original.created_at ?? '—'
+      const value = row.original.createdAt ?? row.original.created_at ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },
   },
   {
-    accessorKey: 'updatedAt',
+    accessorKey: 'updated_at',
     header: '更新時間',
     cell: ({ row, table }) => {
-      const value = row.original.updated_at ?? '—'
+      const value = row.original.updatedAt ?? row.original.updated_at ?? '—'
       const highlightKeyword = table.options.meta?.highlightKeyword
       return highlightKeyword ? highlightKeyword(value) : value
     },

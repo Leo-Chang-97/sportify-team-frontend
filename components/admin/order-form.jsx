@@ -21,14 +21,16 @@ import {
 } from '@/components/ui/card'
 import { toast } from 'sonner'
 import {
-  fetchOrder,
-  createOrder,
+  getOrderById,
+  createAdminOrder,
   updateOrder,
-  fetchDelivery,
-  fetchPayment,
-  fetchInvoice,
-  fetchOrderStatus,
-} from '@/api'
+} from '@/api/admin/shop/order'
+import {
+  fetchDeliveryOptions,
+  fetchPaymentOptions,
+  fetchInvoiceOptions,
+  fetchStatusOptions,
+} from '@/api/common'
 import { fetchAllProductsOrder } from '@/api/admin/shop/product'
 
 export default function OrderForm({
@@ -84,19 +86,21 @@ export default function OrderForm({
           orderStatusData,
           productData,
         ] = await Promise.all([
-          fetchDelivery(),
-          fetchPayment(),
-          fetchInvoice(),
-          fetchOrderStatus(),
+          fetchDeliveryOptions(),
+          fetchPaymentOptions(),
+          fetchInvoiceOptions(),
+          fetchStatusOptions(),
           fetchAllProductsOrder(),
         ])
-        setDelivery(deliveryData.data || [])
-        setPayment(paymentData.data || [])
-        setInvoice(invoiceData.data || [])
-        setOrderStatus(orderStatusData.data || [])
+
+        setDelivery(deliveryData.rows || [])
+        setPayment(paymentData.rows || [])
+        setInvoice(invoiceData.rows || [])
+        setOrderStatus(orderStatusData.rows || [])
         setProducts(productData.data || [])
       } catch (error) {
-        toast.error('載入選項失敗')
+        console.error('載入選項失敗:', error)
+        toast.error('載入選項失敗: ' + (error.message || '未知錯誤'))
       }
     }
     loadOptions()
@@ -104,7 +108,12 @@ export default function OrderForm({
 
   // ===== 載入現有訂單資料（僅編輯模式）=====
   useEffect(() => {
-    if (mode !== 'edit' || !orderId || payment.length === 0) {
+    if (
+      mode !== 'edit' ||
+      !orderId ||
+      payment.length === 0 ||
+      invoice.length === 0
+    ) {
       if (mode !== 'edit') {
         setIsDataLoading(false)
         setIsInitialLoad(false)
@@ -114,7 +123,7 @@ export default function OrderForm({
     const loadOrder = async () => {
       try {
         setIsDataLoading(true)
-        const orderData = await fetchOrder(orderId)
+        const orderData = await getOrderById(orderId)
 
         if (orderData.code === 200 && orderData.data) {
           const data = orderData.data
@@ -131,28 +140,20 @@ export default function OrderForm({
             item_status: item.item_status || 'active', // 商品項目狀態
           }))
 
-          // 處理物流方式的值轉換（後端儲存為中文，前端下拉選單需要 value）
-          const deliveryValue =
-            data.delivery === '7-11' ? 'seven' : data.delivery
-
-          // 處理付款方式：根據後端返回的 payment name 找到對應的 payment ID
-          const paymentValue =
-            payment.find((p) => p.name === data.payment)?.id?.toString() || ''
-
           const formDataToSet = {
             memberId: data.member_id?.toString() || '',
             total: data.total?.toString() || '',
             recipient: data.recipient || '',
             phone: data.phone || '',
             address: data.address || '',
-            delivery: deliveryValue, // 使用轉換後的值
+            delivery: data.delivery_id?.toString() || '',
             fee: data.fee !== undefined ? data.fee.toString() : '',
-            payment: paymentValue, // 使用 payment ID
-            invoice: data.invoice?.type || '',
+            payment: data.payment_id?.toString() || '',
+            invoice: data.invoice?.id?.toString() || '',
             invoiceNumber: data.invoice?.number || '',
             invoiceCarrier: data.invoice?.carrier || '',
-            invoiceTaxId: data.invoice?.taxid || '',
-            status: data.status || '',
+            invoiceTaxId: data.invoice?.tax || '',
+            status: data.status_id?.toString() || '',
             items: processedItems,
             // 信用卡相關欄位（目前不從後端載入，保持空值）
             creditCardNumber: '',
@@ -164,6 +165,7 @@ export default function OrderForm({
           setFormData(formDataToSet)
         }
       } catch (error) {
+        console.error('載入訂單資料失敗:', error)
         toast.error('載入訂單資料失敗')
       } finally {
         setIsDataLoading(false)
@@ -171,19 +173,41 @@ export default function OrderForm({
       }
     }
     loadOrder()
-  }, [mode, orderId, payment]) // 加入 payment 依賴，確保 payment 數據載入後再執行
+  }, [mode, orderId, payment, invoice]) // 加入 invoice 依賴，確保 invoice 數據載入後再執行
 
   // ===== 事件處理函數 =====
   const handleInputChange = (name, value) => {
     // 選擇物流方式時自動帶入運費
     if (name === 'delivery' && !isInitialLoad) {
       let fee = ''
-      if (value === 'seven' || value === '全家') fee = 60
-      else if (value === '宅配') fee = 100
-      setFormData((prev) => ({ ...prev, delivery: value, fee }))
+      // 根據物流方式 ID 設定運費
+      if (value === '1' || value === '2')
+        fee = 60 // 7-11 或全家
+      else if (value === '3') fee = 100 // 宅配
+
+      // 如果不是宅配，清空地址
+      const addressValue = value === '3' ? formData.address : ''
+      setFormData((prev) => ({
+        ...prev,
+        delivery: value,
+        fee,
+        address: addressValue,
+      }))
+
+      // 清除地址相關錯誤
+      if (value !== '3') {
+        setErrors((prev) => ({ ...prev, address: '' }))
+      }
     } else if (name === 'delivery') {
-      setFormData((prev) => ({ ...prev, delivery: value }))
+      // 初始載入時的處理
+      const addressValue = value === '3' ? formData.address : ''
+      setFormData((prev) => ({
+        ...prev,
+        delivery: value,
+        address: addressValue,
+      }))
     } else if (name === 'invoice') {
+      // 清空發票相關欄位當切換發票類型時
       setFormData((prev) => ({
         ...prev,
         invoice: value,
@@ -191,6 +215,7 @@ export default function OrderForm({
         invoiceTaxId: '',
       }))
     } else if (name === 'payment') {
+      // 清空信用卡相關欄位當切換付款方式時
       setFormData((prev) => ({
         ...prev,
         payment: value,
@@ -286,12 +311,9 @@ export default function OrderForm({
     setIsLoading(true)
 
     try {
-      // 信用卡付款模擬處理（暫時不送到後端）
-      // 根據 payment ID 判斷是否為信用卡（ID 為 1）
-      const selectedPayment = payment.find(
-        (p) => p.id.toString() === formData.payment
-      )
-      if (selectedPayment && selectedPayment.name === '信用卡') {
+      // 信用卡付款模擬處理（當付款方式為綠界金流時）
+      // 綠界金流 (ID: 1)
+      if (formData.payment === '1') {
         // TODO: 未來這裡會串接第三方支付API (如綠界、藍新等)
         // 目前暫時模擬信用卡付款成功
         console.log('模擬信用卡付款處理:', {
@@ -311,24 +333,19 @@ export default function OrderForm({
         // }
       }
 
-      // 物流方式值轉換（前端下拉選單值轉換為後端期望的值）
-      const deliveryForSubmit =
-        formData.delivery === 'seven' ? '7-11' : formData.delivery
-
       const submitData = {
         member_id: formData.memberId,
         total: calculateOrderTotal(),
         fee: Number(formData.fee),
         recipient: formData.recipient,
         phone: formData.phone,
-        address: formData.address,
-        delivery: deliveryForSubmit,
-        payment: formData.payment, // 保持字串格式，對應後端的 paymentId
-        status: formData.status,
-        invoice_type: formData.invoice,
-        invoice_number: formData.invoiceNumber || '', // 新增時為空，後端會自動產生
-        carrier: formData.invoice === '載具' ? formData.invoiceCarrier : '',
-        taxid: formData.invoice === '統編' ? formData.invoiceTaxId : '',
+        address: formData.delivery === '3' ? formData.address : '', // 只有宅配才送出地址
+        deliveryId: formData.delivery,
+        paymentId: formData.payment,
+        statusId: formData.status,
+        invoiceId: formData.invoice,
+        carrier: formData.invoice === '3' ? formData.invoiceCarrier : null,
+        tax: formData.invoice === '2' ? formData.invoiceTaxId : null,
         items: formData.items
           .filter((item) => {
             // 保留已下架的商品（有 item_id 且 is_removed 為 1）
@@ -355,7 +372,7 @@ export default function OrderForm({
       if (mode === 'edit' && orderId) {
         result = await updateOrder(orderId, submitData)
       } else {
-        result = await createOrder(submitData)
+        result = await createAdminOrder(submitData)
       }
       if (result.success || result.code === 200) {
         toast.success(mode === 'edit' ? '編輯訂單成功！' : '新增訂單成功！')
@@ -462,20 +479,6 @@ export default function OrderForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address">地址</Label>
-              <Input
-                id="address"
-                type="text"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="請輸入地址"
-                className={errors.address ? 'border-red-500' : ''}
-              />
-              {errors.address && (
-                <p className="text-sm text-red-500 mt-1">{errors.address}</p>
-              )}
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="delivery">
                 物流方式<span className="text-red-500">*</span>
               </Label>
@@ -492,9 +495,12 @@ export default function OrderForm({
                   {delivery.length === 0 ? (
                     <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
                   ) : (
-                    delivery.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
+                    delivery.map((item, idx) => (
+                      <SelectItem
+                        key={`delivery-${item.id}-${idx}`}
+                        value={item.id.toString()}
+                      >
+                        {item.name}
                       </SelectItem>
                     ))
                   )}
@@ -504,6 +510,25 @@ export default function OrderForm({
                 <p className="text-sm text-red-500 mt-1">{errors.delivery}</p>
               )}
             </div>
+            {/* 只有選擇宅配時才顯示地址欄位 */}
+            {formData.delivery === '3' && (
+              <div className="space-y-2">
+                <Label htmlFor="address">
+                  收件地址<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="address"
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="請輸入收件地址"
+                  className={errors.address ? 'border-red-500' : ''}
+                />
+                {errors.address && (
+                  <p className="text-sm text-red-500 mt-1">{errors.address}</p>
+                )}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="fee">運費</Label>
               <Input
@@ -531,14 +556,16 @@ export default function OrderForm({
                   {payment.length === 0 ? (
                     <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
                   ) : (
-                    payment.map((item, idx) => (
-                      <SelectItem
-                        key={item.id + '-' + idx}
-                        value={item.id.toString()}
-                      >
-                        {item.name === 'Line_Pay' ? 'Line Pay' : item.name}
-                      </SelectItem>
-                    ))
+                    payment
+                      .filter((item) => item.id && item.id !== '') // 過濾掉空值
+                      .map((item, idx) => (
+                        <SelectItem
+                          key={`payment-${item.id}-${idx}`}
+                          value={item.id.toString()}
+                        >
+                          {item.name}
+                        </SelectItem>
+                      ))
                   )}
                 </SelectContent>
               </Select>
@@ -547,9 +574,9 @@ export default function OrderForm({
               )}
             </div>
 
-            {/* 信用卡輸入框 - 當付款方式為信用卡時顯示 */}
-            {payment.find((p) => p.id.toString() === formData.payment)?.name ===
-              '信用卡' && (
+            {/* 信用卡輸入框 - 當付款方式為綠界金流時顯示 */}
+            {/* 綠界金流 (ID: 1) */}
+            {formData.payment === '1' && (
               <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
                 <h3 className="text-sm font-semibold text-gray-700">
                   信用卡資訊
@@ -698,8 +725,11 @@ export default function OrderForm({
                     <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
                   ) : (
                     invoice.map((item, idx) => (
-                      <SelectItem key={item.type + '-' + idx} value={item.type}>
-                        {item.type}
+                      <SelectItem
+                        key={`invoice-${item.id}-${idx}`}
+                        value={item.id.toString()}
+                      >
+                        {item.name}
                       </SelectItem>
                     ))
                   )}
@@ -711,7 +741,8 @@ export default function OrderForm({
             </div>
 
             {/* 發票詳細資訊欄位 */}
-            {formData.invoice === '載具' && (
+            {/* 電子載具 (ID: 3) */}
+            {formData.invoice === '3' && (
               <div className="space-y-2">
                 <Label htmlFor="invoiceCarrier">
                   載具號碼<span className="text-red-500">*</span>
@@ -734,7 +765,8 @@ export default function OrderForm({
               </div>
             )}
 
-            {formData.invoice === '統編' && (
+            {/* 統一編號 (ID: 2) */}
+            {formData.invoice === '2' && (
               <div className="space-y-2">
                 <Label htmlFor="invoiceTaxId">
                   統一編號<span className="text-red-500">*</span>
@@ -791,10 +823,10 @@ export default function OrderForm({
                   ) : (
                     orderStatus.map((item, idx) => (
                       <SelectItem
-                        key={item.status + '-' + idx}
-                        value={item.status.toString()}
+                        key={`status-${item.id}-${idx}`}
+                        value={item.id.toString()}
                       >
-                        {item.status}
+                        {item.name}
                       </SelectItem>
                     ))
                   )}
@@ -870,17 +902,19 @@ export default function OrderForm({
                                 </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
-                                {products.map((p) => {
-                                  const price = p?.price || 0
-                                  return (
-                                    <SelectItem
-                                      key={`product-option-${p.id}`}
-                                      value={p.id.toString()}
-                                    >
-                                      {p.name}
-                                    </SelectItem>
-                                  )
-                                })}
+                                {products
+                                  .filter((p) => p.id && p.id !== '') // 過濾掉空值
+                                  .map((p, idx) => {
+                                    const price = p?.price || 0
+                                    return (
+                                      <SelectItem
+                                        key={`product-option-${p.id}-${idx}`}
+                                        value={p.id.toString()}
+                                      >
+                                        {p.name}
+                                      </SelectItem>
+                                    )
+                                  })}
                               </SelectContent>
                             </Select>
                           )}

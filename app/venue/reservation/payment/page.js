@@ -41,7 +41,7 @@ import PaymentMethodSelector, {
 } from '@/components/payment-method-selector'
 import ReceiptTypeSelector, {
   receiptOptions,
-} from '@/components/receipt-type-selector'
+} from '@/components/shop-receipt-type-selector'
 
 export default function PaymentPage() {
   // #region 路由和URL參數
