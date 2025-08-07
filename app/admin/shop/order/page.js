@@ -11,16 +11,18 @@ import { DataTable } from '@/components/admin/data-table'
 import { orderColumns } from './columns'
 import useSWR from 'swr'
 import {
-  fetchOrders,
-  fetchOrder,
-  createOrder,
+  getAllOrders,
+  getOrderById,
+  createAdminOrder,
   updateOrder,
   deleteOrder,
-  fetchDelivery,
-  fetchPayment,
-  fetchInvoice,
-  fetchOrderStatus,
-} from '@/api'
+} from '@/api/admin/shop/order'
+import {
+  fetchDeliveryOptions,
+  fetchPaymentOptions,
+  fetchInvoiceOptions,
+  fetchStatusOptions,
+} from '@/api/common'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -102,26 +104,24 @@ export default function OrderPage() {
     error,
     mutate,
   } = useSWR(['orders', queryParams], async ([, params]) => {
-    return fetchOrders(params)
+    return getAllOrders(params)
   })
 
   // ===== 副作用處理 =====
   useEffect(() => {
     const loadData = async () => {
       try {
-        const deliveryData = await fetchDelivery()
-        setDelivery(deliveryData.data || [])
+        const deliveryData = await fetchDeliveryOptions()
+        setDelivery(deliveryData.rows || [])
 
-        const paymentData = await fetchPayment()
-        setPayment(paymentData.data || [])
+        const paymentData = await fetchPaymentOptions()
+        setPayment(paymentData.rows || [])
 
-        // invoiceTypes: 只取 type 欄位
-        const invoiceData = await fetchInvoice()
-        // 若 API 回傳格式為 [{type: '統一發票'}, ...]
-        setInvoiceTypes(invoiceData.data || [])
+        const invoiceData = await fetchInvoiceOptions()
+        setInvoiceTypes(invoiceData.rows || [])
 
-        const orderStatusData = await fetchOrderStatus()
-        setOrderStatus(orderStatusData.data || [])
+        const orderStatusData = await fetchStatusOptions()
+        setOrderStatus(orderStatusData.rows || [])
       } catch (error) {
         console.error('載入選項失敗:', error)
         toast.error('載入選項失敗')
@@ -192,7 +192,7 @@ export default function OrderPage() {
         result = await updateOrder(editingOrder.id, submitData)
       } else {
         // 新增模式
-        result = await createOrder(submitData)
+        result = await createAdminOrder(submitData)
       }
 
       console.log('API 回應:', result) // Debug 用
@@ -324,12 +324,12 @@ export default function OrderPage() {
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
   // ===== Debug 資料格式 =====
-  /*console.log('完整資料:', data)
+  console.log('完整資料:', data)
   console.log('資料結構:', JSON.stringify(data, null, 2))
-  if (data?.rows && data.rows.length > 0) {
-    console.log('第一筆資料:', data.rows[0])
-    console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
-  }*/
+  if (data?.data && data.data.length > 0) {
+    console.log('第一筆資料:', data.data[0])
+    console.log('第一筆資料的 keys:', Object.keys(data.data[0]))
+  }
 
   // ===== 頁面渲染 =====
   return (

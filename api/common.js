@@ -74,3 +74,21 @@ export const fetchBrandOptions = async () => {
   const res = await apiClient.get('/common/brand')
   return res.data
 }
+
+// 獲取物流方式選項
+export const fetchDeliveryOptions = async () => {
+  const res = await apiClient.get('/common/delivery')
+  return res.data
+}
+
+// 獲取付款方式選項
+export const fetchPaymentOptions = async () => {
+  const res = await apiClient.get('/common/payment')
+  return res.data
+}
+
+// 獲取發票類型選項
+export const fetchInvoiceOptions = async () => {
+  const res = await apiClient.get('/common/invoice')
+  return res.data
+}

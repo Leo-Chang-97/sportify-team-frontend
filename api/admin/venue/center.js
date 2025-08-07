@@ -1,33 +1,33 @@
-import { apiClient, adminApiClient } from '@/api/axios'
+import { apiClient } from '@/api/axios'
 
 export const fetchCenters = async (params = {}) => {
   const query = new URLSearchParams(params).toString()
-  const res = await adminApiClient.get(`/venue/center?${query}`)
+  const res = await apiClient.get(`/venue/center?${query}`)
   return res.data
 }
 
 export const fetchCenter = async (id) => {
-  const res = await adminApiClient.get(`/venue/center/${id}`)
+  const res = await apiClient.get(`/venue/center/${id}`)
   return res.data
 }
 
 export const createCenter = async (data) => {
-  const res = await adminApiClient.post('/venue/center', data)
+  const res = await apiClient.post('/venue/center', data)
   return res.data
 }
 
 export const deleteCenter = async (deletedId) => {
-  const res = await adminApiClient.delete(`/venue/center/${deletedId}`)
+  const res = await apiClient.delete(`/venue/center/${deletedId}`)
   return res.data
 }
 
 export const updateCenter = async (id, data) => {
-  const res = await adminApiClient.put(`/venue/center/${id}`, data)
+  const res = await apiClient.put(`/venue/center/${id}`, data)
   return res.data
 }
 
 export const deleteMultipleCenters = async (checkedItems) => {
-  const res = await adminApiClient.delete('/venue/center/multi', {
+  const res = await apiClient.delete('/venue/center/multi', {
     data: { checkedItems },
   })
   return res.data

@@ -1,80 +1,65 @@
 'use client'
 
 import { Heart, ShoppingCart } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
-import * as React from 'react'
-
+import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 
-// ...existing code...
-
 export function ProductCard({
   className,
   onAddToCart,
   onAddToWishlist,
   product,
+  isFavorited: initialIsFavorited,
   variant = 'default',
   ...props
 }) {
-  // 防呆：如果沒傳 product，給預設值
-  const safeProduct = product || {
-    name:"",
-    price: 0,
-    sport_name: "",
-    brand_name: "",
-    image_url: "",
-  }
-  const [isHovered, setIsHovered] = React.useState(false)
-  const [isAddingToCart, setIsAddingToCart] = React.useState(false)
-  const [isInWishlist, setIsInWishlist] = React.useState(false)
-  const [isMounted, setIsMounted] = React.useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isInWishlist, setIsInWishlist] = useState(initialIsFavorited || false) // 初始狀態從 props 傳入
+  const [isMounted, setIsMounted] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsMounted(true)
   }, [])
 
+  // 當 initialIsFavorited prop 改變時，更新本地狀態
+  useEffect(() => {
+    setIsInWishlist(initialIsFavorited || false)
+  }, [initialIsFavorited])
+
   // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
-  const image = safeProduct.img || safeProduct.image // 支援 img 和 image 兩種屬性名稱
+  const image = product?.img || product?.image // 支援 img 和 image 兩種屬性名稱
   const imageFileName =
-    safeProduct.image_url ||
+    product?.image_url ||
     (typeof image === 'object' && image !== null ? image.url : image)
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.preventDefault()
     if (onAddToCart) {
-      setIsAddingToCart(true)
-      // Simulate API call
-      setTimeout(() => {
-        onAddToCart(safeProduct.id)
-        setIsAddingToCart(false)
-      }, 600)
+      setIsAddingToCart(true) // 設定正在加入購物車的狀態
+      const result = await onAddToCart(product?.id, 1)
+      setIsAddingToCart(false)
     }
   }
 
-  const handleAddToWishlist = (e) => {
+  const handleAddToWishlist = async (e) => {
     e.preventDefault()
     if (onAddToWishlist) {
-      setIsInWishlist(!isInWishlist)
-      onAddToWishlist(safeProduct.id)
+      const result = await onAddToWishlist(product?.id)
+      setIsInWishlist(!!result?.favorited) // 根據後端回傳結果設定狀態
     }
   }
-
-  const discount = safeProduct.originalPrice
-    ? Math.round(
-        ((safeProduct.originalPrice - safeProduct.price) /
-          safeProduct.originalPrice) *
-          100
-      )
-    : 0
 
   return (
     <div className={cn('group', className)} {...props}>
-      <Link href={`/shop/list/1`}>
-        {/* <Link href={`/shop/product/${safeProduct.id}`}> */}
+      {/* <Link href={`/shop/1`}> */}
+      <Link href={`/shop/${product?.id}`}>
         <Card
           className={cn(
             `
@@ -91,25 +76,27 @@ export function ProductCard({
             ratio={4 / 3}
             className="bg-muted overflow-hidden rounded-t-lg relative"
           >
-            {/* {safeProduct.image && (
+            {/* {product?.image && (
               <Image
-                alt={safeProduct.name}
+                alt={product?.name}
                 className={cn(
                   'object-cover transition-transform duration-300 ease-in-out',
                   isHovered && 'scale-105'
                 )}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                src={safeProduct.image}
+                src={product?.image}
               />
             )} */}
-            <img
-              alt={safeProduct.name || '商品圖片'}
+            <Image
+              alt={product?.name || '商品圖片'}
               className={cn(
                 'object-cover transition-transform duration-300 ease-in-out w-full h-full',
                 isHovered && 'scale-105'
               )}
               src={getProductImageUrl(imageFileName)}
+              width={300}
+              height={300}
             />
 
             {/* Wishlist button */}
@@ -120,7 +107,7 @@ export function ProductCard({
                     absolute right-2 bottom-2 z-10 rounded-full bg-background/80
                     backdrop-blur-sm transition-opacity duration-300
                   `,
-                  !isHovered && !isInWishlist && 'opacity-0'
+                  !isHovered && !isInWishlist ? 'opacity-0' : ''
                 )}
                 onClick={handleAddToWishlist}
                 size="icon"
@@ -144,11 +131,11 @@ export function ProductCard({
             {/* 運動和品牌 */}
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground font-medium">
-                {safeProduct.brand_name || safeProduct.brand || '—'}
+                {product?.brand_name || product?.brand || '—'}
               </span>
-              {safeProduct.sport_name && (
+              {product?.sport_name && (
                 <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                  {safeProduct.sport_name}
+                  {product?.sport_name}
                 </span>
               )}
             </div>
@@ -159,14 +146,14 @@ export function ProductCard({
                 group-hover:text-primary min-h-[56px]
               `}
             >
-              {safeProduct.name}
+              {product?.name}
             </h3>
 
             {variant === 'default' && (
               <>
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className="font-medium text-lg text-destructive">
-                    NTD${safeProduct.price}
+                    NTD${product?.price}
                   </span>
                 </div>
               </>
@@ -178,7 +165,8 @@ export function ProductCard({
               <Button
                 className={cn(
                   'w-full gap-2 transition-all',
-                  isAddingToCart && 'opacity-70'
+                  isAddingToCart && 'opacity-70',
+                  'cursor-pointer'
                 )}
                 disabled={!isMounted || isAddingToCart}
                 onClick={handleAddToCart}
@@ -203,11 +191,11 @@ export function ProductCard({
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-lg text-destructive">
-                    NTD${safeProduct.price}
+                    NTD${product?.price}
                   </span>
                 </div>
                 <Button
-                  className="h-8 w-8 rounded-full"
+                  className="h-8 w-8 rounded-full cursor-pointer"
                   disabled={!isMounted || isAddingToCart}
                   onClick={handleAddToCart}
                   size="icon"

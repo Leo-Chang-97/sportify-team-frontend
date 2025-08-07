@@ -45,54 +45,37 @@ const CreditCardForm = () => (
   </div>
 )
 
-const ATMForm = () => (
-  <div className="space-y-4 p-4 bg-accent/50 rounded-lg mt-3">
-    <div className="text-sm text-muted-foreground">
-      <p className="font-medium mb-2">轉帳資訊：</p>
-      <p>銀行代碼：822</p>
-      <p>帳號：123456789012</p>
-      <p>戶名：運動場地預約系統</p>
-      <p className="text-orange-600 mt-2">
-        ※ 請在完成轉帳後，保留轉帳明細供核對
-      </p>
-    </div>
-  </div>
-)
-
 const paymentOptions = [
   {
     id: '1',
-    label: '信用卡付款',
-    subtitle: (
-      <div>
-        <Image
-          src="/payment-pic/visa.svg"
-          alt="信用卡圖示-visa"
-          width={40}
-          height={24}
-          style={{ display: 'inline-block' }}
-        />
-        <Image
-          src="/payment-pic/mastercard.svg"
-          alt="信用卡圖示-mastercard"
-          width={40}
-          height={24}
-          style={{ display: 'inline-block' }}
-        />
-        <Image
-          src="/payment-pic/jcb.svg"
-          alt="信用卡圖示-jcb"
-          width={40}
-          height={24}
-          style={{ display: 'inline-block' }}
-        />
-      </div>
-    ),
-    component: <CreditCardForm />,
+    label: '貨到付款',
+    // subtitle: (
+    //   <Image
+    //     src="/payment-pic/applepay.svg"
+    //     alt="Apple Pay"
+    //     width={80}
+    //     height={24}
+    //     style={{ display: 'inline-block' }}
+    //   />
+    // ),
+    component: null, // 不顯示額外選項
   },
-
   {
     id: '2',
+    label: '綠界金流',
+    subtitle: (
+      <Image
+        src="/payment-pic/ecpay.svg"
+        alt="ECPay"
+        width={80}
+        height={24}
+        style={{ display: 'inline-block' }}
+      />
+    ),
+    component: null,
+  },
+  {
+    id: '3',
     label: 'LINE Pay',
     subtitle: (
       <Image
@@ -105,32 +88,6 @@ const paymentOptions = [
     ),
     component: null, // 不顯示額外選項
   },
-  {
-    id: '3',
-    label: '綠界金流',
-    subtitle: (
-      <Image
-        src="/payment-pic/ecpay.svg"
-        alt="ECPay"
-        width={80}
-        height={24}
-        style={{ display: 'inline-block' }}
-      />
-    ),
-    component: null, // 不顯示額外選項
-  },
-  {
-    id: '4',
-    label: 'ATM轉帳',
-    subtitle: '銀行轉帳付款',
-    component: <ATMForm />,
-  },
-  {
-    id: '5',
-    label: '超商代碼',
-    subtitle: '超商代碼繳費',
-    component: null, // 不顯示額外選項
-  },
 ]
 
 /**
@@ -138,17 +95,24 @@ const paymentOptions = [
  * @param {Object} props
  * @param {string} props.selectedPayment - 當前選中的付款方式ID
  * @param {function} props.onPaymentChange - 付款方式變更回調函數
+ * @param {Object} props.errors - 驗證錯誤物件
  * @param {string} props.className - 自定義樣式類名
  * @returns {JSX.Element}
  */
 export default function PaymentMethodSelector({
   selectedPayment,
   onPaymentChange,
+  errors = {},
   className = '',
 }) {
   return (
     <div className={`space-y-3 ${className}`}>
-      <Label className="text-base font-medium">選擇付款方式</Label>
+      <div className="flex items-center gap-2">
+        <Label className="text-base font-medium">選擇付款方式</Label>
+        {errors.payment && (
+          <span className="text-destructive text-sm">{errors.payment}</span>
+        )}
+      </div>
       <div className="space-y-2">
         <Choicebox value={selectedPayment} onValueChange={onPaymentChange}>
           {paymentOptions.map((option) => (
