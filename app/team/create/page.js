@@ -143,32 +143,37 @@ export default function createTeamPage() {
                 </div>
                 {/* <--- 這裡開始是按鈕群組的修改 ---> */}
                 <div className="self-stretch inline-flex justify-between items-start">
-                  {/* 使用 <Link> 包裹 <Button>，導航至 /team */}
                   <Link href="/team" passHref>
                     <Button
-                      className="w-30 h-11 px-6 py-4 rounded-lg
-                                 bg-gray-200 text-slate-900 text-lg font-bold font-['Noto_Sans_TC'] leading-7
-                                 flex justify-center items-center gap-2 overflow-hidden
-                                 transition-colors duration-200 ease-in-out hover:bg-gray-300"
+                      variant="default"
+                      size="lg"
+                      className="bg-gradient-to-r from-highlight to-primary relative group"
                     >
-                      <span>返回上一頁</span>
+                      {/* 遮罩效果 */}
+                      <div
+                        className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out
+                                 group-hover:opacity-30 pointer-events-none z-0"
+                      ></div>
+                      {/* 按鈕文字 */}
+                      <span className="justify-start text-popover font-bold leading-7 z-10">
+                        返回上一頁
+                      </span>
                     </Button>
                   </Link>
 
-                  {/* 「儲存」按鈕，這裡將原本的 div 改為 Button 元件 */}
+                  {/* 「儲存」按鈕 */}
                   <Button
-                    onClick={handleSave}
-                    className="relative group w-3 0 h-11 px-12 py-4 bg-gradient-to-r from-orange-500 to-blue-600 rounded-lg
-                               flex justify-center items-center gap-2 overflow-hidden
-                               text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7"
+                    variant="default"
+                    size="lg"
+                    className="bg-gradient-to-r from-highlight to-primary relative group"
                   >
                     {/* 遮罩效果 */}
                     <div
-                      className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 ease-in-out
-                                 group-hover:opacity-30 pointer-events-none z-0"
+                      className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out
+                                                   group-hover:opacity-30 pointer-events-none z-0"
                     ></div>
                     {/* 按鈕文字 */}
-                    <span className="justify-start text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7 z-10">
+                    <span className="justify-start text-popover font-bold leading-7 z-10">
                       儲存
                     </span>
                   </Button>
