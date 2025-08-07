@@ -40,6 +40,11 @@ export default function CartListPage() {
   const [carts, setCarts] = useState([])
   const [members, setMembers] = useState([])
 
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
   // 計算總價和總數量
   const { totalPrice, itemCount } = useMemo(() => {
     const totalPrice = carts.reduce((sum, cartItem) => {
@@ -233,7 +238,7 @@ export default function CartListPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-accent-foreground">
-                          ${product.price}
+                          ${formatPrice(product.price)}
                         </TableCell>
                         <TableCell className="text-accent-foreground">
                           <div className="flex items-center justify-center gap-2">
@@ -267,7 +272,7 @@ export default function CartListPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right hidden md:table-cell text-accent-foreground">
-                          ${product.price * cartItem.quantity}
+                          ${formatPrice(product.price * cartItem.quantity)}
                         </TableCell>
                       </TableRow>
                     )
@@ -295,7 +300,7 @@ export default function CartListPage() {
                       商品金額
                     </TableCell>
                     <TableCell className="text-base font-bold text-accent-foreground">
-                      ${totalPrice}
+                      ${formatPrice(totalPrice)}
                     </TableCell>
                   </TableRow>
                   <TableRow className="border-b border-card-foreground">
@@ -311,7 +316,7 @@ export default function CartListPage() {
                       商品小計
                     </TableCell>
                     <TableCell className="text-base font-bold text-accent-foreground">
-                      ${totalPrice}
+                      ${formatPrice(totalPrice)}
                     </TableCell>
                   </TableRow>
                 </TableBody>

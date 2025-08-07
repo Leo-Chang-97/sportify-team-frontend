@@ -57,15 +57,16 @@ export default function ProductListPage() {
   // 測試用的會員ID - 之後要改回 useAuth
   const TEST_USER_ID = 1
 
-  // 物流和付款和發票選項狀態
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
+  // ===== 組件狀態管理 =====
   const [selectedPayment, setSelectedPayment] = useState('')
   const [selectedReceipt, setSelectedReceipt] = useState('')
   const [selectedDelivery, setSelectedDelivery] = useState('')
-
-  // 購物車資料狀態
   const [carts, setCarts] = useState([])
-
-  // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
     recipient: '',
     phone: '',
@@ -73,12 +74,19 @@ export default function ProductListPage() {
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
   })
-
-  // 錯誤狀態
   const [errors, setErrors] = useState({})
+  const [touchedFields, setTouchedFields] = useState({}) // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
 
-  // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
-  const [touchedFields, setTouchedFields] = useState({})
+  // ===== 數據獲取 =====
+  const {
+    data: cartData,
+    isLoading: isCartLoading,
+    error: cartError,
+    mutate,
+  } = useSWR(['carts-checkout'], async () => {
+    const result = await getCarts()
+    return result
+  })
 
   // 簡單驗證函數
   const validateField = (
@@ -148,17 +156,6 @@ export default function ProductListPage() {
     }
   }
 
-  // 獲取購物車資料 - 使用與購物車頁面相同的方式
-  const {
-    data: cartData,
-    isLoading: isCartLoading,
-    error: cartError,
-    mutate,
-  } = useSWR(['carts-checkout'], async () => {
-    const result = await getCarts()
-    return result
-  })
-
   // 計算總價和總數量
   const { totalPrice, itemCount, shippingFee } = useMemo(() => {
     const totalPrice = carts.reduce((sum, cartItem) => {
@@ -178,14 +175,14 @@ export default function ProductListPage() {
     return { totalPrice, itemCount, shippingFee }
   }, [carts, selectedDelivery])
 
-  // 載入購物車資料
+  // ===== 載入選項 =====
   useEffect(() => {
     if (cartData?.data?.cart?.cartItems) {
       setCarts(cartData.data.cart.cartItems)
     }
   }, [cartData])
 
-  // 處理表單輸入變更
+  // ===== 事件處理函數 =====
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -287,10 +284,14 @@ export default function ProductListPage() {
     const selectedReceiptOption = receiptOptions.find(
       (opt) => opt.id === selectedReceipt
     )
+    const selectedDeliveryOption = DeliveryOptions.find(
+      (opt) => opt.id === selectedDelivery
+    )
 
     return {
       paymentMethod: selectedPaymentOption?.label || '',
       receiptType: selectedReceiptOption?.label || '',
+      deliveryMethod: selectedDeliveryOption?.label || '',
     }
   }
 
@@ -403,18 +404,33 @@ export default function ProductListPage() {
           cartItems: cartItems,
         }
 
-        console.log('發送到後端的資料:', checkoutPayload) // 除錯用
-        console.log('表單資料狀態:', formData) // 檢查表單資料
-        console.log('選擇的選項:', {
-          selectedDelivery,
-          selectedPayment,
-          selectedReceipt,
-        }) // 檢查選擇狀態
+        // console.log('發送到後端的資料:', checkoutPayload) // 除錯用
+        // console.log('表單資料狀態:', formData) // 檢查表單資料
+        // console.log('選擇的選項:', {
+        //   selectedDelivery,
+        //   selectedPayment,
+        //   selectedReceipt,
+        // }) // 檢查選擇狀態
 
         const orderResult = await checkout(checkoutPayload)
 
         if (orderResult.success) {
-          // 訂單建立成功，導向 ECPay
+          // 訂單建立成功，準備成功頁面資料並存到 localStorage
+          const successData = {
+            carts: carts,
+            userInfo: formData,
+            totalPrice: totalPrice + shippingFee,
+            itemCount: itemCount,
+            shippingFee: shippingFee,
+            orderId: orderResult.data.id,
+            ...getSelectedOptions(),
+          }
+
+          // 將訂單資料存到 localStorage (給綠界付款完成後使用)
+          localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
+          // console.log('訂單資料已存入 localStorage:', successData)
+
+          // 導向 ECPay
           window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
         } else {
           toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
@@ -509,7 +525,7 @@ export default function ProductListPage() {
             cartItems: cartItems,
           }
 
-          console.log('發送到後端的資料 (貨到付款):', checkoutPayload)
+          // console.log('發送到後端的資料 (貨到付款):', checkoutPayload)
 
           const orderResult = await checkout(checkoutPayload)
 
@@ -673,7 +689,7 @@ export default function ProductListPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-accent-foreground">
-                          ${product.price}
+                          ${formatPrice(product.price)}
                         </TableCell>
                         <TableCell className="text-accent-foreground">
                           <div className="flex items-center justify-center gap-2">
@@ -804,7 +820,7 @@ export default function ProductListPage() {
                         商品金額
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        ${totalPrice}
+                        ${formatPrice(totalPrice)}
                       </TableCell>
                     </TableRow>
                     <TableRow className="border-b border-card-foreground">
@@ -812,7 +828,7 @@ export default function ProductListPage() {
                         運費
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground text-right">
-                        ${shippingFee}
+                        ${formatPrice(shippingFee)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -820,7 +836,7 @@ export default function ProductListPage() {
                         商品小計
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        ${totalPrice + shippingFee}
+                        ${formatPrice(totalPrice + shippingFee)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
