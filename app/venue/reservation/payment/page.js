@@ -1,11 +1,15 @@
 'use client'
 
 // hooks
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 
 // Icon
 import { CreditCard } from 'lucide-react'
+
+// API 請求
+import { fetchCenter } from '@/api/venue/center'
+import { getCenterImageUrl } from '@/api/venue/image'
 
 // next 元件
 import Link from 'next/link'
@@ -16,6 +20,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+
 import {
   Card,
   CardContent,
@@ -29,7 +35,6 @@ import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 import PaymentMethodSelector, {
   paymentOptions,
@@ -38,17 +43,16 @@ import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
 
-import fakeData from '@/app/venue/fake-data.json'
-const data = fakeData[0] // 使用第一筆資料
-
 export default function PaymentPage() {
   // #region 路由和URL參數
   const router = useRouter()
 
   // #region 狀態管理
+  const [centerData, setCenterData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
   const { venueData, setVenueData } = useVenue()
-  // 使用 context 中的訂單資料
-  const orderSummary = venueData
+  const [centerId, setCenterId] = useState(venueData.centerId?.toString() || '')
 
   // 付款和發票選項狀態
   const [selectedPayment, setSelectedPayment] = useState('1')
@@ -60,6 +64,32 @@ export default function PaymentPage() {
     phone: '',
     email: '',
   })
+  console.log('venueData', venueData)
+  // #region 副作用處理
+
+  // #region Center資料
+  useEffect(() => {
+    console.log('centerId:', centerId)
+    const fetchCenterData = async () => {
+      try {
+        setLoading(true)
+        // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+        const centerData = await fetchCenter(centerId)
+        setCenterData(centerData.record)
+        console.log('centerData', centerData)
+      } catch (err) {
+        console.error('Error fetching center detail:', err)
+        setErrors(err.message)
+        toast.error('載入場館資料失敗')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (centerId) {
+      fetchCenterData()
+    }
+  }, [centerId])
 
   // #region 事件處理函數
   // 處理表單輸入變更
@@ -179,16 +209,16 @@ export default function PaymentPage() {
               <Card>
                 <CardHeader>
                   {/* 預約圖片 */}
-                  {data.image && (
+                  {centerData && centerData.images && (
                     <div className="overflow-hidden rounded-lg">
                       <AspectRatio ratio={4 / 3} className="bg-muted">
                         <Image
-                          alt={data.name}
+                          alt={centerData.name}
                           className="object-cover"
                           fill
                           priority
                           sizes="(max-width: 768px) 100vw, 320px"
-                          src={data.image}
+                          src={getCenterImageUrl(centerData.images[0])}
                         />
                       </AspectRatio>
                     </div>
@@ -201,9 +231,9 @@ export default function PaymentPage() {
                       場館資訊
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      {/* <div>地區: {orderSummary.location || '未選擇'}</div> */}
-                      <div>中心: {orderSummary.center || '未選擇'}</div>
-                      <div>運動: {orderSummary.sport || '未選擇'}</div>
+                      {/* <div>地區: {venueData.location || '未選擇'}</div> */}
+                      <div>中心: {venueData.center || '未選擇'}</div>
+                      <div>運動: {venueData.sport || '未選擇'}</div>
                     </div>
                   </div>
 
@@ -213,16 +243,13 @@ export default function PaymentPage() {
                       預約日期
                     </h4>
                     <div className="text-sm text-muted-foreground">
-                      {orderSummary.selectedDate
-                        ? orderSummary.selectedDate.toLocaleDateString(
-                            'zh-TW',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              weekday: 'long',
-                            }
-                          )
+                      {venueData.selectedDate
+                        ? venueData.selectedDate.toLocaleDateString('zh-TW', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long',
+                          })
                         : '未選擇'}
                     </div>
                   </div>
@@ -232,9 +259,9 @@ export default function PaymentPage() {
                     <h4 className="font-medium text-accent-foreground">
                       場地時段
                     </h4>
-                    {orderSummary.timeSlots.length > 0 ? (
+                    {venueData.timeSlots?.length > 0 ? (
                       <div className="space-y-2">
-                        {orderSummary.timeSlots.map((slot, index) => (
+                        {venueData.timeSlots.map((slot, index) => (
                           <div
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
@@ -259,7 +286,7 @@ export default function PaymentPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground">總計</span>
                       <span className="text-lg font-bold text-primary">
-                        NT$ {orderSummary.totalPrice}
+                        NT$ {venueData.totalPrice || 0}
                       </span>
                     </div>
                   </div>
@@ -271,7 +298,7 @@ export default function PaymentPage() {
                     onClick={() => {
                       // 更新 context 包含用戶資料和付款資訊
                       setVenueData({
-                        ...orderSummary,
+                        ...venueData,
                         userInfo: formData,
                         ...getSelectedOptions(),
                       })

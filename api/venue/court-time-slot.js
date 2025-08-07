@@ -6,12 +6,12 @@ export const fetchCourtTimeSlots = async (params = {}) => {
   return res.data
 }
 
-export const fetchCourtTimeSlotsByCenterAndSport = async (
+export const fetchAvailableTimeSlotsDate = async (
   centerId,
   sportId,
   date = null
 ) => {
-  let url = `/venue/court-time-slot/by-center-sport?centerId=${centerId}&sportId=${sportId}`
+  let url = `/venue/court-time-slot/date?centerId=${centerId}&sportId=${sportId}`
   if (date) {
     url += `&date=${date}`
   }
@@ -19,14 +19,17 @@ export const fetchCourtTimeSlotsByCenterAndSport = async (
   return res.data
 }
 
-export const fetchAvailableCourtTimeSlotsByMonth = async (
+export const fetchAvailableTimeSlotsRange = async (
   centerId,
   sportId,
-  yearMonth
+  today,
+  days = 30
 ) => {
-  const res = await apiClient.get(
-    `/venue/court-time-slot/available-court-time-slots?centerId=${centerId}&sportId=${sportId}&yearMonth=${yearMonth}`
-  )
+  let url = `/venue/court-time-slot/range?centerId=${centerId}&sportId=${sportId}&today=${today}`
+  if (days) {
+    url += `&days=${days}`
+  }
+  const res = await apiClient.get(url)
   return res.data
 }
 

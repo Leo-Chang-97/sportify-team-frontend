@@ -1,8 +1,12 @@
 'use client'
 
 // hooks
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useVenue } from '@/contexts/venue-context'
+
+// 額外
+import { format as formatDate } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 // Icon
 import { ClipboardCheck } from 'lucide-react'
@@ -15,8 +19,8 @@ import {
 } from '@/api'
 import { fetchCenter } from '@/api/venue/center'
 import {
-  fetchCourtTimeSlotsByCenterAndSport,
-  fetchAvailableCourtTimeSlotsByMonth,
+  fetchAvailableTimeSlotsDate,
+  fetchAvailableTimeSlotsRange,
 } from '@/api/venue/court-time-slot'
 import { getCenterImageUrl } from '@/api/venue/image'
 
@@ -42,7 +46,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar } from '@/components/date-picker-calendar'
+import { Calendar } from '@/components/date-calendar'
+import { format } from 'date-fns'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -56,9 +61,9 @@ export default function ReservationPage() {
   const { venueData, setVenueData } = useVenue()
 
   // #region 組件狀態管理
-  const [data, setData] = React.useState(null)
-  const [loading, setLoading] = React.useState(true)
-  const [errors, setErrors] = React.useState(null)
+  const [centerData, setCenterData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [errors, setErrors] = useState(null)
 
   const [locationId, setLocationId] = useState(
     venueData.locationId?.toString() || ''
@@ -74,18 +79,8 @@ export default function ReservationPage() {
   const [monthlyAvailability, setMonthlyAvailability] = useState([])
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // 使用 context 來管理訂單摘要狀態
-  const orderSummary = venueData
-  const setOrderSummary = (updater) => {
-    if (typeof updater === 'function') {
-      setVenueData((prev) => updater(prev))
-    } else {
-      setVenueData(updater)
-    }
-  }
-
-  // 計算 yearMonth 格式 (YYYY-MM) - 基於當前顯示的月份
-  const yearMonth = currentMonth ? currentMonth.toISOString().slice(0, 7) : null
+  // 計算今天的日期字串 (YYYY-MM-DD) - 用於查詢可預約時段
+  const today = new Date().toISOString().split('T')[0]
 
   // #region 副作用處理
 
@@ -96,7 +91,7 @@ export default function ReservationPage() {
         setLoading(true)
         // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
         const centerData = await fetchCenter(centerId)
-        setData(centerData.record)
+        setCenterData(centerData.record)
       } catch (err) {
         console.error('Error fetching center detail:', err)
         setErrors(err.message)
@@ -118,22 +113,23 @@ export default function ReservationPage() {
     )
     const newCenterName = selectedCenter?.name || ''
 
-    setOrderSummary((prev) => {
-      if (prev.center !== newCenterName) {
-        return { ...prev, center: newCenterName }
+    setVenueData((prev) => {
+      if (prev.center !== newCenterName || prev.centerId !== centerId) {
+        return { ...prev, center: newCenterName, centerId }
       }
       return prev
     })
   }, [centerId, centers])
+
   useEffect(() => {
     const selectedSport = sports.find(
       (sport) => sport.id.toString() === sportId
     )
     const newSportName = selectedSport?.name || ''
 
-    setOrderSummary((prev) => {
-      if (prev.sport !== newSportName) {
-        return { ...prev, sport: newSportName }
+    setVenueData((prev) => {
+      if (prev.sport !== newSportName || prev.sportId !== sportId) {
+        return { ...prev, sport: newSportName, sportId }
       }
       return prev
     })
@@ -193,8 +189,8 @@ export default function ReservationPage() {
         let courtTimeSlotData
         if (centerId && sportId && date) {
           // 將選擇的日期轉換為 YYYY-MM-DD 格式
-          const dateStr = date.toISOString().split('T')[0]
-          courtTimeSlotData = await fetchCourtTimeSlotsByCenterAndSport(
+          const dateStr = date ? formatDate(date, 'yyyy-MM-dd') : ''
+          courtTimeSlotData = await fetchAvailableTimeSlotsDate(
             Number(centerId),
             Number(sportId),
             dateStr
@@ -217,28 +213,29 @@ export default function ReservationPage() {
     loadData()
   }, [centerId, sportId, date])
 
-  // #region 獲取月份可預約數據
+  // #region 獲取從今天起 30 天的可預約數據
   useEffect(() => {
-    const loadMonthlyData = async () => {
+    const loadRangeData = async () => {
       try {
-        if (centerId && sportId && yearMonth) {
-          const monthlyData = await fetchAvailableCourtTimeSlotsByMonth(
+        if (centerId && sportId && today) {
+          const rangeData = await fetchAvailableTimeSlotsRange(
             Number(centerId),
             Number(sportId),
-            yearMonth
+            today,
+            30 // 查詢 30 天
           )
-          setMonthlyAvailability(monthlyData.rows || [])
-          console.log('載入的月份可預約資料:', monthlyData)
+          setMonthlyAvailability(rangeData.rows || [])
+          console.log('載入的 30 天可預約資料:', rangeData)
         } else {
           setMonthlyAvailability([])
         }
       } catch (err) {
-        console.error('載入月份可預約資料失敗:', err)
+        console.error('載入可預約資料失敗:', err)
         setMonthlyAvailability([])
       }
     }
-    loadMonthlyData()
-  }, [centerId, sportId, yearMonth])
+    loadRangeData()
+  }, [centerId, sportId, today])
 
   // #region 事件處理函數
 
@@ -246,14 +243,14 @@ export default function ReservationPage() {
   const getAvailableCount = (date) => {
     if (!date || !monthlyAvailability.length) return null
 
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = date ? formatDate(date, 'yyyy-MM-dd') : ''
     const dayData = monthlyAvailability.find((day) => day.date === dateStr)
     return dayData ? dayData.availableCount : null
   }
 
   // 處理場地時段選擇
   const handleTimeSlotSelection = (selectionData) => {
-    setOrderSummary((prev) => {
+    setVenueData((prev) => {
       // 檢查是否真的有變化
       if (
         JSON.stringify(prev.timeSlots) !==
@@ -359,16 +356,16 @@ export default function ReservationPage() {
                         <SelectValue placeholder="請選擇運動" />
                       </SelectTrigger>
                       <SelectContent>
-                        {data &&
-                        data.centerSports &&
-                        data.centerSports.length === 0 ? (
+                        {centerData &&
+                        centerData.centerSports &&
+                        centerData.centerSports.length === 0 ? (
                           <div className="px-3 py-2 text-gray-400">
                             沒有符合資料
                           </div>
                         ) : (
-                          data &&
-                          data.centerSports &&
-                          data.centerSports.map((cs) => (
+                          centerData &&
+                          centerData.centerSports &&
+                          centerData.centerSports.map((cs) => (
                             <SelectItem
                               key={cs.sportId}
                               value={cs.sportId.toString()}
@@ -395,44 +392,62 @@ export default function ReservationPage() {
                   onSelect={(selectedDate) => {
                     setDate(selectedDate)
                     // 更新訂單摘要中的選擇日期
-                    setOrderSummary((prev) => ({
+                    setVenueData((prev) => ({
                       ...prev,
                       selectedDate: selectedDate,
                     }))
                     console.log(selectedDate)
                   }}
-                  className="bg-accent text-accent-foreground rounded [--cell-size:3.5rem]"
+                  disabled={(date) => {
+                    // 禁用今天之前的日期
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    return date < today
+                  }}
+                  className="w-full bg-accent text-accent-foreground rounded [--cell-size:3.5rem] aspect-3/2 object-cover"
                   components={{
                     DayButton: ({ day, modifiers, ...props }) => {
-                      const availableCount = getAvailableCount(day.date)
+                      const date = day.date
+                      const availableCount = getAvailableCount(date)
                       const hasData = centerId && sportId
-
+                      const isPast = date < new Date().setHours(0, 0, 0, 0)
                       return (
                         <button
                           {...props}
-                          className={`
-                            flex flex-col items-center justify-center w-full h-full p-1 text-sm
-                            ${modifiers.selected ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}
-                            ${modifiers.today ? 'bg-accent' : ''}
-                            ${modifiers.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                            rounded-md transition-colors
-                          `}
+                          className={cn(
+                            'aspect-[3/2] flex flex-col md:gap-1 items-center justify-center w-full h-full p-1 text-base rounded-md transition-colors',
+                            modifiers.selected &&
+                              'bg-primary text-primary-foreground',
+                            !modifiers.selected && 'hover:bg-background/10',
+                            modifiers.today && 'bg-blue-100 text-blue-700',
+                            modifiers.disabled
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'cursor-pointer'
+                          )}
                           disabled={modifiers.disabled}
                         >
                           <span className="font-medium">
-                            {day.date.getDate()}
+                            {format(date, 'd')}
                           </span>
-                          {hasData && availableCount !== null && (
+                          {hasData && availableCount !== null && !isPast && (
                             <span
-                              className={`text-xs ${
-                                availableCount === 0
-                                  ? 'text-red-500 font-medium'
-                                  : 'text-green-600'
-                              }`}
+                              className={cn(
+                                'text-xs md:text-sm w-full font-medium md:py-1 rounded',
+                                modifiers.selected &&
+                                  'bg-primary-foreground text-primary',
+                                !modifiers.selected &&
+                                  availableCount === 0 &&
+                                  'bg-red-100 text-red-700',
+                                !modifiers.selected &&
+                                  availableCount > 0 &&
+                                  'bg-green-100 text-green-700'
+                              )}
                             >
-                              {availableCount === 0
-                                ? '已額滿'
-                                : `${availableCount}個`}
+                              {modifiers.selected
+                                ? '已選擇'
+                                : availableCount === 0
+                                  ? '已額滿'
+                                  : `${availableCount}`}
                             </span>
                           )}
                         </button>
@@ -461,14 +476,14 @@ export default function ReservationPage() {
                   {/* 預約圖片 */}
                   <div className="overflow-hidden rounded-lg">
                     <AspectRatio ratio={4 / 3} className="bg-muted">
-                      {data && data.images && (
+                      {centerData && centerData.images && (
                         <Image
-                          alt={data.name}
+                          alt={centerData.name}
                           className="object-cover"
                           fill
                           priority
                           sizes="(max-width: 768px) 100vw, 320px"
-                          src={getCenterImageUrl(data.images[0])}
+                          src={getCenterImageUrl(centerData.images[0])}
                         />
                       )}
                     </AspectRatio>
@@ -481,9 +496,9 @@ export default function ReservationPage() {
                       場館資訊
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      {/* <div>地區: {orderSummary.location || '未選擇'}</div> */}
-                      <div>中心: {orderSummary.center || '未選擇'}</div>
-                      <div>運動: {orderSummary.sport || '未選擇'}</div>
+                      {/* <div>地區: {venueData.location || '未選擇'}</div> */}
+                      <div>中心: {venueData.center || '未選擇'}</div>
+                      <div>運動: {venueData.sport || '未選擇'}</div>
                     </div>
                   </div>
 
@@ -493,16 +508,13 @@ export default function ReservationPage() {
                       預約日期
                     </h4>
                     <div className="text-sm text-muted-foreground">
-                      {orderSummary.selectedDate
-                        ? orderSummary.selectedDate.toLocaleDateString(
-                            'zh-TW',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              weekday: 'long',
-                            }
-                          )
+                      {venueData.selectedDate
+                        ? venueData.selectedDate.toLocaleDateString('zh-TW', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long',
+                          })
                         : '未選擇'}
                     </div>
                   </div>
@@ -512,9 +524,9 @@ export default function ReservationPage() {
                     <h4 className="font-medium text-accent-foreground">
                       場地時段
                     </h4>
-                    {orderSummary.timeSlots.length > 0 ? (
+                    {venueData.timeSlots?.length > 0 ? (
                       <div className="space-y-2">
-                        {orderSummary.timeSlots.map((slot, index) => (
+                        {venueData.timeSlots.map((slot, index) => (
                           <div
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
@@ -539,7 +551,7 @@ export default function ReservationPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground">總計</span>
                       <span className="text-lg font-bold text-primary">
-                        NT$ {orderSummary.totalPrice}
+                        NT$ {venueData.totalPrice || 0}
                       </span>
                     </div>
                   </div>
