@@ -142,6 +142,35 @@ export default function ProductListPage() {
           </div>
           <div className="bg-card rounded-lg p-6">
             <Table className="w-full table-fixed">
+              <TableBody className="divide-y divide-foreground">
+                {Object.entries(orderDetails)
+                  .filter(
+                    ([key, value]) =>
+                      value !== '' && value !== null && value !== undefined
+                  )
+                  .map(([key, value]) => (
+                    <TableRow
+                      key={key}
+                      className="border-b border-card-foreground"
+                    >
+                      <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
+                        {key}
+                      </TableCell>
+                      <TableCell
+                        className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
+                        style={{ width: '100%' }}
+                      >
+                        {key === '訂單金額'
+                          ? `NTD$${formatPrice(value)}`
+                          : value}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="bg-card rounded-lg p-6">
+            <Table className="w-full table-fixed">
               <TableHeader className="border-b-2 border-card-foreground">
                 <TableRow className="text-lg">
                   <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
@@ -206,35 +235,7 @@ export default function ProductListPage() {
               </TableBody>
             </Table>
           </div>
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableBody className="divide-y divide-foreground">
-                {Object.entries(orderDetails)
-                  .filter(
-                    ([key, value]) =>
-                      value !== '' && value !== null && value !== undefined
-                  )
-                  .map(([key, value]) => (
-                    <TableRow
-                      key={key}
-                      className="border-b border-card-foreground"
-                    >
-                      <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                        {key}
-                      </TableCell>
-                      <TableCell
-                        className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                        style={{ width: '100%' }}
-                      >
-                        {key === '訂單金額'
-                          ? `NTD$${formatPrice(value)}`
-                          : value}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </div>
+
           <div className="flex justify-between">
             <Link href={`/shop/order/${orderData.orderId || '1'}`}>
               <Button variant="outline" className="w-[120px]">
