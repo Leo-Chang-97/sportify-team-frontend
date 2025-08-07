@@ -1,12 +1,27 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+// hooks
+import { useState, useEffect, useMemo } from 'react'
+import { useVenue } from '@/contexts/venue-context'
+
+// Icon
 import { CreditCard } from 'lucide-react'
+
+// API 請求
+import { fetchCenter } from '@/api/venue/center'
+import { getCenterImageUrl } from '@/api/venue/image'
+
+// next 元件
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+
 import {
   Card,
   CardContent,
@@ -14,21 +29,13 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
+
+// 自訂元件
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Input } from '@/components/ui/input'
-import {
-  Choicebox,
-  ChoiceboxItem,
-  ChoiceboxItemContent,
-  ChoiceboxItemHeader,
-  ChoiceboxItemIndicator,
-  ChoiceboxItemSubtitle,
-  ChoiceboxItemTitle,
-} from '@/components/ui/choicebox'
+
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
@@ -36,17 +43,16 @@ import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/shop-receipt-type-selector'
 
-import fakeData from '@/app/venue/fake-data.json'
-const data = fakeData[0] // 使用第一筆資料
-
-const steps = [
-  { id: 1, title: '選擇場地與時間', completed: true },
-  { id: 2, title: '填寫付款資訊', active: true },
-  { id: 3, title: '完成訂單', completed: false },
-]
-
 export default function PaymentPage() {
-  const searchParams = useSearchParams()
+  // #region 路由和URL參數
+  const router = useRouter()
+
+  // #region 狀態管理
+  const [centerData, setCenterData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const { venueData, setVenueData } = useVenue()
+  const [centerId, setCenterId] = useState(venueData.centerId?.toString() || '')
 
   // 付款和發票選項狀態
   const [selectedPayment, setSelectedPayment] = useState('1')
@@ -58,17 +64,34 @@ export default function PaymentPage() {
     phone: '',
     email: '',
   })
+  console.log('venueData', venueData)
+  // #region 副作用處理
 
-  // 訂單摘要狀態
-  const [orderSummary, setOrderSummary] = useState({
-    location: '',
-    center: '',
-    sport: '',
-    selectedDate: null,
-    timeSlots: [],
-    totalPrice: 0,
-  })
+  // #region Center資料
+  useEffect(() => {
+    console.log('centerId:', centerId)
+    const fetchCenterData = async () => {
+      try {
+        setLoading(true)
+        // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+        const centerData = await fetchCenter(centerId)
+        setCenterData(centerData.record)
+        console.log('centerData', centerData)
+      } catch (err) {
+        console.error('Error fetching center detail:', err)
+        setErrors(err.message)
+        toast.error('載入場館資料失敗')
+      } finally {
+        setLoading(false)
+      }
+    }
 
+    if (centerId) {
+      fetchCenterData()
+    }
+  }, [centerId])
+
+  // #region 事件處理函數
   // 處理表單輸入變更
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -91,23 +114,15 @@ export default function PaymentPage() {
       receiptType: selectedReceiptOption?.label || '',
     }
   }
+  // #region 資料顯示選項
+  const steps = [
+    { id: 1, title: '選擇場地與時間', completed: true },
+    { id: 2, title: '填寫付款資訊', active: true },
+    { id: 3, title: '完成訂單', completed: false },
+  ]
+  // #endregion 資料顯示選項
 
-  // 從 URL 參數讀取訂單資訊
-  useEffect(() => {
-    const dataParam = searchParams.get('data')
-    if (dataParam) {
-      try {
-        const decodedData = JSON.parse(decodeURIComponent(dataParam))
-        // 處理日期字串轉換為 Date 物件
-        if (decodedData.selectedDate) {
-          decodedData.selectedDate = new Date(decodedData.selectedDate)
-        }
-        setOrderSummary(decodedData)
-      } catch (error) {
-        console.error('解析訂單資料失敗:', error)
-      }
-    }
-  }, [searchParams])
+  // #region Markup
   return (
     <>
       <Navbar />
@@ -194,16 +209,16 @@ export default function PaymentPage() {
               <Card>
                 <CardHeader>
                   {/* 預約圖片 */}
-                  {data.image && (
+                  {centerData && centerData.images && (
                     <div className="overflow-hidden rounded-lg">
                       <AspectRatio ratio={4 / 3} className="bg-muted">
                         <Image
-                          alt={data.name}
+                          alt={centerData.name}
                           className="object-cover"
                           fill
                           priority
                           sizes="(max-width: 768px) 100vw, 320px"
-                          src={data.image}
+                          src={getCenterImageUrl(centerData.images[0])}
                         />
                       </AspectRatio>
                     </div>
@@ -216,9 +231,9 @@ export default function PaymentPage() {
                       場館資訊
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>地區: {orderSummary.location || '未選擇'}</div>
-                      <div>中心: {orderSummary.center || '未選擇'}</div>
-                      <div>運動: {orderSummary.sport || '未選擇'}</div>
+                      {/* <div>地區: {venueData.location || '未選擇'}</div> */}
+                      <div>中心: {venueData.center || '未選擇'}</div>
+                      <div>運動: {venueData.sport || '未選擇'}</div>
                     </div>
                   </div>
 
@@ -228,16 +243,13 @@ export default function PaymentPage() {
                       預約日期
                     </h4>
                     <div className="text-sm text-muted-foreground">
-                      {orderSummary.selectedDate
-                        ? orderSummary.selectedDate.toLocaleDateString(
-                            'zh-TW',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              weekday: 'long',
-                            }
-                          )
+                      {venueData.selectedDate
+                        ? venueData.selectedDate.toLocaleDateString('zh-TW', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long',
+                          })
                         : '未選擇'}
                     </div>
                   </div>
@@ -247,9 +259,9 @@ export default function PaymentPage() {
                     <h4 className="font-medium text-accent-foreground">
                       場地時段
                     </h4>
-                    {orderSummary.timeSlots.length > 0 ? (
+                    {venueData.timeSlots?.length > 0 ? (
                       <div className="space-y-2">
-                        {orderSummary.timeSlots.map((slot, index) => (
+                        {venueData.timeSlots.map((slot, index) => (
                           <div
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
@@ -274,27 +286,29 @@ export default function PaymentPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground">總計</span>
                       <span className="text-lg font-bold text-primary">
-                        NT$ {orderSummary.totalPrice}
+                        NT$ {venueData.totalPrice || 0}
                       </span>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Link
-                    href={`/venue/reservation/success?data=${encodeURIComponent(
-                      JSON.stringify({
-                        ...orderSummary,
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={() => {
+                      // 更新 context 包含用戶資料和付款資訊
+                      setVenueData({
+                        ...venueData,
                         userInfo: formData,
                         ...getSelectedOptions(),
                       })
-                    )}`}
-                    className="w-full"
+                      // 使用 router 跳轉到成功頁面
+                      router.push('/venue/reservation/success')
+                    }}
                   >
-                    <Button size="lg" className="w-full">
-                      確認付款
-                      <CreditCard />
-                    </Button>
-                  </Link>
+                    確認付款
+                    <CreditCard />
+                  </Button>
                 </CardFooter>
               </Card>
             </section>
