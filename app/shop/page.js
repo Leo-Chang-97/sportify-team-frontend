@@ -1,23 +1,14 @@
 'use client'
 
-import { Search, AlignLeft, Funnel } from 'lucide-react'
 import React, { useState, useEffect, useMemo } from 'react'
+import { Search, AlignLeft, Funnel } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
-import {
-  getProducts,
-  fetchMemberOptions,
-  fetchSportOptions,
-  fetchBrandOptions,
-  toggleFavorite,
-  addProductCart,
-} from '@/api'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import {
   Select,
   SelectContent,
@@ -25,8 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card/product-card'
-import { PaginationBar } from '@/components/pagination-bar'
 import {
   Sheet,
   SheetContent,
@@ -40,8 +29,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-// import products from '../datas.json'
-import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +37,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+// components 其他
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import { ProductCard } from '@/components/card/product-card'
+import { PaginationBar } from '@/components/pagination-bar'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import {
+  getProducts,
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+  toggleFavorite,
+  addProductCart,
+} from '@/api'
 
 // 手機側邊欄
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
@@ -524,13 +527,17 @@ export default function ProductListPage() {
             {/* 商品列表 */}
             <div className="flex-1">
               {isDataLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <p>載入中...</p>
-                </div>
+                <LoadingState message="載入商品資料中..." />
               ) : error ? (
-                <div className="flex justify-center items-center h-64">
-                  <p>載入失敗，請重新嘗試</p>
-                </div>
+                <ErrorState
+                  title="商品資料載入失敗"
+                  message={
+                    `載入錯誤：${error.message}` || '找不到您要查看的商品資料'
+                  }
+                  onRetry={mutate}
+                  backUrl="/"
+                  backLabel="返回首頁"
+                />
               ) : products.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
                   {products.map((product) => (

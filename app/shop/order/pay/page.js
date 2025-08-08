@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import useSWR from 'swr'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
-import useSWR from 'swr'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -14,12 +16,7 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
 import { Input } from '@/components/ui/input'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -29,6 +26,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+// components
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
@@ -38,9 +51,12 @@ import ReceiptTypeSelector, {
 import DeliveryMethodSelector, {
   DeliveryOptions,
 } from '@/components/delivery-method-selector'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, getCheckoutData, checkout } from '@/api'
+// 其他
 import { validateField } from '@/lib/utils'
-import { toast } from 'sonner'
 import { API_SERVER } from '@/lib/api-path'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -50,8 +66,9 @@ const steps = [
   { id: 3, title: '完成訂單', completed: false },
 ]
 
-export default function ProductListPage() {
+export default function ProductPaymentPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   // 暫時註解登入檢查，用於測試
   // const { user, isAuthenticated } = useAuth()
 
@@ -77,6 +94,7 @@ export default function ProductListPage() {
   })
   const [errors, setErrors] = useState({})
   const [touchedFields, setTouchedFields] = useState({}) // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
+  const [showEcpayDialog, setShowEcpayDialog] = useState(false) // ECPay 確認對話框狀態
 
   // ===== 數據獲取 =====
   const {
@@ -228,51 +246,71 @@ export default function ProductListPage() {
     }
   }
 
-  // 驗證所有表單欄位
-  const validateAllFields = () => {
-    const newErrors = {}
-    newErrors.recipient = validateField(
-      'recipient',
-      formData.recipient || '',
-      true
-    )
-    newErrors.phone = validateField('phone', formData.phone || '', true)
-    newErrors.address = validateField(
-      'address',
-      formData.address || '',
-      true,
-      selectedDelivery
-    )
-    newErrors.delivery = validateField('delivery', selectedDelivery || '', true)
-    newErrors.payment = validateField('payment', selectedPayment || '', true)
-    newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
-    newErrors.carrierId = validateField(
-      'carrierId',
-      formData.carrierId || '',
-      true
-    )
-    newErrors.companyId = validateField(
-      'companyId',
-      formData.companyId || '',
-      true
-    )
+  // 處理ECPay付款確認
+  const handleEcpayConfirm = async () => {
+    try {
+      // 準備商品名稱
+      const itemsArray = carts.map(
+        (cartItem) => `${cartItem.product.name}x${cartItem.quantity}`
+      )
+      const items = itemsArray.join(',')
+      const amount = totalPrice + shippingFee
 
-    setErrors(newErrors)
+      // 準備購物車項目資料（符合後端期望的格式）
+      const cartItems = carts.map((cartItem) => ({
+        productId: cartItem.product.id, // 使用 cartItem.product.id
+        quantity: cartItem.quantity,
+      }))
 
-    // 標記所有欄位為已觸碰
-    setTouchedFields({
-      recipient: true,
-      phone: true,
-      address: true,
-      delivery: true,
-      payment: true,
-      receipt: true,
-      carrierId: true,
-      companyId: true,
-    })
+      // 先建立訂單到資料庫
+      const orderData = {
+        recipient: formData.recipient,
+        phone: formData.phone,
+        address: formData.address || '', // 如果不是宅配可能為空
+        deliveryId: parseInt(selectedDelivery), // 轉換為數字
+        paymentId: parseInt(selectedPayment), // 轉換為數字
+        invoiceData: {
+          invoiceId: parseInt(selectedReceipt), // 轉換為數字
+          carrier: formData.carrierId || null,
+          tax: formData.companyId || null,
+        },
+      }
 
-    // 檢查是否有任何錯誤
-    return !Object.values(newErrors).some((error) => error !== '')
+      // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
+      const checkoutPayload = {
+        memberId: TEST_USER_ID, // 使用測試用會員ID
+        orderData: orderData,
+        cartItems: cartItems,
+      }
+
+      const orderResult = await checkout(checkoutPayload)
+
+      if (orderResult.success) {
+        // 訂單建立成功，準備成功頁面資料並存到 localStorage
+        const successData = {
+          carts: carts,
+          userInfo: formData,
+          totalPrice: totalPrice + shippingFee,
+          itemCount: itemCount,
+          shippingFee: shippingFee,
+          orderId: orderResult.data.id,
+          ...getSelectedOptions(),
+        }
+
+        // 將訂單資料存到 localStorage (給綠界付款完成後使用)
+        localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
+        // console.log('訂單資料已存入 localStorage:', successData)
+
+        // 導向 ECPay
+        window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
+      } else {
+        toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
+        console.error('訂單建立失敗:', orderResult)
+      }
+    } catch (error) {
+      console.error('ECPay付款錯誤:', error)
+      toast.error('付款過程發生錯誤，請稍後再試')
+    }
   }
 
   // 處理ECPay付款
@@ -302,74 +340,8 @@ export default function ProductListPage() {
         return
       }
 
-      // 準備商品名稱
-      const itemsArray = carts.map(
-        (cartItem) => `${cartItem.product.name}x${cartItem.quantity}`
-      )
-      const items = itemsArray.join(',')
-      const amount = totalPrice + shippingFee
-
-      if (window.confirm('確認要導向至ECPay(綠界金流)進行付款?')) {
-        // 準備購物車項目資料（符合後端期望的格式）
-        const cartItems = carts.map((cartItem) => ({
-          productId: cartItem.product.id, // 使用 cartItem.product.id
-          quantity: cartItem.quantity,
-        }))
-
-        // 先建立訂單到資料庫
-        const orderData = {
-          recipient: formData.recipient,
-          phone: formData.phone,
-          address: formData.address || '', // 如果不是宅配可能為空
-          deliveryId: parseInt(selectedDelivery), // 轉換為數字
-          paymentId: parseInt(selectedPayment), // 轉換為數字
-          invoiceData: {
-            invoiceId: parseInt(selectedReceipt), // 轉換為數字
-            carrier: formData.carrierId || null,
-            tax: formData.companyId || null,
-          },
-        }
-
-        // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
-        const checkoutPayload = {
-          memberId: TEST_USER_ID, // 使用測試用會員ID
-          orderData: orderData,
-          cartItems: cartItems,
-        }
-
-        // console.log('發送到後端的資料:', checkoutPayload) // 除錯用
-        // console.log('表單資料狀態:', formData) // 檢查表單資料
-        // console.log('選擇的選項:', {
-        //   selectedDelivery,
-        //   selectedPayment,
-        //   selectedReceipt,
-        // }) // 檢查選擇狀態
-
-        const orderResult = await checkout(checkoutPayload)
-
-        if (orderResult.success) {
-          // 訂單建立成功，準備成功頁面資料並存到 localStorage
-          const successData = {
-            carts: carts,
-            userInfo: formData,
-            totalPrice: totalPrice + shippingFee,
-            itemCount: itemCount,
-            shippingFee: shippingFee,
-            orderId: orderResult.data.id,
-            ...getSelectedOptions(),
-          }
-
-          // 將訂單資料存到 localStorage (給綠界付款完成後使用)
-          localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
-          // console.log('訂單資料已存入 localStorage:', successData)
-
-          // 導向 ECPay
-          window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
-        } else {
-          toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
-          console.error('訂單建立失敗:', orderResult)
-        }
-      }
+      // 顯示確認對話框
+      setShowEcpayDialog(true)
     } catch (error) {
       console.error('ECPay付款錯誤:', error)
       toast.error('付款過程發生錯誤，請稍後再試')
@@ -479,7 +451,9 @@ export default function ProductListPage() {
             }
 
             // 導向成功頁面
-            window.location.href = `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
+            router.push(
+              `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
+            )
           } else {
             toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
             console.error('訂單建立失敗:', orderResult)
@@ -524,18 +498,7 @@ export default function ProductListPage() {
 
   // 載入狀態處理
   if (isCartLoading) {
-    return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center py-20">載入中...</div>
-          </div>
-        </section>
-        <Footer />
-      </>
-    )
+    return <LoadingState message="載入購物車資料中..." />
   }
 
   // 暫時註解登入狀態檢查，用於測試
@@ -559,18 +522,13 @@ export default function ProductListPage() {
   // 錯誤狀態處理
   if (cartError) {
     return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center py-20 text-red-500">
-              載入失敗: {cartError.message}
-            </div>
-          </div>
-        </section>
-        <Footer />
-      </>
+      <ErrorState
+        title="購物車資料載入失敗"
+        message={`載入錯誤：${cartError.message}` || '載入購物車資料時發生錯誤'}
+        onRetry={() => window.location.reload()}
+        backUrl="/shop/order"
+        backLabel="返回購物車"
+      />
     )
   }
 
@@ -802,6 +760,32 @@ export default function ProductListPage() {
           </div>
         </div>
       </section>
+
+      {/* ECPay 付款確認對話框 */}
+      <AlertDialog open={showEcpayDialog} onOpenChange={setShowEcpayDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認付款</AlertDialogTitle>
+            <AlertDialogDescription>
+              確認是否導向至 ECPay(綠界金流) 進行付款？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowEcpayDialog(false)}>
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowEcpayDialog(false)
+                handleEcpayConfirm()
+              }}
+            >
+              確認付款
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </>
   )
