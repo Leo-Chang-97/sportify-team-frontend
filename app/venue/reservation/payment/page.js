@@ -4,6 +4,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 
+// utils
+import { validateField, cn } from '@/lib/utils'
+
 // Icon
 import { CreditCard } from 'lucide-react'
 
@@ -41,7 +44,7 @@ import PaymentMethodSelector, {
 } from '@/components/payment-method-selector'
 import ReceiptTypeSelector, {
   receiptOptions,
-} from '@/components/shop-receipt-type-selector'
+} from '@/components/receipt-type-selector'
 
 export default function PaymentPage() {
   // #region 路由和URL參數
@@ -50,19 +53,22 @@ export default function PaymentPage() {
   // #region 狀態管理
   const [centerData, setCenterData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [errors, setErrors] = useState({})
 
   const { venueData, setVenueData } = useVenue()
   const [centerId, setCenterId] = useState(venueData.centerId?.toString() || '')
 
   // 付款和發票選項狀態
-  const [selectedPayment, setSelectedPayment] = useState('1')
-  const [selectedReceipt, setSelectedReceipt] = useState('1')
+  const [selectedPayment, setSelectedPayment] = useState('')
+  const [selectedReceipt, setSelectedReceipt] = useState('')
 
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
+    carrierId: '', // 載具號碼
+    companyId: '', // 統一編號
   })
   console.log('venueData', venueData)
   // #region 副作用處理
@@ -114,6 +120,89 @@ export default function PaymentPage() {
       receiptType: selectedReceiptOption?.label || '',
     }
   }
+
+  // 處理下拉選單變更
+  const handleSelectChange = (field, value, setter) => {
+    setter(value)
+    // 如果改變發票類型，清除相關欄位
+    if (field === 'receipt') {
+      setFormData((prev) => ({
+        ...prev,
+        carrierId: '',
+        companyId: '',
+      }))
+    }
+  }
+
+  // 處理付款按鈕點擊
+  const handlePayment = () => {
+    // 先執行驗證並獲取錯誤
+    const newErrors = {}
+    newErrors.name = validateField('recipient', formData.name || '', true)
+    newErrors.phone = validateField('phone', formData.phone || '', true)
+    newErrors.payment = validateField('payment', selectedPayment || '', true)
+    newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
+    newErrors.carrierId = validateField(
+      'carrierId',
+      formData.carrierId || '',
+      true,
+      '',
+      selectedReceipt
+    )
+    newErrors.companyId = validateField(
+      'companyId',
+      formData.companyId || '',
+      true,
+      '',
+      selectedReceipt
+    )
+
+    setErrors(newErrors)
+
+    // 檢查是否有任何錯誤
+    const hasErrors = Object.values(newErrors).some((error) => error !== '')
+
+    if (!hasErrors) {
+      // 表單驗證通過，導向成功頁面
+      // 更新 context 包含用戶資料和付款資訊
+      setVenueData({
+        ...venueData,
+        userInfo: formData,
+        ...getSelectedOptions(),
+      })
+      // 使用 router 跳轉到成功頁面
+      router.push('/venue/reservation/success')
+    } else {
+      // 表單驗證失敗，滾動到第一個錯誤欄位
+      const errorFields = [
+        { field: 'name', selector: '#name' },
+        { field: 'phone', selector: '#phone' },
+        { field: 'payment', selector: '[data-field="payment"]' },
+        { field: 'receipt', selector: '[data-field="receipt"]' },
+        { field: 'carrierId', selector: '#carrierId' },
+        { field: 'companyId', selector: '#companyId' },
+      ]
+
+      // 找到第一個有錯誤的欄位並跳轉
+      setTimeout(() => {
+        for (const errorField of errorFields) {
+          if (newErrors[errorField.field]) {
+            const element = document.querySelector(errorField.selector)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              // 如果是輸入框，則聚焦
+              const input = element.querySelector('input') || element
+              if (input && input.focus) {
+                input.focus()
+              }
+              break
+            }
+          }
+        }
+      }, 100) // 稍微延遲確保 DOM 更新完成
+    }
+  }
+
   // #region 資料顯示選項
   const steps = [
     { id: 1, title: '選擇場地與時間', completed: true },
@@ -153,12 +242,21 @@ export default function PaymentPage() {
                           type="text"
                           id="name"
                           placeholder="姓名"
-                          className="w-full"
+                          className={cn(
+                            'w-full',
+                            errors.name &&
+                              'border-destructive focus:border-destructive focus:ring-destructive'
+                          )}
                           value={formData.name}
                           onChange={(e) =>
                             handleInputChange('name', e.target.value)
                           }
                         />
+                        {errors.name && (
+                          <span className="text-destructive text-sm">
+                            {errors.name}
+                          </span>
+                        )}
                       </div>
                       <div className="grid w-full items-center gap-3">
                         <Label htmlFor="phone">電話</Label>
@@ -166,37 +264,47 @@ export default function PaymentPage() {
                           type="text"
                           id="phone"
                           placeholder="電話"
-                          className="w-full"
+                          className={cn(
+                            'w-full',
+                            errors.phone &&
+                              'border-destructive focus:border-destructive focus:ring-destructive'
+                          )}
                           value={formData.phone}
                           onChange={(e) =>
                             handleInputChange('phone', e.target.value)
                           }
                         />
-                      </div>
-                      <div className="grid w-full items-center gap-3">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          type="email"
-                          id="email"
-                          placeholder="Email"
-                          className="w-full"
-                          value={formData.email}
-                          onChange={(e) =>
-                            handleInputChange('email', e.target.value)
-                          }
-                        />
+                        {errors.phone && (
+                          <span className="text-destructive text-sm">
+                            {errors.phone}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                   {/* 付款方式 */}
                   <PaymentMethodSelector
                     selectedPayment={selectedPayment}
-                    onPaymentChange={setSelectedPayment}
+                    onPaymentChange={(value) =>
+                      handleSelectChange('payment', value, setSelectedPayment)
+                    }
+                    options={[
+                      paymentOptions[0],
+                      paymentOptions[1],
+                      paymentOptions[4],
+                    ]}
+                    errors={errors}
                   />
+
                   {/* 發票類型 */}
                   <ReceiptTypeSelector
                     selectedReceipt={selectedReceipt}
-                    onReceiptChange={setSelectedReceipt}
+                    formData={formData}
+                    onInputChange={handleInputChange}
+                    onReceiptChange={(value) =>
+                      handleSelectChange('receipt', value, setSelectedReceipt)
+                    }
+                    errors={errors}
                   />
                 </CardContent>
               </Card>
@@ -292,20 +400,7 @@ export default function PaymentPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Button
-                    size="lg"
-                    className="w-full"
-                    onClick={() => {
-                      // 更新 context 包含用戶資料和付款資訊
-                      setVenueData({
-                        ...venueData,
-                        userInfo: formData,
-                        ...getSelectedOptions(),
-                      })
-                      // 使用 router 跳轉到成功頁面
-                      router.push('/venue/reservation/success')
-                    }}
-                  >
+                  <Button size="lg" className="w-full" onClick={handlePayment}>
                     確認付款
                     <CreditCard />
                   </Button>

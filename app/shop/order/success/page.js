@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { FaXmark, FaCheck } from 'react-icons/fa6'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
@@ -26,82 +27,90 @@ const steps = [
   { id: 3, title: '完成訂單', active: true },
 ]
 
-const products = [
-  {
-    id: 1,
-    name: '極限飛馳籃球鞋',
-    brand_name: 'Anta',
-    sport_name: '籃球',
-    price: 880,
-    stock: 50,
-    specs: {
-      商品名稱: '極限飛馳籃球鞋',
-      品牌: 'Anta',
-      運動種類: '籃球',
-      材質: '透氣網布與耐磨橡膠',
-      尺寸: '27',
-      重量: 380,
-      產地: '越南',
-    },
-    img: 'spec01.jpeg', // 改為檔案名稱
-  },
-  {
-    id: 2,
-    name: '標準七號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 650,
-    stock: 100,
-    specs: {
-      商品名稱: '標準七號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '高級合成皮革',
-      尺寸: '24',
-      重量: 600,
-      產地: '泰國',
-    },
-    img: 'spec02.jpeg', // 改為檔案名稱
-  },
-  {
-    id: 3,
-    name: '7號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 720,
-    stock: 14,
-    specs: {
-      商品名稱: '7號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '合成皮',
-      尺寸: '24.5',
-      重量: 600,
-      產地: '中國',
-    },
-    img: 'spec03.jpeg', // 改為檔案名稱
-  },
-]
-
-const order = [
-  {
-    id: 1,
-    item: {
-      訂單編號: 1,
-      收件人: '王淑華',
-      手機號碼: '0945678901',
-      收件地址: '台南市中西區民族路二段77號',
-      物流方式: '7-11取貨',
-      付款方式: 'Line Pay',
-      發票類型: '統一編號',
-      訂單金額: 4680,
-    },
-  },
-]
-
 export default function ProductListPage() {
-  const [quantity, setQuantity] = React.useState(1)
+  // ===== 路由和搜尋參數處理 =====
+  const searchParams = useSearchParams()
+
+  // ===== 組件狀態管理 =====
+  const [orderData, setOrderData] = useState(null)
   const [isSuccess, setIsSuccess] = useState(true)
+
+  // ===== URL 參數處理 =====
+  useEffect(() => {
+    const dataParam = searchParams.get('data')
+
+    if (dataParam) {
+      // 一般付款流程：從 data 參數中解析訂單數據
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(dataParam))
+        setOrderData(parsedData)
+        setIsSuccess(true) // 確保成功狀態
+        // console.log('訂單數據 (一般付款):', parsedData) // Debug 用
+      } catch (error) {
+        console.error('解析訂單數據失敗:', error)
+        setIsSuccess(false)
+      }
+    } else {
+      // 綠界付款回來：嘗試從 localStorage 讀取訂單資料
+      try {
+        const storedOrderData = localStorage.getItem('ecpay_order_data')
+        if (storedOrderData) {
+          const parsedStoredData = JSON.parse(storedOrderData)
+          setOrderData(parsedStoredData)
+          setIsSuccess(true) // 確保成功狀態
+          // console.log('訂單數據 (綠界付款 - localStorage):', parsedStoredData) // Debug 用
+
+          // 清除 localStorage 中的訂單資料（避免重複使用）
+          localStorage.removeItem('ecpay_order_data')
+        } else {
+          // 如果沒有數據，可能是直接訪問頁面
+          // console.log('沒有找到訂單參數或 localStorage 資料')
+          setIsSuccess(false)
+        }
+      } catch (error) {
+        console.error('讀取 localStorage 訂單數據失敗:', error)
+        setIsSuccess(false)
+      }
+    }
+  }, [searchParams])
+
+  // 如果沒有訂單數據，顯示載入中
+  if (!orderData) {
+    return (
+      <>
+        <Navbar />
+        <BreadcrumbAuto />
+        <section className="px-4 md:px-6 py-10 ">
+          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+            <div className="text-center py-20">載入中...</div>
+          </div>
+        </section>
+        <Footer />
+      </>
+    )
+  }
+
+  // 建立訂單詳情物件
+  const orderDetails = {
+    訂單編號: orderData.orderId || '尚未分配',
+    收件人: orderData.userInfo?.recipient || '',
+    手機號碼: orderData.userInfo?.phone || '',
+    // 只有當物流方式是宅配時才顯示收件地址
+    ...(orderData.deliveryMethod?.includes('宅配') && {
+      收件地址: orderData.userInfo?.address || '',
+    }),
+    物流方式: orderData.deliveryMethod || '',
+    付款方式: orderData.paymentMethod || '',
+    發票類型: orderData.receiptType || '',
+    統一編號: orderData.userInfo?.companyId || '',
+    載具號碼: orderData.userInfo?.carrierId || '',
+    訂單金額: orderData.totalPrice || 0,
+  }
+
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
 
   return (
     <>
@@ -133,6 +142,35 @@ export default function ProductListPage() {
           </div>
           <div className="bg-card rounded-lg p-6">
             <Table className="w-full table-fixed">
+              <TableBody className="divide-y divide-foreground">
+                {Object.entries(orderDetails)
+                  .filter(
+                    ([key, value]) =>
+                      value !== '' && value !== null && value !== undefined
+                  )
+                  .map(([key, value]) => (
+                    <TableRow
+                      key={key}
+                      className="border-b border-card-foreground"
+                    >
+                      <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
+                        {key}
+                      </TableCell>
+                      <TableCell
+                        className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
+                        style={{ width: '100%' }}
+                      >
+                        {key === '訂單金額'
+                          ? `NTD$${formatPrice(value)}`
+                          : value}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="bg-card rounded-lg p-6">
+            <Table className="w-full table-fixed">
               <TableHeader className="border-b-2 border-card-foreground">
                 <TableRow className="text-lg">
                   <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
@@ -147,72 +185,59 @@ export default function ProductListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-card-foreground">
-                {products.map((product) => {
-                  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
-                  const image = product.img
-                  const imageFileName =
-                    typeof image === 'object' && image !== null
-                      ? image.url
-                      : image
+                {orderData.carts && orderData.carts.length > 0 ? (
+                  orderData.carts.map((cartItem) => {
+                    // 處理圖片路徑
+                    const product = cartItem.product
+                    const imageFileName = product.images?.[0]?.url || ''
 
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <Image
-                              className="object-cover w-full h-full"
-                              src={getProductImageUrl(imageFileName)}
-                              alt={product.name}
-                              width={40}
-                              height={40}
-                            />
+                    return (
+                      <TableRow key={cartItem.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                              <Image
+                                className="object-cover w-full h-full"
+                                src={getProductImageUrl(imageFileName)}
+                                alt={product.name}
+                                width={40}
+                                height={40}
+                              />
+                            </div>
+                            <span className="text-base whitespace-normal text-accent-foreground">
+                              {product.name}
+                            </span>
                           </div>
-                          <span className="text-base whitespace-normal text-accent-foreground">
-                            {product.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        ${product.price}
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="w-12 text-center select-none">
-                            {quantity}
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableBody className="divide-y divide-foreground">
-                {Object.entries(order[0].item).map(([key, value]) => (
-                  <TableRow
-                    key={key}
-                    className="border-b border-card-foreground"
-                  >
-                    <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                      {key}
-                    </TableCell>
+                        </TableCell>
+                        <TableCell className="text-accent-foreground">
+                          ${formatPrice(product.price)}
+                        </TableCell>
+                        <TableCell className="text-accent-foreground">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="w-12 text-center select-none">
+                              {cartItem.quantity}
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                ) : (
+                  <TableRow>
                     <TableCell
-                      className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                      style={{ width: '100%' }}
+                      colSpan={3}
+                      className="text-center py-8 text-muted-foreground"
                     >
-                      {key === '訂單金額' ? `NTD$${value}` : value}
+                      沒有商品資料
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
+
           <div className="flex justify-between">
-            <Link href="/shop/order/1">
+            <Link href={`/shop/order/${orderData.orderId || '1'}`}>
               <Button variant="outline" className="w-[120px]">
                 查看訂單
               </Button>
