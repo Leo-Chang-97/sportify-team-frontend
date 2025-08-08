@@ -5,18 +5,16 @@ const VenueContext = createContext(null)
 
 export const VenueProvider = ({ children }) => {
   const [venueData, setVenueData] = useState({
-    // location: '',
     center: '',
     sport: '',
     centerId: null,
-    // locationId: null,
+    sportId: null,
     selectedDate: null,
     timeSlots: [],
     totalPrice: 0,
     userInfo: {
       name: '',
       phone: '',
-      email: '',
     },
     paymentMethod: '',
     receiptType: '',
