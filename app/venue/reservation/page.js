@@ -6,7 +6,7 @@ import { useVenue } from '@/contexts/venue-context'
 
 // utils
 import { format as formatDate } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { cn, validateVenueField } from '@/lib/utils'
 import { format } from 'date-fns'
 
 // Icon
@@ -28,6 +28,7 @@ import { getCenterImageUrl } from '@/api/venue/image'
 // next 元件
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 // UI 元件
 import { Button } from '@/components/ui/button'
@@ -58,12 +59,14 @@ import { TimeSlotTable } from '@/components/timeslot-table'
 
 export default function ReservationPage() {
   // #region 路由和URL參數
+  const router = useRouter()
   const { venueData, setVenueData } = useVenue()
 
   // #region 組件狀態管理
   const [centerData, setCenterData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [errors, setErrors] = useState(null)
+  const [error, setError] = useState(null)
+  const [errors, setErrors] = useState({}) // 用於存放驗證錯誤
 
   const [locationId, setLocationId] = useState(
     venueData.locationId?.toString() || ''
@@ -94,7 +97,7 @@ export default function ReservationPage() {
         setCenterData(centerData.record)
       } catch (err) {
         console.error('Error fetching center detail:', err)
-        setErrors(err.message)
+        setError(err.message)
         toast.error('載入場館資料失敗')
       } finally {
         setLoading(false)
@@ -239,6 +242,54 @@ export default function ReservationPage() {
 
   // #region 事件處理函數
 
+  // 驗證預約資訊
+  const validateReservationData = () => {
+    const newErrors = {}
+
+    newErrors.center = validateVenueField('center', centerId)
+    newErrors.sport = validateVenueField('sport', sportId)
+    newErrors.selectedDate = validateVenueField('selectedDate', date)
+    newErrors.timeSlots = validateVenueField(
+      'timeSlots',
+      '',
+      venueData.timeSlots
+    )
+
+    setErrors(newErrors)
+
+    // 檢查是否有任何錯誤
+    const hasErrors = Object.values(newErrors).some((error) => error !== '')
+    return !hasErrors
+  }
+
+  // 處理預訂按鈕點擊
+  const handleReservation = () => {
+    if (validateReservationData()) {
+      // 驗證通過，跳轉到付款頁面
+      router.push('/venue/reservation/payment')
+    } else {
+      // 驗證失敗，滾動到第一個錯誤欄位
+      const errorFields = [
+        { field: 'center', selector: '[data-testid="center-select"]' },
+        { field: 'sport', selector: '[data-testid="sport-select"]' },
+        { field: 'selectedDate', selector: '[data-testid="calendar"]' },
+        { field: 'timeSlots', selector: '[data-testid="timeslot-table"]' },
+      ]
+
+      setTimeout(() => {
+        for (const errorField of errorFields) {
+          if (errors[errorField.field]) {
+            const element = document.querySelector(errorField.selector)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              break
+            }
+          }
+        }
+      }, 100)
+    }
+  }
+
   // 獲取特定日期的可預約數量
   const getAvailableCount = (date) => {
     if (!date || !monthlyAvailability.length) return null
@@ -324,7 +375,14 @@ export default function ReservationPage() {
                   <div className="space-y-2 flex-1">
                     <Label>中心</Label>
                     <Select value={centerId} onValueChange={setCenterId}>
-                      <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                      <SelectTrigger
+                        className={cn(
+                          'w-full bg-accent text-accent-foreground !h-10',
+                          errors.center &&
+                            'border-destructive focus:border-destructive focus:ring-destructive'
+                        )}
+                        data-testid="center-select"
+                      >
                         {centers.length === 0 ? (
                           <SelectValue placeholder="沒有符合資料" />
                         ) : (
@@ -348,11 +406,23 @@ export default function ReservationPage() {
                         )}
                       </SelectContent>
                     </Select>
+                    {errors.center && (
+                      <span className="text-destructive text-sm">
+                        {errors.center}
+                      </span>
+                    )}
                   </div>
                   <div className="space-y-2 flex-1">
+                    <Label>運動</Label>
                     <Select value={sportId} onValueChange={setSportId}>
-                      <Label>運動</Label>
-                      <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                      <SelectTrigger
+                        className={cn(
+                          'w-full bg-accent text-accent-foreground !h-10',
+                          errors.sport &&
+                            'border-destructive focus:border-destructive focus:ring-destructive'
+                        )}
+                        data-testid="sport-select"
+                      >
                         <SelectValue placeholder="請選擇運動" />
                       </SelectTrigger>
                       <SelectContent>
@@ -376,6 +446,11 @@ export default function ReservationPage() {
                         )}
                       </SelectContent>
                     </Select>
+                    {errors.sport && (
+                      <span className="text-destructive text-sm">
+                        {errors.sport}
+                      </span>
+                    )}
                   </div>
                 </div>
               </section>
@@ -383,87 +458,112 @@ export default function ReservationPage() {
               {/* 選擇預約日期 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇預約日期</h2>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  captionLayout="dropdown"
-                  month={currentMonth}
-                  onMonthChange={setCurrentMonth}
-                  onSelect={(selectedDate) => {
-                    setDate(selectedDate)
-                    // 更新訂單摘要中的選擇日期
-                    setVenueData((prev) => ({
-                      ...prev,
-                      selectedDate: selectedDate,
-                    }))
-                    console.log(selectedDate)
-                  }}
-                  disabled={(date) => {
-                    // 禁用今天之前的日期
-                    const today = new Date()
-                    today.setHours(0, 0, 0, 0)
-                    return date < today
-                  }}
-                  className="w-full bg-accent text-accent-foreground rounded [--cell-size:3.5rem] aspect-3/2 object-cover"
-                  components={{
-                    DayButton: ({ day, modifiers, ...props }) => {
-                      const date = day.date
-                      const availableCount = getAvailableCount(date)
-                      const hasData = centerId && sportId
-                      const isPast = date < new Date().setHours(0, 0, 0, 0)
-                      return (
-                        <button
-                          {...props}
-                          className={cn(
-                            'aspect-[3/2] flex flex-col md:gap-1 items-center justify-center w-full h-full p-1 text-base rounded-md transition-colors',
-                            modifiers.selected &&
-                              'bg-primary text-primary-foreground',
-                            !modifiers.selected && 'hover:bg-background/10',
-                            modifiers.today && 'bg-blue-100 text-blue-700',
-                            modifiers.disabled
-                              ? 'opacity-50 cursor-not-allowed'
-                              : 'cursor-pointer'
-                          )}
-                          disabled={modifiers.disabled}
-                        >
-                          <span className="font-medium">
-                            {format(date, 'd')}
-                          </span>
-                          {hasData && availableCount !== null && !isPast && (
-                            <span
-                              className={cn(
-                                'text-xs md:text-sm w-full font-medium md:py-1 rounded',
-                                modifiers.selected &&
-                                  'bg-primary-foreground text-primary',
-                                !modifiers.selected &&
-                                  availableCount === 0 &&
-                                  'bg-red-100 text-red-700',
-                                !modifiers.selected &&
-                                  availableCount > 0 &&
-                                  'bg-green-100 text-green-700'
-                              )}
-                            >
-                              {modifiers.selected
-                                ? '已選擇'
-                                : availableCount === 0
-                                  ? '已額滿'
-                                  : `${availableCount}`}
+                <div data-testid="calendar">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    captionLayout="dropdown"
+                    month={currentMonth}
+                    onMonthChange={setCurrentMonth}
+                    onSelect={(selectedDate) => {
+                      setDate(selectedDate)
+                      // 更新訂單摘要中的選擇日期
+                      setVenueData((prev) => ({
+                        ...prev,
+                        selectedDate: selectedDate,
+                      }))
+                      console.log(selectedDate)
+                    }}
+                    disabled={(date) => {
+                      // 禁用今天之前的日期
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      return date < today
+                    }}
+                    className={cn(
+                      'w-full bg-accent text-accent-foreground rounded [--cell-size:3.5rem] aspect-3/2 object-cover',
+                      errors.selectedDate &&
+                        'border border-destructive rounded-md'
+                    )}
+                    components={{
+                      DayButton: ({ day, modifiers, ...props }) => {
+                        const date = day.date
+                        const availableCount = getAvailableCount(date)
+                        const hasData = centerId && sportId
+                        const isPast = date < new Date().setHours(0, 0, 0, 0)
+                        return (
+                          <button
+                            {...props}
+                            className={cn(
+                              'aspect-[3/2] flex flex-col md:gap-1 items-center justify-center w-full h-full p-1 text-base rounded-md transition-colors',
+                              modifiers.selected &&
+                                'bg-primary text-primary-foreground',
+                              !modifiers.selected && 'hover:bg-background/10',
+                              modifiers.today && 'bg-blue-100 text-blue-700',
+                              modifiers.disabled
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'cursor-pointer'
+                            )}
+                            disabled={modifiers.disabled}
+                          >
+                            <span className="font-medium">
+                              {format(date, 'd')}
                             </span>
-                          )}
-                        </button>
-                      )
-                    },
-                  }}
-                />
+                            {hasData && availableCount !== null && !isPast && (
+                              <span
+                                className={cn(
+                                  'text-xs md:text-sm w-full font-medium md:py-1 rounded',
+                                  modifiers.selected &&
+                                    'bg-primary-foreground text-primary',
+                                  !modifiers.selected &&
+                                    availableCount === 0 &&
+                                    'bg-red-100 text-red-700',
+                                  !modifiers.selected &&
+                                    availableCount > 0 &&
+                                    'bg-green-100 text-green-700'
+                                )}
+                              >
+                                {modifiers.selected
+                                  ? '已選擇'
+                                  : availableCount === 0
+                                    ? '已額滿'
+                                    : `${availableCount}`}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      },
+                    }}
+                  />
+                </div>
+                {errors.selectedDate && (
+                  <span className="text-destructive text-sm mt-2 block">
+                    {errors.selectedDate}
+                  </span>
+                )}
               </section>
 
               {/* 選擇場地與時段 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇場地與時段</h2>
-                <TimeSlotTable
-                  courtTimeSlots={courtTimeSlots}
-                  onSelectionChange={handleTimeSlotSelection}
-                />
+                <div
+                  data-testid="timeslot-table"
+                  className={cn(
+                    '',
+                    errors.selectedDate &&
+                      'border border-destructive rounded-lg'
+                  )}
+                >
+                  <TimeSlotTable
+                    courtTimeSlots={courtTimeSlots}
+                    onSelectionChange={handleTimeSlotSelection}
+                  />
+                </div>
+                {errors.timeSlots && (
+                  <span className="text-destructive text-sm mt-2 block">
+                    {errors.timeSlots}
+                  </span>
+                )}
               </section>
             </section>
 
@@ -557,12 +657,14 @@ export default function ReservationPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Link href="/venue/reservation/payment" className="w-full">
-                    <Button size="lg" className="w-full">
-                      預訂
-                      <ClipboardCheck />
-                    </Button>
-                  </Link>
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handleReservation}
+                  >
+                    預訂
+                    <ClipboardCheck />
+                  </Button>
                 </CardFooter>
               </Card>
             </section>
