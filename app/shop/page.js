@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select'
 import { ProductCard } from '@/components/card/product-card'
 import { PaginationBar } from '@/components/pagination-bar'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 import {
   Sheet,
   SheetContent,
@@ -524,13 +525,17 @@ export default function ProductListPage() {
             {/* 商品列表 */}
             <div className="flex-1">
               {isDataLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <p>載入中...</p>
-                </div>
+                <LoadingState message="載入商品資料中..." />
               ) : error ? (
-                <div className="flex justify-center items-center h-64">
-                  <p>載入失敗，請重新嘗試</p>
-                </div>
+                <ErrorState
+                  title="商品資料載入失敗"
+                  message={
+                    `載入錯誤：${error.message}` || '找不到您要查看的商品資料'
+                  }
+                  onRetry={mutate}
+                  backUrl="/"
+                  backLabel="返回首頁"
+                />
               ) : products.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
                   {products.map((product) => (

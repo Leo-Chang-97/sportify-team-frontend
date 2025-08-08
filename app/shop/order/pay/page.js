@@ -18,6 +18,7 @@ import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 import { Input } from '@/components/ui/input'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
@@ -524,18 +525,7 @@ export default function ProductListPage() {
 
   // 載入狀態處理
   if (isCartLoading) {
-    return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center py-20">載入中...</div>
-          </div>
-        </section>
-        <Footer />
-      </>
-    )
+    return <LoadingState message="載入購物車資料中..." />
   }
 
   // 暫時註解登入狀態檢查，用於測試
@@ -559,18 +549,13 @@ export default function ProductListPage() {
   // 錯誤狀態處理
   if (cartError) {
     return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center py-20 text-red-500">
-              載入失敗: {cartError.message}
-            </div>
-          </div>
-        </section>
-        <Footer />
-      </>
+      <ErrorState
+        title="購物車資料載入失敗"
+        message={`載入錯誤：${cartError.message}` || '載入購物車資料時發生錯誤'}
+        onRetry={() => window.location.reload()}
+        backUrl="/shop/order"
+        backLabel="返回購物車"
+      />
     )
   }
 

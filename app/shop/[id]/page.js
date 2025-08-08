@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 import {
   Carousel,
   CarouselContent,
@@ -159,7 +160,20 @@ export default function ProductDetailPage() {
     }
   }
 
-  if (!product || isDataLoading) return <div>載入中...</div>
+  //  #region 載入和錯誤狀態處理
+  if (isDataLoading) return <LoadingState message="載入商品資料中..." />
+  if (error)
+    return (
+      <ErrorState
+        title="商品資料載入失敗"
+        message={`載入錯誤：${error.message}` || '找不到您要查看的商品資料'}
+        onRetry={mutate}
+        backUrl="/shop"
+        backLabel="返回商品列表"
+      />
+    )
+
+  if (!product) return <div>載入中...</div>
   return (
     <>
       <Navbar />
