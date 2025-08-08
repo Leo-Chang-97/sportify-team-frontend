@@ -30,7 +30,7 @@ const steps = [
   { id: 3, title: '完成訂單', active: true },
 ]
 
-export default function ProductListPage() {
+export default function ProductSuccessPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
 
