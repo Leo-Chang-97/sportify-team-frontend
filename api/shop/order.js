@@ -8,6 +8,6 @@ export const getUserOrders = async (params = {}) => {
 
 // 獲取用戶單一訂單詳情
 export const getOrderDetail = async (orderId, params = {}) => {
-  const res = await apiClient.get(`/shop/order/order/${orderId}`, { params })
+  const res = await apiClient.get(`/shop/order/${orderId}`, { params })
   return res.data
 }

@@ -38,8 +38,11 @@ import ReceiptTypeSelector, {
 import DeliveryMethodSelector, {
   DeliveryOptions,
 } from '@/components/delivery-method-selector'
-import { getCarts, getCheckoutData } from '@/api'
+import { getCarts, getCheckoutData, checkout } from '@/api'
 import { validateField } from '@/lib/utils'
+import { toast } from 'sonner'
+import { API_SERVER } from '@/lib/api-path'
+import { useAuth } from '@/contexts/auth-context'
 
 const steps = [
   { id: 1, title: '確認購物車', completed: true },
@@ -49,16 +52,22 @@ const steps = [
 
 export default function ProductListPage() {
   const searchParams = useSearchParams()
+  // 暫時註解登入檢查，用於測試
+  // const { user, isAuthenticated } = useAuth()
 
-  // 物流和付款和發票選項狀態
+  // 測試用的會員ID - 之後要改回 useAuth
+  const TEST_USER_ID = 1
+
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
+  // ===== 組件狀態管理 =====
   const [selectedPayment, setSelectedPayment] = useState('')
   const [selectedReceipt, setSelectedReceipt] = useState('')
   const [selectedDelivery, setSelectedDelivery] = useState('')
-
-  // 購物車資料狀態
   const [carts, setCarts] = useState([])
-
-  // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
     recipient: '',
     phone: '',
@@ -66,22 +75,87 @@ export default function ProductListPage() {
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
   })
-
-  // 錯誤狀態
   const [errors, setErrors] = useState({})
+  const [touchedFields, setTouchedFields] = useState({}) // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
 
-  // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
-  const [touchedFields, setTouchedFields] = useState({})
-
-  // 獲取購物車資料
+  // ===== 數據獲取 =====
   const {
     data: cartData,
     isLoading: isCartLoading,
     error: cartError,
-  } = useSWR('carts-checkout', async () => {
+    mutate,
+  } = useSWR(['carts-checkout'], async () => {
     const result = await getCarts()
     return result
   })
+
+  // 簡單驗證函數
+  const validateField = (
+    field,
+    value,
+    showFormatError = false,
+    deliveryType = selectedDelivery
+  ) => {
+    switch (field) {
+      case 'recipient':
+        if (!value.trim()) return '收件人姓名為必填'
+        return ''
+      case 'phone':
+        if (!value.trim()) return '手機號碼為必填'
+        // 只有在明確要求顯示格式錯誤，或者值看起來像是完整輸入時才顯示格式錯誤
+        if (
+          showFormatError ||
+          (value.length >= 10 && !/^09\d{8}$/.test(value))
+        ) {
+          if (!/^09\d{8}$/.test(value))
+            return '手機號碼格式錯誤，請輸入09開頭的10位數字'
+        }
+        return ''
+      case 'address':
+        // 只有選擇宅配時才需要驗證地址
+        if (deliveryType === '3') {
+          if (!value.trim()) return '收件地址為必填'
+          if (showFormatError && value.trim().length < 5)
+            return '收件地址至少5個字'
+        }
+        return ''
+      case 'delivery':
+        return !value ? '請選擇配送方式' : ''
+      case 'payment':
+        return !value ? '請選擇付款方式' : ''
+      case 'receipt':
+        return !value ? '請選擇發票類型' : ''
+      case 'carrierId':
+        // 只有選擇電子載具時才需要驗證
+        if (selectedReceipt === '3') {
+          if (!value.trim()) return '載具號碼為必填'
+          // 只有在明確要求或輸入看起來完整時才顯示格式錯誤
+          if (
+            showFormatError ||
+            (value.length >= 8 && !/^\/[A-Z0-9.\-+]{7}$/.test(value))
+          ) {
+            if (!/^\/[A-Z0-9.\-+]{7}$/.test(value))
+              return '載具號碼格式錯誤，請輸入正確格式 (例：/A12345B)'
+          }
+        }
+        return ''
+      case 'companyId':
+        // 只有選擇統一編號時才需要驗證
+        if (selectedReceipt === '2') {
+          if (!value.trim()) return '統一編號為必填'
+          // 只有在明確要求或輸入看起來完整時才顯示格式錯誤
+          if (
+            showFormatError ||
+            (value.length >= 8 && !/^\d{8}$/.test(value))
+          ) {
+            if (!/^\d{8}$/.test(value)) return '統一編號格式錯誤，請輸入8位數字'
+          }
+        }
+        return ''
+      default:
+        return ''
+    }
+  }
 
   // 計算總價和總數量
   const { totalPrice, itemCount, shippingFee } = useMemo(() => {
@@ -102,14 +176,14 @@ export default function ProductListPage() {
     return { totalPrice, itemCount, shippingFee }
   }, [carts, selectedDelivery])
 
-  // 載入購物車資料
+  // ===== 載入選項 =====
   useEffect(() => {
     if (cartData?.data?.cart?.cartItems) {
       setCarts(cartData.data.cart.cartItems)
     }
   }, [cartData])
 
-  // 處理表單輸入變更
+  // ===== 事件處理函數 =====
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -211,10 +285,14 @@ export default function ProductListPage() {
     const selectedReceiptOption = receiptOptions.find(
       (opt) => opt.id === selectedReceipt
     )
+    const selectedDeliveryOption = DeliveryOptions.find(
+      (opt) => opt.id === selectedDelivery
+    )
 
     return {
       paymentMethod: selectedPaymentOption?.label || '',
       receiptType: selectedReceiptOption?.label || '',
+      deliveryMethod: selectedDeliveryOption?.label || '',
     }
   }
 
@@ -265,8 +343,109 @@ export default function ProductListPage() {
     return !Object.values(newErrors).some((error) => error !== '')
   }
 
+  // 處理ECPay付款
+  const handleEcpay = async () => {
+    try {
+      // 暫時註解登入檢查，用於測試
+      // if (!isAuthenticated || !user) {
+      //   toast.error('請先登入')
+      //   return
+      // }
+
+      // 檢查是否有購物車資料
+      if (!carts || carts.length === 0) {
+        toast.error('購物車是空的，無法進行付款')
+        return
+      }
+
+      // 檢查表單必填欄位
+      if (
+        !formData.recipient ||
+        !formData.phone ||
+        !selectedDelivery ||
+        !selectedPayment ||
+        !selectedReceipt
+      ) {
+        toast.error('請填寫完整的訂單資訊')
+        return
+      }
+
+      // 準備商品名稱
+      const itemsArray = carts.map(
+        (cartItem) => `${cartItem.product.name}x${cartItem.quantity}`
+      )
+      const items = itemsArray.join(',')
+      const amount = totalPrice + shippingFee
+
+      if (window.confirm('確認要導向至ECPay(綠界金流)進行付款?')) {
+        // 準備購物車項目資料（符合後端期望的格式）
+        const cartItems = carts.map((cartItem) => ({
+          productId: cartItem.product.id, // 使用 cartItem.product.id
+          quantity: cartItem.quantity,
+        }))
+
+        // 先建立訂單到資料庫
+        const orderData = {
+          recipient: formData.recipient,
+          phone: formData.phone,
+          address: formData.address || '', // 如果不是宅配可能為空
+          deliveryId: parseInt(selectedDelivery), // 轉換為數字
+          paymentId: parseInt(selectedPayment), // 轉換為數字
+          invoiceData: {
+            invoiceId: parseInt(selectedReceipt), // 轉換為數字
+            carrier: formData.carrierId || null,
+            tax: formData.companyId || null,
+          },
+        }
+
+        // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
+        const checkoutPayload = {
+          memberId: TEST_USER_ID, // 使用測試用會員ID
+          orderData: orderData,
+          cartItems: cartItems,
+        }
+
+        // console.log('發送到後端的資料:', checkoutPayload) // 除錯用
+        // console.log('表單資料狀態:', formData) // 檢查表單資料
+        // console.log('選擇的選項:', {
+        //   selectedDelivery,
+        //   selectedPayment,
+        //   selectedReceipt,
+        // }) // 檢查選擇狀態
+
+        const orderResult = await checkout(checkoutPayload)
+
+        if (orderResult.success) {
+          // 訂單建立成功，準備成功頁面資料並存到 localStorage
+          const successData = {
+            carts: carts,
+            userInfo: formData,
+            totalPrice: totalPrice + shippingFee,
+            itemCount: itemCount,
+            shippingFee: shippingFee,
+            orderId: orderResult.data.id,
+            ...getSelectedOptions(),
+          }
+
+          // 將訂單資料存到 localStorage (給綠界付款完成後使用)
+          localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
+          // console.log('訂單資料已存入 localStorage:', successData)
+
+          // 導向 ECPay
+          window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
+        } else {
+          toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
+          console.error('訂單建立失敗:', orderResult)
+        }
+      }
+    } catch (error) {
+      console.error('ECPay付款錯誤:', error)
+      toast.error('付款過程發生錯誤，請稍後再試')
+    }
+  }
+
   // 處理付款按鈕點擊
-  const handlePayment = () => {
+  const handlePayment = async () => {
     // 先執行驗證並獲取錯誤
     const newErrors = {}
     newErrors.recipient = validateField(
@@ -313,16 +492,67 @@ export default function ProductListPage() {
     const hasErrors = Object.values(newErrors).some((error) => error !== '')
 
     if (!hasErrors) {
-      // 表單驗證通過，導向成功頁面
-      const orderData = {
-        carts: carts,
-        userInfo: formData,
-        totalPrice: totalPrice + shippingFee,
-        itemCount: itemCount,
-        shippingFee: shippingFee,
-        ...getSelectedOptions(),
+      // 表單驗證通過，根據付款方式處理
+      if (selectedPayment === '2') {
+        // ECPay綠界金流
+        await handleEcpay()
+      } else {
+        // 其他付款方式
+        try {
+          // 準備購物車項目資料
+          const cartItems = carts.map((cartItem) => ({
+            productId: cartItem.product.id,
+            quantity: cartItem.quantity,
+          }))
+
+          // 建立訂單到資料庫
+          const orderData = {
+            recipient: formData.recipient,
+            phone: formData.phone,
+            address: formData.address || '', // 如果不是宅配可能為空
+            deliveryId: parseInt(selectedDelivery), // 轉換為數字
+            paymentId: parseInt(selectedPayment), // 轉換為數字
+            invoiceData: {
+              invoiceId: parseInt(selectedReceipt), // 轉換為數字
+              carrier: formData.carrierId || null,
+              tax: formData.companyId || null,
+            },
+          }
+
+          // 呼叫後端建立訂單
+          const checkoutPayload = {
+            memberId: TEST_USER_ID, // 使用測試用會員ID
+            orderData: orderData,
+            cartItems: cartItems,
+          }
+
+          // console.log('發送到後端的資料 (貨到付款):', checkoutPayload)
+
+          const orderResult = await checkout(checkoutPayload)
+
+          if (orderResult.success) {
+            // 訂單建立成功，準備成功頁面資料
+            const successData = {
+              carts: carts,
+              userInfo: formData,
+              totalPrice: totalPrice + shippingFee,
+              itemCount: itemCount,
+              shippingFee: shippingFee,
+              orderId: orderResult.data.id,
+              ...getSelectedOptions(),
+            }
+
+            // 導向成功頁面
+            window.location.href = `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
+          } else {
+            toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
+            console.error('訂單建立失敗:', orderResult)
+          }
+        } catch (error) {
+          console.error('建立訂單錯誤:', error)
+          toast.error('建立訂單過程發生錯誤，請稍後再試')
+        }
       }
-      window.location.href = `/shop/order/success?data=${encodeURIComponent(JSON.stringify(orderData))}`
     } else {
       // 表單驗證失敗，滾動到第一個錯誤欄位
       const errorFields = [
@@ -371,6 +601,24 @@ export default function ProductListPage() {
       </>
     )
   }
+
+  // 暫時註解登入狀態檢查，用於測試
+  // if (!isAuthenticated) {
+  //   return (
+  //     <>
+  //       <Navbar />
+  //       <BreadcrumbAuto />
+  //       <section className="px-4 md:px-6 py-10">
+  //         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+  //           <div className="text-center py-20 text-red-500">
+  //             請先登入才能進行結帳
+  //           </div>
+  //         </div>
+  //       </section>
+  //       <Footer />
+  //     </>
+  //   )
+  // }
 
   // 錯誤狀態處理
   if (cartError) {
@@ -442,7 +690,7 @@ export default function ProductListPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-accent-foreground">
-                          ${product.price}
+                          ${formatPrice(product.price)}
                         </TableCell>
                         <TableCell className="text-accent-foreground">
                           <div className="flex items-center justify-center gap-2">
@@ -578,7 +826,7 @@ export default function ProductListPage() {
                         商品金額
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        ${totalPrice}
+                        ${formatPrice(totalPrice)}
                       </TableCell>
                     </TableRow>
                     <TableRow className="border-b border-card-foreground">
@@ -586,7 +834,7 @@ export default function ProductListPage() {
                         運費
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground text-right">
-                        ${shippingFee}
+                        ${formatPrice(shippingFee)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -594,7 +842,7 @@ export default function ProductListPage() {
                         商品小計
                       </TableCell>
                       <TableCell className="text-base font-bold text-accent-foreground">
-                        ${totalPrice + shippingFee}
+                        ${formatPrice(totalPrice + shippingFee)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
