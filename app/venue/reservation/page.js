@@ -7,6 +7,7 @@ import { useVenue } from '@/contexts/venue-context'
 // utils
 import { format as formatDate } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
 
 // Icon
 import { ClipboardCheck } from 'lucide-react'
@@ -47,7 +48,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Calendar } from '@/components/date-calendar'
-import { format } from 'date-fns'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
