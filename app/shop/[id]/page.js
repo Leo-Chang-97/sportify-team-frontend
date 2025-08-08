@@ -1,21 +1,13 @@
 'use client'
 
-import { Minus, Plus, Heart } from 'lucide-react'
-import Image from 'next/image'
 import React, { useState, useEffect, useMemo } from 'react'
-import {
-  fetchMemberOptions,
-  fetchSportOptions,
-  fetchBrandOptions,
-} from '@/api/common'
-import { toast } from 'sonner'
+import { Minus, Plus, Heart } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
-import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
+import Image from 'next/image'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import { LoadingState, ErrorState } from '@/components/loading-states'
 import {
   Carousel,
   CarouselContent,
@@ -23,8 +15,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
-import { useParams, useRouter } from 'next/navigation'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -35,6 +25,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
+import { getProductImageUrl } from '@/api/admin/shop/image'
+import {
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api/common'
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
   currency: 'TWD',

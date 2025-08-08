@@ -1,17 +1,14 @@
 'use client'
 
-import { Minus, Plus } from 'lucide-react'
-import Image from 'next/image'
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
+import Image from 'next/image'
 import Link from 'next/link'
+import { Minus, Plus } from 'lucide-react'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import { LoadingState, ErrorState } from '@/components/loading-states'
 import {
   Table,
   TableBody,
@@ -21,9 +18,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, addProductCart, updateCarts, removeCart } from '@/api'
-import { toast } from 'sonner'
 
 const steps = [
   { id: 1, title: '確認購物車', active: true },

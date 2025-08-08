@@ -2,18 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { FaXmark, FaCheck } from 'react-icons/fa6'
+import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
-import useSWR from 'swr'
+// components/ui
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { LoadingState, ErrorState } from '@/components/loading-states'
-import { getProductImageUrl } from '@/api/admin/shop/image'
-import { getOrderDetail } from '@/api'
 import {
   Table,
   TableBody,
@@ -23,6 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
+import { getOrderDetail } from '@/api'
 
 const steps = [
   { id: 1, title: '待出貨', completed: true },

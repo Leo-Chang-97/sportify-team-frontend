@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
+import Link from 'next/link'
+import Image from 'next/image'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -14,13 +16,7 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { LoadingState, ErrorState } from '@/components/loading-states'
 import { Input } from '@/components/ui/input'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -30,6 +26,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
@@ -39,9 +40,11 @@ import ReceiptTypeSelector, {
 import DeliveryMethodSelector, {
   DeliveryOptions,
 } from '@/components/delivery-method-selector'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, getCheckoutData, checkout } from '@/api'
+// 其他
 import { validateField } from '@/lib/utils'
-import { toast } from 'sonner'
 import { API_SERVER } from '@/lib/api-path'
 import { useAuth } from '@/contexts/auth-context'
 

@@ -1,23 +1,14 @@
 'use client'
 
-import { Search, AlignLeft, Funnel } from 'lucide-react'
 import React, { useState, useEffect, useMemo } from 'react'
+import { Search, AlignLeft, Funnel } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
-import {
-  getProducts,
-  fetchMemberOptions,
-  fetchSportOptions,
-  fetchBrandOptions,
-  toggleFavorite,
-  addProductCart,
-} from '@/api'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import {
   Select,
   SelectContent,
@@ -25,9 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProductCard } from '@/components/card/product-card'
-import { PaginationBar } from '@/components/pagination-bar'
-import { LoadingState, ErrorState } from '@/components/loading-states'
 import {
   Sheet,
   SheetContent,
@@ -41,8 +29,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-// import products from '../datas.json'
-import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +37,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+// components 其他
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import { ProductCard } from '@/components/card/product-card'
+import { PaginationBar } from '@/components/pagination-bar'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import {
+  getProducts,
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+  toggleFavorite,
+  addProductCart,
+} from '@/api'
 
 // 手機側邊欄
 const MobileSidebar = ({ open, onClose, sports, brands }) => {
