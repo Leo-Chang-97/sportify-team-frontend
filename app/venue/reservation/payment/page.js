@@ -3,6 +3,7 @@
 // hooks
 import { useState, useEffect, useMemo } from 'react'
 import { useVenue } from '@/contexts/venue-context'
+import { useAuth } from '@/contexts/auth-context'
 
 // utils
 import { validateField, cn } from '@/lib/utils'
@@ -58,15 +59,16 @@ import PaymentMethodSelector, {
 import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
-
+import { LoadingState, ErrorState } from '@/components/loading-states'
+4
 export default function PaymentPage() {
   // #region 路由和URL參數
   const router = useRouter()
-
+  const { user } = useAuth()
   // #region 狀態管理
   const [centerData, setCenterData] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false) // 建立訂單載入狀態
+  const [isLoadingCenter, setIsLoadingCenter] = useState(true) // 載入場館資料狀態
   const [errors, setErrors] = useState({})
 
   const { venueData, setVenueData } = useVenue()
@@ -78,7 +80,7 @@ export default function PaymentPage() {
 
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
-    name: '',
+    name: user?.name || '',
     phone: '',
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
@@ -86,8 +88,8 @@ export default function PaymentPage() {
   console.log('venueData', venueData)
 
   // ECPay 確認對話框狀態
-  const [showEcpayDialog, setShowEcpayDialog] = useState(false)
-  const [ecpayParams, setEcpayParams] = useState(null)
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
+  const [paymentParams, setPaymentParams] = useState(null)
 
   // #region 副作用處理
 
@@ -96,7 +98,7 @@ export default function PaymentPage() {
     console.log('centerId:', centerId)
     const fetchCenterData = async () => {
       try {
-        setLoading(true)
+        setIsLoadingCenter(true)
         // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
         const centerData = await fetchCenter(centerId)
         setCenterData(centerData.record)
@@ -106,7 +108,7 @@ export default function PaymentPage() {
         setErrors(err.message)
         toast.error('載入場館資料失敗')
       } finally {
-        setLoading(false)
+        setIsLoadingCenter(false)
       }
     }
 
@@ -152,78 +154,18 @@ export default function PaymentPage() {
     }
   }
 
-  // #region 處理ECPay付款
-  const handleEcpay = async (reservationId) => {
-    try {
-      // 暫時註解登入檢查，用於測試
-      // if (!isAuthenticated || !user) {
-      //   toast.error('請先登入')
-      //   return
-      // }
-
-      // 檢查表單必填欄位
-      if (
-        !formData.name ||
-        !formData.phone ||
-        !selectedPayment ||
-        !selectedReceipt
-      ) {
-        toast.error('請填寫完整的訂單資訊')
-        return
-      }
-
-      // 準備商品名稱
-      const itemsArray = venueData.timeSlots.map(
-        (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
-      )
-      const items = itemsArray.join(',') // 例如 "場地A,場地B"
-      const amount = venueData.totalPrice
-
-      // 儲存 ECPay 參數到 state，供確認對話框使用
-      setEcpayParams({
-        amount,
-        items,
-        reservationId,
-      })
-
-      // 顯示確認對話框
-      setShowEcpayDialog(true)
-    } catch (error) {
-      console.error('ECPay付款錯誤:', error)
-      toast.error('付款過程發生錯誤，請稍後再試')
-    }
-  }
-
-  // #region 處理ECPay確認付款
-  const handleEcpayConfirm = () => {
-    try {
-      if (!ecpayParams) {
-        toast.error('付款參數錯誤，請重新嘗試')
-        return
-      }
-
-      const { amount, items, reservationId } = ecpayParams
-
-      // 導向 ECPay，帶上 reservationId
-      window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
-    } catch (error) {
-      console.error('ECPay導向錯誤:', error)
-      toast.error('付款導向發生錯誤，請稍後再試')
-    }
-  }
-
   // #region 處裡建立訂單
   const handleReservation = async () => {
     // e.preventDefault()
     setErrors({})
-    setIsLoading(true)
+    setIsCreatingOrder(true)
 
     console.log('venueData.timeSlots 內容:', venueData.timeSlots) // 詳細除錯
 
     // 檢查 timeSlots 是否為空
     if (!venueData.timeSlots || venueData.timeSlots.length === 0) {
       toast.error('請選擇場地時段')
-      setIsLoading(false)
+      setIsCreatingOrder(false)
       return false
     }
 
@@ -240,20 +182,20 @@ export default function PaymentPage() {
         } else {
           console.error('無效的 courtTimeSlotId:', slot.courtTimeSlotId)
           toast.error('場地時段 ID 格式錯誤')
-          setIsLoading(false)
+          setIsCreatingOrder(false)
           return false
         }
       } else {
         console.error('缺少 courtTimeSlotId:', slot)
         toast.error('場地時段資料不完整')
-        setIsLoading(false)
+        setIsCreatingOrder(false)
         return false
       }
     }
 
     if (courtTimeSlotIds.length === 0) {
       toast.error('沒有有效的場地時段')
-      setIsLoading(false)
+      setIsCreatingOrder(false)
       return false
     }
 
@@ -266,12 +208,12 @@ export default function PaymentPage() {
 
     if (!dateString) {
       toast.error('請選擇預約日期')
-      setIsLoading(false)
+      setIsCreatingOrder(false)
       return false
     }
 
     const reservationData = {
-      memberId: 1,
+      memberId: user?.id || 102,
       courtTimeSlotId: courtTimeSlotIds, // 使用處理過的 ID 陣列
       date: dateString, // 使用字串格式的日期
       statusId: 1,
@@ -322,7 +264,7 @@ export default function PaymentPage() {
       }
       return false // 返回失敗狀態
     } finally {
-      setIsLoading(false)
+      setIsCreatingOrder(false)
     }
   }
 
@@ -369,11 +311,32 @@ export default function PaymentPage() {
         // 訂單建立成功，根據付款方式決定下一步
         const reservationId = reservationResult.reservationId
 
+        // 定義 amount 和 items
+        const amount = venueData.totalPrice
+        const itemsArray = venueData.timeSlots.map(
+          (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
+        )
+        const items = itemsArray.join(',')
+
         if (selectedPayment === '1') {
-          // ECPay綠界金流 - 導向付款頁面，傳入 reservationId
-          await handleEcpay(reservationId)
+          // 綠界
+          setPaymentParams({
+            method: 'ecpay',
+            amount,
+            items,
+            reservationId,
+          })
+          setShowPaymentDialog(true)
+        } else if (selectedPayment === '2') {
+          // Line Pay
+          setPaymentParams({
+            method: 'linepay',
+            amount,
+            items,
+            reservationId,
+          })
+          setShowPaymentDialog(true)
         } else {
-          // 其他付款方式 - 直接跳轉到成功頁面
           router.push('/venue/reservation/success')
         }
       }
@@ -409,6 +372,32 @@ export default function PaymentPage() {
     }
   }
 
+  // #region 處理ECPay確認付款
+  const handlePaymentConfirm = () => {
+    if (!paymentParams) {
+      toast.error('付款參數錯誤，請重新嘗試')
+      return
+    }
+
+    const { method, amount, items, reservationId } = paymentParams
+
+    switch (method) {
+      case 'ecpay':
+        window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+        break
+      case 'linepay':
+        window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+        break
+      default:
+        toast.error('不支援的付款方式')
+    }
+  }
+
+  //  #region 載入和錯誤狀態處理
+  /* if (isLoadingCenter) {
+    return <LoadingState message="載入場館資料中..." />
+  } */
+
   // #region 資料顯示選項
   const steps = [
     { id: 1, title: '選擇場地與時間', completed: true },
@@ -434,7 +423,7 @@ export default function PaymentPage() {
           </section>
           <section className="flex flex-col md:flex-row gap-6">
             {/* 付款流程 */}
-            <section className="order-2 md:order-1 flex-2 w-full">
+            <section className="flex-2 w-full">
               <h2 className="text-xl font-semibold mb-4">付款方式</h2>
               <Card>
                 <CardContent className="flex flex-col gap-6">
@@ -516,7 +505,7 @@ export default function PaymentPage() {
               </Card>
             </section>
             {/* 訂單確認 */}
-            <section className="order-1 md:order-2 flex-1 w-full">
+            <section className="flex-1 w-full">
               <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
 
               {/* 訂單摘要卡片 */}
@@ -606,8 +595,13 @@ export default function PaymentPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Button size="lg" className="w-full" onClick={handlePayment}>
-                    確認付款
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handlePayment}
+                    disabled={isCreatingOrder}
+                  >
+                    {isCreatingOrder ? '處理中...' : '確認付款'}
                     <CreditCard />
                   </Button>
                 </CardFooter>
@@ -618,28 +612,31 @@ export default function PaymentPage() {
       </main>
 
       {/* ECPay 付款確認對話框 */}
-      <AlertDialog open={showEcpayDialog} onOpenChange={setShowEcpayDialog}>
+      <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>確認付款</AlertDialogTitle>
             <AlertDialogDescription>
-              確認是否導向至 ECPay(綠界金流) 進行付款？
+              {paymentParams?.method === 'ecpay'
+                ? '確認是否導向至 ECPay(綠界金流) 進行付款？'
+                : paymentParams?.method === 'applepay'
+                  ? '確認是否使用 Apple Pay 進行付款？'
+                  : '確認是否進行付款？'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => {
-                setShowEcpayDialog(false)
-                setEcpayParams(null)
+                setShowPaymentDialog(false)
+                setPaymentParams(null)
               }}
             >
               取消
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                setShowEcpayDialog(false)
-                setEcpayParams(null)
-                handleEcpayConfirm()
+                setShowPaymentDialog(false)
+                handlePaymentConfirm()
               }}
             >
               確認付款
