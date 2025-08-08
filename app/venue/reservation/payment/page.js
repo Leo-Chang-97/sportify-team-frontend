@@ -28,7 +28,6 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-
 import {
   Card,
   CardContent,
@@ -36,13 +35,23 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
@@ -75,6 +84,10 @@ export default function PaymentPage() {
     companyId: '', // 統一編號
   })
   console.log('venueData', venueData)
+
+  // ECPay 確認對話框狀態
+  const [showEcpayDialog, setShowEcpayDialog] = useState(false)
+  const [ecpayParams, setEcpayParams] = useState(null)
 
   // #region 副作用處理
 
@@ -166,16 +179,36 @@ export default function PaymentPage() {
       const items = itemsArray.join(',') // 例如 "場地A,場地B"
       const amount = venueData.totalPrice
 
-      if (window.confirm('確認要導向至ECPay(綠界金流)進行付款?')) {
-        // 導向 ECPay，帶上 reservationId
-        window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
-      } else {
-        toast.error('已取消付款')
-        console.log('已取消付款')
-      }
+      // 儲存 ECPay 參數到 state，供確認對話框使用
+      setEcpayParams({
+        amount,
+        items,
+        reservationId,
+      })
+
+      // 顯示確認對話框
+      setShowEcpayDialog(true)
     } catch (error) {
       console.error('ECPay付款錯誤:', error)
       toast.error('付款過程發生錯誤，請稍後再試')
+    }
+  }
+
+  // #region 處理ECPay確認付款
+  const handleEcpayConfirm = () => {
+    try {
+      if (!ecpayParams) {
+        toast.error('付款參數錯誤，請重新嘗試')
+        return
+      }
+
+      const { amount, items, reservationId } = ecpayParams
+
+      // 導向 ECPay，帶上 reservationId
+      window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+    } catch (error) {
+      console.error('ECPay導向錯誤:', error)
+      toast.error('付款導向發生錯誤，請稍後再試')
     }
   }
 
@@ -254,8 +287,8 @@ export default function PaymentPage() {
     try {
       const result = await createReservation(reservationData)
       if (result.success) {
-        const successMessage = '新增預約成功！'
-        toast.success(successMessage)
+        // const successMessage = '新增預約成功！'
+        // toast.success(successMessage)
         console.log('訂單建立成功:', result) // 除錯用
         return { success: true, reservationId: result.insertId } // 回傳成功狀態和訂單ID
       } else {
@@ -583,6 +616,38 @@ export default function PaymentPage() {
           </section>
         </div>
       </main>
+
+      {/* ECPay 付款確認對話框 */}
+      <AlertDialog open={showEcpayDialog} onOpenChange={setShowEcpayDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認付款</AlertDialogTitle>
+            <AlertDialogDescription>
+              確認是否導向至 ECPay(綠界金流) 進行付款？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowEcpayDialog(false)
+                setEcpayParams(null)
+              }}
+            >
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowEcpayDialog(false)
+                setEcpayParams(null)
+                handleEcpayConfirm()
+              }}
+            >
+              確認付款
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </>
   )
