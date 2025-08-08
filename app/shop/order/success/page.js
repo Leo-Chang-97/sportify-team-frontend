@@ -1,16 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { FaXmark, FaCheck } from 'react-icons/fa6'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { FaXmark, FaCheck } from 'react-icons/fa6'
+// components/ui
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -20,6 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
 
 const steps = [
   { id: 1, title: '確認購物車', completed: true },
@@ -27,7 +30,7 @@ const steps = [
   { id: 3, title: '完成訂單', active: true },
 ]
 
-export default function ProductListPage() {
+export default function ProductSuccessPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
 

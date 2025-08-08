@@ -2,17 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { FaXmark, FaCheck } from 'react-icons/fa6'
+import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
-import useSWR from 'swr'
+// components/ui
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { getProductImageUrl } from '@/api/admin/shop/image'
-import { getOrderDetail } from '@/api'
 import {
   Table,
   TableBody,
@@ -22,6 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
+import { getOrderDetail } from '@/api'
 
 const steps = [
   { id: 1, title: '待出貨', completed: true },
@@ -79,35 +82,19 @@ export default function OrderDetailPage() {
 
   // 如果正在載入，顯示載入狀態
   if (isDataLoading) {
-    return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center">載入中...</div>
-          </div>
-        </section>
-        <Footer />
-      </>
-    )
+    return <LoadingState message="載入訂單資料中..." />
   }
 
   // 如果發生錯誤
   if (error) {
     return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center text-red-500">
-              載入訂單資料時發生錯誤
-            </div>
-          </div>
-        </section>
-        <Footer />
-      </>
+      <ErrorState
+        title="訂單資料載入失敗"
+        message={`載入錯誤：${error.message}` || '找不到您要查看的訂單資料'}
+        onRetry={mutate}
+        backUrl="/shop/order"
+        backLabel="返回訂單列表"
+      />
     )
   }
 
