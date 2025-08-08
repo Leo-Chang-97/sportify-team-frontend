@@ -90,6 +90,32 @@ const paymentOptions = [
   },
   {
     id: '3',
+    label: '貨到付款',
+    // subtitle: (
+    //   <Image
+    //     src="/payment-pic/applepay.svg"
+    //     alt="Apple Pay"
+    //     width={80}
+    //     height={24}
+    //     style={{ display: 'inline-block' }}
+    //   />
+    // ),
+    component: null, // 不顯示額外選項
+  },
+  {
+    id: '4',
+    label: 'ATM轉帳',
+    subtitle: '銀行轉帳付款',
+    component: <ATMForm />,
+  },
+  {
+    id: '5',
+    label: '超商代碼',
+    subtitle: '超商代碼繳費',
+    component: null, // 不顯示額外選項
+  },
+  {
+    id: '99',
     label: '信用卡付款',
     subtitle: (
       <div>
@@ -117,32 +143,6 @@ const paymentOptions = [
       </div>
     ),
     component: <CreditCardForm />,
-  },
-  {
-    id: '4',
-    label: '貨到付款',
-    // subtitle: (
-    //   <Image
-    //     src="/payment-pic/applepay.svg"
-    //     alt="Apple Pay"
-    //     width={80}
-    //     height={24}
-    //     style={{ display: 'inline-block' }}
-    //   />
-    // ),
-    component: null, // 不顯示額外選項
-  },
-  {
-    id: '5',
-    label: 'ATM轉帳',
-    subtitle: '銀行轉帳付款',
-    component: <ATMForm />,
-  },
-  {
-    id: '6',
-    label: '超商代碼',
-    subtitle: '超商代碼繳費',
-    component: null, // 不顯示額外選項
   },
 ]
 
