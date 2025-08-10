@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/select'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
-import FormCard from '@/components/card/form-card'
+import FormCard from '@/components/card/member-form-card'
 
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====

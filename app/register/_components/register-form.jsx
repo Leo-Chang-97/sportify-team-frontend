@@ -106,7 +106,6 @@ export function RegisterForm({
                     )}
                   </div>
 
-
                   <div className="grid gap-3">
                     <Label htmlFor="phone">手機號碼</Label>
                     <Input

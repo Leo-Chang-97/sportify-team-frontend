@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/select'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
-import FormCard from '@/components/card/form-card'
+import FormCard from '@/components/card/member-form-card'
 import { TeamCard } from '@/components/card/team-card'
 
 export default function VenueListPage() {

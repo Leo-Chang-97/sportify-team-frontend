@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/select'
 import { CenterCard } from '@/components/card/center-card'
 import { ChevronDownIcon, ArrowRight } from 'lucide-react'
-import FormCard from '@/components/card/form-card'
+import FormCard from '@/components/card/member-form-card'
 
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
@@ -51,37 +51,7 @@ export default function VenueListPage() {
 
   const [memberId, setMemberId] = useState('')
 
-
   const [members, setMembers] = useState([])
-
-
-  // ===== 載入下拉選單選項 =====
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     try {
-  //       const memberData = await fetchMemberOptions()
-  //       setMembers(memberData.rows || [])
-
-  //       // const locationData = await fetchLocationOptions()
-  //       // setLocations(locationData.rows || [])
-
-  //       const sportData = await fetchSportOptions()
-  //       setSports(sportData.rows || [])
-
-  //       const timePeriodData = await fetchTimePeriodOptions()
-  //       setTimePeriods(timePeriodData.rows || [])
-
-  //       const statusData = await fetchStatusOptions()
-  //       setStatus(statusData.rows || [])
-  //     } catch (error) {
-  //       console.error('載入球場/時段失敗:', error)
-  //       toast.error('載入球場/時段失敗')
-  //     }
-  //   }
-  //   loadData()
-  // }, [])
-
-
 
   return (
     <>
