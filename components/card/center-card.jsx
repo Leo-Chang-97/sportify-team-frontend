@@ -4,6 +4,7 @@ import { Heart, Star, Eye, ClipboardCheck } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +21,8 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
+import { getCenterImageUrl } from '@/api/venue/image'
+import { useVenue } from '@/contexts/venue-context'
 
 export function CenterCard({
   className,
@@ -28,6 +31,8 @@ export function CenterCard({
   variant = 'default',
   ...props
 }) {
+  const router = useRouter()
+  const { setVenueData } = useVenue()
   const [isHovered, setIsHovered] = React.useState(false)
   const [isInWishlist, setIsInWishlist] = React.useState(false)
 
@@ -39,8 +44,20 @@ export function CenterCard({
     }
   }
 
+  const handleReservation = (e) => {
+    e.preventDefault()
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      location: data.location.name,
+      centerId: data.id,
+      locationId: data.location.id,
+    }))
+    router.push('/venue/reservation')
+  }
+
   const renderStars = () => {
-    const rating = data.rating ?? 0
+    const rating = data.averageRating ?? 0
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 >= 0.5
 
@@ -54,31 +71,31 @@ export function CenterCard({
                 ? 'fill-yellow-400 text-yellow-400'
                 : i === fullStars && hasHalfStar
                   ? 'fill-yellow-400/50 text-yellow-400'
-                  : 'stroke-muted/40 text-muted'
+                  : 'stroke-yellow-400 text-muted'
             )}
             key={`star-${data.id}-position-${i + 1}`}
           />
         ))}
         {rating > 0 && (
           <span className="ml-1 text-xs text-muted-foreground">
-            {rating.toFixed(1)}
+            {Number(rating).toFixed(1)}
           </span>
         )}
       </div>
     )
   }
 
-  const sportItems = [
-    { icon: BasketballIcon, label: '籃球' },
-    { icon: BadmintonIcon, label: '羽球' },
-    { icon: TableTennisIcon, label: '桌球' },
-    { icon: TennisIcon, label: '網球' },
-    { icon: VolleyballIcon, label: '排球' },
-    { icon: TennisRacketIcon, label: '壁球' },
-    { icon: SoccerIcon, label: '足球' },
-    { icon: BaseballBatIcon, label: '棒球' },
-    { icon: BilliardBallIcon, label: '撞球' },
-  ]
+  const sportIconMap = {
+    basketball: BasketballIcon,
+    badminton: BadmintonIcon,
+    tabletennis: TableTennisIcon,
+    tennis: TennisIcon,
+    volleyball: VolleyballIcon,
+    squash: TennisRacketIcon,
+    soccer: SoccerIcon,
+    baseball: BaseballBatIcon,
+    billiard: BilliardBallIcon,
+  }
 
   return (
     <div className={cn('group', className)} {...props}>
@@ -95,7 +112,7 @@ export function CenterCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
-          {data.image && (
+          {data.images && data.images.length > 0 && (
             <Image
               alt={data.name}
               className={cn(
@@ -104,7 +121,7 @@ export function CenterCard({
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src={data.image}
+              src={getCenterImageUrl(data.images[0])}
             />
           )}
 
@@ -159,9 +176,9 @@ export function CenterCard({
             <>
               <div>{renderStars()}</div>
 
-              <div className="flex flex-wrap gap-2">
-                {sportItems.map((item, idx) => {
-                  const IconComponent = item.icon
+              <div className="flex flex-wrap md:h-[74px] gap-2">
+                {data.sports.map((item, idx) => {
+                  const IconComponent = sportIconMap[item.iconKey]
                   return (
                     <Link href="#" key={idx}>
                       <Button
@@ -169,8 +186,10 @@ export function CenterCard({
                         size="sm"
                         className="hover:bg-primary/10"
                       >
-                        <IconComponent className="!w-6 !h-6" />
-                        {item.label}
+                        {IconComponent && (
+                          <IconComponent className="!w-6 !h-6" />
+                        )}
+                        {item.name}
                       </Button>
                     </Link>
                   )
@@ -182,21 +201,18 @@ export function CenterCard({
 
         {variant === 'default' && (
           <CardFooter className="p-4 pt-0 gap-2 flex flex-col md:flex-row">
-            <Link href={`/venue/${data.id}`} className="w-full flex-1">
-              <Button
-                variant="secondary"
-                className="w-full hover:bg-primary/10"
-              >
-                詳細
-                <Eye />
-              </Button>
-            </Link>
-            <Link href="/venue/reservation" className="w-full flex-1">
-              <Button className="w-full">
-                預訂
-                <ClipboardCheck />
-              </Button>
-            </Link>
+            <Button
+              onClick={() => router.push(`/venue/${data.id}`)}
+              variant="secondary"
+              className="hover:bg-primary/10 w-full flex-1"
+            >
+              詳細
+              <Eye />
+            </Button>
+            <Button onClick={handleReservation} className="w-full flex-1">
+              預訂
+              <ClipboardCheck />
+            </Button>
           </CardFooter>
         )}
 

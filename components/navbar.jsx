@@ -2,6 +2,7 @@
 import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/contexts/auth-context'
@@ -130,6 +131,7 @@ const UserMenu = ({
   userName = 'User',
   userEmail = 'user@example.com',
   userAvatar,
+  userRole = 'guest',
   onItemClick,
   onLogout,
 }) => (
@@ -171,8 +173,15 @@ const UserMenu = ({
       <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
         購物車
       </DropdownMenuItem>
+      {userRole === 'admin' && (
+        <DropdownMenuItem onClick={() => onItemClick?.('admin')}>
+          後臺管理系統
+        </DropdownMenuItem>
+      )}
       <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => onLogout?.()}>登出</DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onItemClick?.('logout')}>
+        登出
+      </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 )
@@ -198,6 +207,7 @@ export const Navbar = React.forwardRef(
     const [isMobile, setIsMobile] = useState(false)
     const containerRef = useRef(null)
     const { user, isAuthenticated, logout } = useAuth()
+    const router = useRouter()
 
     const handleLogout = () => {
       logout()
@@ -206,8 +216,15 @@ export const Navbar = React.forwardRef(
     const handleUserItemClick = (action) => {
       if (action === 'logout') {
         handleLogout()
-      } else {
-        onUserItemClick?.(action)
+      } else if (action === 'admin') {
+        // 使用 window.location.href 強制重新載入
+        window.location.href = '/admin'
+      } else if (action === 'profile') {
+        router.push('/profile')
+      } else if (action === 'settings') {
+        router.push('/settings')
+      } else if (action === 'billing') {
+        router.push('/cart')
       }
     }
 
@@ -270,7 +287,7 @@ export const Navbar = React.forwardRef(
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
-                  className="w-48 p-2 border shadow-md"
+                  className="w-30 p-2 border shadow-md"
                 >
                   <NavigationMenu className="max-w-none">
                     <NavigationMenuList className="flex-col items-start gap-1">
@@ -283,7 +300,7 @@ export const Navbar = React.forwardRef(
                               'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline',
                               link.active
                                 ? 'bg-accent text-accent-foreground'
-                                : 'text-accent-foreground hover:text-accent-foreground'
+                                : 'text-accent-foreground hover:text-primary hover:bg-primary/10'
                             )}
                           >
                             {link.label}
@@ -353,6 +370,7 @@ export const Navbar = React.forwardRef(
                 userName={user?.name || '使用者'}
                 userEmail={user?.email || 'user@example.com'}
                 userAvatar={user?.avatar}
+                userRole={user?.role}
                 onItemClick={handleUserItemClick}
                 onLogout={handleLogout}
               />

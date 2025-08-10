@@ -1,17 +1,22 @@
 'use client'
 
+// hooks
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+
+// 資料請求函式庫
 import useSWR from 'swr'
-import Link from 'next/link'
-import { getCenters, fetchLocationOptions, fetchSportOptions } from '@/api'
+
+// Icon
+import { ChevronDownIcon, ArrowRight } from 'lucide-react'
+
+// API 請求
+import { fetchLocationOptions, fetchSportOptions } from '@/api'
+import { fetchCenters } from '@/api/venue/center'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import HeroBanner, { SearchField } from '@/components/hero-banner'
-import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
   Popover,
   PopoverContent,
@@ -24,48 +29,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CenterCard } from '@/components/card/center-card'
-import { ChevronDownIcon, ArrowRight } from 'lucide-react'
 
-import fakeData from './fake-data.json'
+// 自訂元件
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
+import ScrollAreaSport from '@/components/scroll-area-sport'
+import { PaginationBar } from '@/components/pagination-bar'
+import { CenterCard } from '@/components/card/center-card'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 
 export default function VenueListPage() {
-  // ===== 路由和搜尋參數處理 =====
+  // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
-
-  // ===== 組件狀態管理 =====
-  const [isLoading, setIsLoading] = useState(false)
-  // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
-
-  const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
-  const [sportId, setSportId] = useState('')
-  const [date, setDate] = useState(null)
-
-  const [locations, setLocations] = useState([])
-  const [centers, setCenters] = useState([])
-  const [sports, setSports] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
-
-  // ===== URL 參數處理 =====
   const queryParams = useMemo(() => {
     const entries = Object.fromEntries(searchParams.entries())
     return entries
   }, [searchParams])
 
-  // ===== 數據獲取 =====
+  // #region 狀態管理
+  const [locationId, setLocationId] = useState('')
+  const [sportId, setSportId] = useState('')
+  const [date, setDate] = useState(null)
+
+  const [locations, setLocations] = useState([])
+  const [sports, setSports] = useState([])
+
+  const [errors, setErrors] = useState({})
+  const [open, setOpen] = useState(false)
+
+  // #region 數據獲取
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['centers', queryParams], async ([, params]) => getCenters(params))
+  } = useSWR(['centers', queryParams], async ([, params]) => {
+    // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+    return fetchCenters(params)
+  })
 
-  // ===== 載入下拉選單選項 =====
+  // #region 副作用處理
+  // 載入下拉選單選項
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -82,6 +89,7 @@ export default function VenueListPage() {
     loadData()
   }, [])
 
+  // #region 事件處理函數
   const handleSearch = (keyword) => {
     const newParams = new URLSearchParams(searchParams.toString())
     if (keyword) {
@@ -94,6 +102,28 @@ export default function VenueListPage() {
     router.push(`?${newParams.toString()}`)
   }
 
+  const handlePagination = (targetPage) => {
+    const perPage = data?.perPage || 8
+    const newParams = new URLSearchParams(searchParams.toString())
+    newParams.set('page', String(targetPage))
+    newParams.set('perPage', String(perPage))
+    router.push(`?${newParams.toString()}`)
+  }
+
+  //  #region 載入和錯誤狀態處理
+  if (isDataLoading) return <LoadingState message="載入場館資料中..." />
+  if (error)
+    return (
+      <ErrorState
+        title="場館資料載入失敗"
+        message={`載入錯誤：${error.message}` || '找不到您要查看的場館資料'}
+        onRetry={mutate}
+        backUrl="/"
+        backLabel="返回首頁"
+      />
+    )
+
+  // #region 資料顯示選項
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
@@ -173,10 +203,9 @@ export default function VenueListPage() {
       ),
     },
   ]
-  // ===== 載入和錯誤狀態處理 =====
-  if (isDataLoading) return <p>載入中...</p>
-  if (error) return <p>載入錯誤：{error.message}</p>
+  // #endregion 資料顯示選項
 
+  // #region Markup
   return (
     <>
       <Navbar />
@@ -192,10 +221,12 @@ export default function VenueListPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
-      <section className="py-10">
-        <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-forgeground">精選場館</h3>
+      <ScrollAreaSport sportItems={sports} />
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+          <h3 className="text-center text-lg font-normal tracking-[24px]">
+            精·選·場·館
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {data?.rows.map((data) => (
               <CenterCard
@@ -206,16 +237,17 @@ export default function VenueListPage() {
               />
             ))}
           </div>
+          <PaginationBar
+            page={data.page}
+            totalPages={data.totalPages}
+            perPage={data.perPage}
+            onPageChange={(targetPage) => {
+              handlePagination(targetPage)
+            }}
+          />
         </div>
-        <div className="mt-10 flex justify-center">
-          <Link href="/datas">
-            <Button className="group h-12 px-8" size="lg" variant="secondary">
-              載入更多
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      </main>
+
       <Footer />
     </>
   )

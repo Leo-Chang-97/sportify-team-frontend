@@ -28,18 +28,14 @@ import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, ArrowRight, Search } from 'lucide-react'
+import ourteam from './ourteam/page'
 
 export default function TeamPage() {
   // ===== 組件狀態管理 =====
@@ -47,27 +43,12 @@ export default function TeamPage() {
   // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
   const [isInitialDataSet, setIsInitialDataSet] = useState(false)
 
-  const [memberId, setMemberId] = useState('')
   const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [courtId, setCourtIds] = useState('')
-  const [timePeriodId, setTimePeriodId] = useState('')
-  const [timeSlotId, setTimeSlotIds] = useState('')
-  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
-  const [statusId, setStatusId] = useState('')
   const [date, setDate] = useState(null)
-  const [price, setPrice] = useState('')
 
-  const [members, setMembers] = useState([])
   const [locations, setLocations] = useState([])
-  const [centers, setCenters] = useState([])
   const [sports, setSports] = useState([])
-  const [courts, setCourts] = useState([])
-  const [timePeriods, setTimePeriods] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
-  const [courtTimeSlots, setCourtTimeSlots] = useState([])
-  const [status, setStatus] = useState([])
 
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
@@ -76,20 +57,11 @@ export default function TeamPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const memberData = await fetchMemberOptions()
-        setMembers(memberData.rows || [])
-
         const locationData = await fetchLocationOptions()
         setLocations(locationData.rows || [])
 
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
-
-        const timePeriodData = await fetchTimePeriodOptions()
-        setTimePeriods(timePeriodData.rows || [])
-
-        const statusData = await fetchStatusOptions()
-        setStatus(statusData.rows || [])
       } catch (error) {
         console.error('載入球場/時段失敗:', error)
         toast.error('載入球場/時段失敗')
@@ -148,37 +120,19 @@ export default function TeamPage() {
       ),
     },
     {
-      label: '日期',
+      label: '關鍵字',
       component: (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className={`w-full h-10 justify-between font-normal${
-                !date ? ' text-gray-500' : ''
-              }`}
-            >
-              {date ? date.toLocaleDateString() : '請選擇預訂日期'}
-              <ChevronDownIcon />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              captionLayout="dropdown"
-              onSelect={(date) => {
-                setDate(date)
-                setOpen(false)
-              }}
-              className={errors.date ? 'border border-red-500 rounded-md' : ''}
-            />
-          </PopoverContent>
-          {errors.date && (
-            <p className="text-sm text-red-500 mt-1">{errors.date}</p>
-          )}
-        </Popover>
+        <div className="relative flex items-center">
+          <Search
+            className="absolute left-2 text-accent-foreground"
+            size={20}
+          />
+          <Input
+            type="search"
+            className="w-full bg-accent text-accent-foreground !h-10 pl-8"
+            placeholder="請輸入關鍵字"
+          />
+        </div>
       ),
     },
   ]
@@ -187,6 +141,187 @@ export default function TeamPage() {
   const createTeam = () => {
     console.log('創建隊伍Create!')
   }
+
+  const mockTeams = [
+    {
+      teamName: '先發一對',
+      sportType: '籃球',
+      currentMembers: 5,
+      maxMembers: 12,
+      location: '北投運動中心',
+      time: '星期(一、三、六）  早上9點',
+      skillLevel: '新手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/94a3b8/ffffff?text=Team+A',
+    },
+    {
+      teamName: '羽球高手團',
+      sportType: '羽毛球',
+      currentMembers: 8,
+      maxMembers: 10,
+      location: '內湖運動中心',
+      time: '星期(二、四）  晚上7點',
+      skillLevel: '熟手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/b097b0/ffffff?text=Team+B',
+    },
+    {
+      teamName: '快樂桌球隊',
+      sportType: '桌球',
+      currentMembers: 3,
+      maxMembers: 4,
+      location: '大安運動中心',
+      time: '星期(五）  下午2點',
+      skillLevel: '中手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/98a3b5/ffffff?text=Team+C',
+    },
+    {
+      teamName: '網球俱樂部',
+      sportType: '網球',
+      currentMembers: 10,
+      maxMembers: 12,
+      location: '天母網球場',
+      time: '星期(六、日）  早上8點',
+      skillLevel: '老手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/83b593/ffffff?text=Team+D',
+    },
+    // 以下是新增的 12 隊假資料
+    {
+      teamName: '夜鷹籃球隊',
+      sportType: '籃球',
+      currentMembers: 7,
+      maxMembers: 10,
+      location: '信義運動中心',
+      time: '星期(二、五) 晚上8點',
+      skillLevel: '熟手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/475569/ffffff?text=Team+E',
+    },
+    {
+      teamName: '飛毛腿足球隊',
+      sportType: '足球',
+      currentMembers: 15,
+      maxMembers: 20,
+      location: '新莊田徑場',
+      time: '星期(三、日) 下午4點',
+      skillLevel: '老手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/dc2626/ffffff?text=Team+F',
+    },
+    {
+      teamName: '排球之星',
+      sportType: '排球',
+      currentMembers: 8,
+      maxMembers: 12,
+      location: '中正紀念堂排球場',
+      time: '星期(一、四) 晚上7點',
+      skillLevel: '中手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/facc15/ffffff?text=Team+G',
+    },
+    {
+      teamName: '單車挑戰者',
+      sportType: '單車',
+      currentMembers: 5,
+      maxMembers: 8,
+      location: '淡水河自行車道',
+      time: '星期(六) 早上6點',
+      skillLevel: '老手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/22c55e/ffffff?text=Team+H',
+    },
+    {
+      teamName: '游泳健將',
+      sportType: '游泳',
+      currentMembers: 6,
+      maxMembers: 8,
+      location: '板橋游泳池',
+      time: '星期(二、五) 早上6點',
+      skillLevel: '中手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/3b82f6/ffffff?text=Team+I',
+    },
+    {
+      teamName: '棒球魂',
+      sportType: '棒球',
+      currentMembers: 10,
+      maxMembers: 15,
+      location: '社子島棒球場',
+      time: '星期(六) 下午1點',
+      skillLevel: '新手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/8b5cf6/ffffff?text=Team+J',
+    },
+    {
+      teamName: '桌球小隊',
+      sportType: '桌球',
+      currentMembers: 4,
+      maxMembers: 6,
+      location: '新店運動中心',
+      time: '星期(三) 晚上8點',
+      skillLevel: '新手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/ec4899/ffffff?text=Team+K',
+    },
+    {
+      teamName: '網球好手',
+      sportType: '網球',
+      currentMembers: 7,
+      maxMembers: 8,
+      location: '公館網球場',
+      time: '星期(日) 早上10點',
+      skillLevel: '熟手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/f97316/ffffff?text=Team+L',
+    },
+    {
+      teamName: '拳擊鬥士',
+      sportType: '拳擊',
+      currentMembers: 3,
+      maxMembers: 5,
+      location: '萬華拳擊館',
+      time: '星期(一、四) 晚上9點',
+      skillLevel: '老手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/6b7280/ffffff?text=Team+M',
+    },
+    {
+      teamName: '瑜珈修行者',
+      sportType: '瑜珈',
+      currentMembers: 12,
+      maxMembers: 15,
+      location: '東區瑜珈會館',
+      time: '星期(二、六) 早上7點',
+      skillLevel: '中手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/a16207/ffffff?text=Team+N',
+    },
+    {
+      teamName: '健身狂人',
+      sportType: '健身',
+      currentMembers: 20,
+      maxMembers: 30,
+      location: '中和健身房',
+      time: '每天 下午3點',
+      skillLevel: '熟手',
+      isNews: true,
+      imageUrl: 'https://placehold.co/256x192/4c4c4c/ffffff?text=Team+O',
+    },
+    {
+      teamName: '街舞新秀',
+      sportType: '街舞',
+      currentMembers: 9,
+      maxMembers: 10,
+      location: '西門町廣場',
+      time: '星期(五) 晚上8點',
+      skillLevel: '新手',
+      isNews: false,
+      imageUrl: 'https://placehold.co/256x192/991b1b/ffffff?text=Team+P',
+    },
+  ]
+
   return (
     <>
       <Navbar />
@@ -202,63 +337,36 @@ export default function TeamPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
-      <section>
-        <div className="container mx-auto max-w-screen-xl px-4 gap-8">
-          <div className="self-stretch text-center justify-start text-white text-2xl font-normal font-['Noto_Sans_TC'] leading-loose tracking-[24px]">
+      <ScrollAreaSport sportItems={sports} />
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+          <div className="self-stretch text-center justify-start text-white text-xl font-normal leading-loose tracking-[24px]">
             推·薦·隊·伍
           </div>
           {/* 這個 div 是包含「創建隊伍」按鈕和右側排序下拉菜單的容器 */}
-          <div className="self-stretch flex justify-between items-center mt-4 mb-8">
+          <div className="self-stretch flex justify-between items-center gap-2">
             {/* 創建隊伍按鈕 (使用 shadcn/ui 的 Button 組件) */}
             {/* 如果你想讓它變成可點擊的按鈕，建議使用 shadcn/ui 的 Button 元件 */}
             <Link href="/team/create" passHref>
               <Button
-                onClick={createTeam} //測試
-                className="relative group // <--- 新增 relative 和 group 在 Button 本身
-              w-40 h-11 px-12 py-4 bg-gradient-to-r from-orange-500 to-blue-600 rounded-lg
-              flex justify-center items-center gap-2 overflow-hidden
-              text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7"
+                onClick={createTeam}
+                variant="default"
+                size="lg"
+                className="bg-gradient-to-r from-orange-500 to-blue-600"
               >
-                <span className="flex justify-center items-center gap-2 z-10">
-                  {' '}
-                  {/* 確保內容在遮罩上方 */}
-                  <span className="justify-start text-white text-lg font-bold font-['Noto_Sans_TC'] leading-7">
-                    創建隊伍
-                  </span>
-                  {/* ICON 部分 */}
-                  <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-white"
-                    >
-                      <path
-                        d="M14 5L21 12L14 19"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M3 12H21"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </span>
-
-                {/* === 新增這個 div 作為遮罩層 === */}
-                <div
-                  className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 ease-in-out
-                group-hover:opacity-30 pointer-events-none z-0" // z-0 確保遮罩在內容下方
-                ></div>
+                創建隊伍
+                <ArrowRight />
+              </Button>
+            </Link>
+            <Link href="/team/ourteam" passHref>
+              <Button
+                onClick={ourteam}
+                variant="default"
+                size="lg"
+                className="bg-gradient-to-r from-orange-500 to-blue-600"
+              >
+                我的隊伍
+                <ArrowRight />
               </Button>
             </Link>
 
@@ -284,7 +392,7 @@ export default function TeamPage() {
                     </div>
                     {/* 排序下拉菜單的 ICON 保持原樣 */}
                     <div className="w-7 h-7 relative">
-                      <div className="w-2 h-3.5 left-[7.50px] top-[18.75px] absolute origin-top-left -rotate-90 border border-slate-900" />
+                      <div className="w-2 h-3.5 left-[7.5008px] top-[18.7504px] absolute origin-top-left -rotate-90 border border-slate-900" />
                     </div>
                   </div>
                 </div>
@@ -292,14 +400,27 @@ export default function TeamPage() {
             </div>
           </div>
           {/* card-group */}
-          <div className="w-full flex flex-col justify-start items-start gap-8">
-            <TeamCard></TeamCard>
-            <TeamCard></TeamCard>
-            <TeamCard></TeamCard>
-            <TeamCard></TeamCard>
+          {/* 使用 grid 系統來實現響應式兩欄佈局 */}
+          {/* 在小螢幕上為單欄 (grid-cols-1)，在中型螢幕及以上為兩欄 (md:grid-cols-2) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {mockTeams.map((team, index) => (
+              // 渲染每一個 TeamCard 元件
+              <TeamCard
+                key={index}
+                teamName={team.teamName}
+                sportType={team.sportType}
+                currentMembers={team.currentMembers}
+                maxMembers={team.maxMembers}
+                location={team.location}
+                time={team.time}
+                skillLevel={team.skillLevel}
+                isNews={team.isNews}
+                imageUrl={team.imageUrl}
+              />
+            ))}
           </div>
         </div>
-      </section>
+      </main>
       <Footer />
     </>
   )
