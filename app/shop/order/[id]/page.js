@@ -16,6 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card'
 // components
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
@@ -80,6 +87,11 @@ export default function OrderDetailPage() {
 
   const products = order?.items || []
 
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
   // 如果正在載入，顯示載入狀態
   if (isDataLoading) {
     return <LoadingState message="載入訂單資料中..." />
@@ -109,86 +121,103 @@ export default function OrderDetailPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableBody className="divide-y divide-foreground">
-                {orderDetails.map(({ key, value }) => (
-                  <TableRow
-                    key={key}
-                    className="border-b border-card-foreground"
-                  >
-                    <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                      {key}
-                    </TableCell>
-                    <TableCell
-                      className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                      style={{ width: '100%' }}
-                    >
-                      {key === '訂單金額' ? `NTD$${value}` : value}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableHeader className="border-b-2 border-card-foreground">
-                <TableRow className="text-lg">
-                  <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
-                    商品名稱
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground p-2">
-                    單價
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
-                    數量
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-card-foreground">
-                {products.map((item, index) => {
-                  // 從 item.product 取得商品資料
-                  const product = item.product || item
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* 左側卡片 - 訂單詳情 */}
+            <div className="flex-1">
+              <Card>
+                <CardContent>
+                  <Table className="w-full table-fixed">
+                    <TableBody className="divide-y divide-foreground">
+                      {orderDetails.map(({ key, value }) => (
+                        <TableRow
+                          key={key}
+                          className="border-b border-card-foreground"
+                        >
+                          <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
+                            {key}
+                          </TableCell>
+                          <TableCell
+                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
+                            style={{ width: '100%' }}
+                          >
+                            {key === '訂單金額'
+                              ? `NTD$${formatPrice(value)}`
+                              : value}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+            {/* 右側卡片 - 商品明細 */}
+            <div className="flex-1">
+              <Card>
+                <CardContent>
+                  <Table className="w-full table-fixed">
+                    <TableHeader className="border-b-2 border-card-foreground">
+                      <TableRow className="text-lg">
+                        <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
+                          商品名稱
+                        </TableHead>
+                        <TableHead className="font-bold w-1/4 text-accent-foreground p-2">
+                          單價
+                        </TableHead>
+                        <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
+                          數量
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-card-foreground">
+                      {products.map((item, index) => {
+                        // 從 item.product 取得商品資料
+                        const product = item.product || item
 
-                  // 處理圖片路徑：從 product.images[0].url 取得
-                  const imageFileName =
-                    product.images?.[0]?.url || product.img || product.image
+                        // 處理圖片路徑：從 product.images[0].url 取得
+                        const imageFileName =
+                          product.images?.[0]?.url ||
+                          product.img ||
+                          product.image
 
-                  return (
-                    <TableRow key={item.id || product.id || index}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <Image
-                              className="object-cover w-full h-full"
-                              src={getProductImageUrl(imageFileName)}
-                              alt={product.name || `商品 ${index + 1}`}
-                              width={40}
-                              height={40}
-                            />
-                          </div>
-                          <span className="text-base whitespace-normal text-accent-foreground">
-                            {product.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        ${item.price || product.price}
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="w-12 text-center select-none">
-                            {item.quantity || 1}
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                        return (
+                          <TableRow key={item.id || product.id || index}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                                  <Image
+                                    className="object-cover w-full h-full"
+                                    src={getProductImageUrl(imageFileName)}
+                                    alt={product.name || `商品 ${index + 1}`}
+                                    width={40}
+                                    height={40}
+                                  />
+                                </div>
+                                <span className="text-base whitespace-normal text-accent-foreground">
+                                  {product.name}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-accent-foreground">
+                              ${formatPrice(item.price || product.price)}
+                            </TableCell>
+                            <TableCell className="text-accent-foreground">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className="w-12 text-center select-none">
+                                  {item.quantity || 1}
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
           </div>
+
           <div className="flex justify-center">
             <Link href="/shop/order">
               <Button variant="highlight" className="w-[120px]">
