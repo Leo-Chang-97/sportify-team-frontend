@@ -321,7 +321,7 @@ const App = () => {
           </section>
 
           {/* 訊息板區塊 */}
-          <section className="bg-white border border-gray-300 rounded-lg p-6 flex flex-col">
+          <section className="bg-white border border-gray-300 rounded-lg p-6 flex flex-col h-[450px]">
             <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-card-foreground">
               Team XXXXXX
             </h2>
