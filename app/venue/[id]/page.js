@@ -4,6 +4,9 @@
 import * as React from 'react'
 import { useVenue } from '@/contexts/venue-context'
 
+// utils
+import { cn } from '@/lib/utils'
+
 // Icon
 import {
   Heart,
@@ -376,25 +379,35 @@ export default function CenterDetailPage() {
               <h2 className="mb-4 text-xl font-bold">營業時間</h2>
               <div className="space-y-2">
                 {data.businessHours ? (
-                  Object.entries(data.businessHours).map(([key, value]) => (
-                    <div
-                      className="flex justify-between border-b pb-2 text-sm"
-                      key={key}
-                    >
-                      <span className="font-medium capitalize">{key}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))
+                  Object.entries(data.businessHours).map(
+                    ([key, value], idx, arr) => (
+                      <div
+                        className={cn(
+                          'flex justify-between pb-2 text-sm',
+                          idx !== arr.length - 1 && 'border-b'
+                        )}
+                        key={key}
+                      >
+                        <span className="font-medium capitalize">{key}</span>
+                        <span>{value}</span>
+                      </div>
+                    )
+                  )
                 ) : businessHours ? (
-                  Object.entries(businessHours).map(([key, value]) => (
-                    <div
-                      className="flex justify-between border-b pb-2 text-sm"
-                      key={key}
-                    >
-                      <span className="font-medium capitalize">{key}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))
+                  Object.entries(businessHours).map(
+                    ([key, value], idx, arr) => (
+                      <div
+                        className={cn(
+                          'flex justify-between pb-2 text-sm',
+                          idx !== arr.length - 1 && 'border-b'
+                        )}
+                        key={key}
+                      >
+                        <span className="font-medium capitalize">{key}</span>
+                        <span>{value}</span>
+                      </div>
+                    )
+                  )
                 ) : (
                   <div className="text-muted-foreground">
                     營業時間資料載入中...

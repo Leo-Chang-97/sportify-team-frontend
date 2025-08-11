@@ -228,7 +228,7 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                   style={{ width: 20, display: 'inline-block' }}
                                 >
                                   {selected ? (
-                                    <FaCircleCheck className="text-highlight" />
+                                    <FaCircleCheck className="text-primary-foreground" />
                                   ) : (
                                     <span className="text-primary">
                                       <FaRegCircleCheck />
