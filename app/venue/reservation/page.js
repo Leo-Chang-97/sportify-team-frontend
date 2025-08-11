@@ -10,7 +10,7 @@ import { cn, validateVenueField } from '@/lib/utils'
 import { format } from 'date-fns'
 
 // Icon
-import { ClipboardCheck } from 'lucide-react'
+import { ClipboardCheck, CalendarCheck } from 'lucide-react'
 
 // API 請求
 import {
@@ -242,8 +242,8 @@ export default function ReservationPage() {
 
   // #region 事件處理函數
 
-  // 驗證預約資訊
-  const validateReservationData = () => {
+  // 處理預訂按鈕點擊
+  const handleReservation = () => {
     const newErrors = {}
 
     newErrors.center = validateVenueField('center', centerId)
@@ -257,15 +257,8 @@ export default function ReservationPage() {
 
     setErrors(newErrors)
 
-    // 檢查是否有任何錯誤
     const hasErrors = Object.values(newErrors).some((error) => error !== '')
-    return !hasErrors
-  }
-
-  // 處理預訂按鈕點擊
-  const handleReservation = () => {
-    if (validateReservationData()) {
-      // 驗證通過，跳轉到付款頁面
+    if (!hasErrors) {
       router.push('/venue/reservation/payment')
     } else {
       // 驗證失敗，滾動到第一個錯誤欄位
@@ -278,7 +271,7 @@ export default function ReservationPage() {
 
       setTimeout(() => {
         for (const errorField of errorFields) {
-          if (errors[errorField.field]) {
+          if (newErrors[errorField.field]) {
             const element = document.querySelector(errorField.selector)
             if (element) {
               element.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -478,7 +471,9 @@ export default function ReservationPage() {
                       // 禁用今天之前的日期
                       const today = new Date()
                       today.setHours(0, 0, 0, 0)
-                      return date < today
+                      // 禁用沒有可預約時段的日期
+                      const availableCount = getAvailableCount(date)
+                      return date < today || !availableCount
                     }}
                     className={cn(
                       'w-full bg-accent text-accent-foreground rounded [--cell-size:3.5rem] aspect-3/2 object-cover',
@@ -514,20 +509,20 @@ export default function ReservationPage() {
                                 className={cn(
                                   'text-xs md:text-sm w-full font-medium md:py-1 rounded',
                                   modifiers.selected &&
-                                    'bg-primary-foreground text-primary',
+                                    'text-primary-foreground',
                                   !modifiers.selected &&
                                     availableCount === 0 &&
-                                    'bg-red-100 text-red-700',
+                                    'text-red-700',
                                   !modifiers.selected &&
                                     availableCount > 0 &&
-                                    'bg-green-100 text-green-700'
+                                    'text-green-700'
                                 )}
                               >
                                 {modifiers.selected
                                   ? '已選擇'
                                   : availableCount === 0
                                     ? '已額滿'
-                                    : `${availableCount}`}
+                                    : `餘${availableCount}`}
                               </span>
                             )}
                           </button>
