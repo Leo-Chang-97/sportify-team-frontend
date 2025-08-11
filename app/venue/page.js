@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 
 // Icon
-import { ChevronDownIcon, ArrowRight } from 'lucide-react'
+import { Star, Search } from 'lucide-react'
 
 // API 請求
 import { fetchLocationOptions, fetchSportOptions } from '@/api'
@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -52,6 +53,8 @@ export default function VenueListPage() {
   // #region 狀態管理
   const [locationId, setLocationId] = useState('')
   const [sportId, setSportId] = useState('')
+  const [minRating, setMinRating] = useState('')
+  const [keyword, setKeyword] = useState('')
   const [date, setDate] = useState(null)
 
   const [locations, setLocations] = useState([])
@@ -90,15 +93,34 @@ export default function VenueListPage() {
   }, [])
 
   // #region 事件處理函數
-  const handleSearch = (keyword) => {
+  const handleSearch = (keyword, customSportId) => {
     const newParams = new URLSearchParams(searchParams.toString())
+    // 地區
+    if (locationId && locationId !== 'all') {
+      newParams.set('locationId', locationId)
+    } else {
+      newParams.delete('locationId')
+    }
+    // 運動
+    const sportValue = customSportId ?? sportId
+    if (sportValue && sportValue !== 'all') {
+      newParams.set('sportId', sportValue)
+    } else {
+      newParams.delete('sportId')
+    }
+    // 評分
+    if (minRating && minRating !== 'all') {
+      newParams.set('minRating', minRating)
+    } else {
+      newParams.delete('minRating')
+    }
+    // 關鍵字
     if (keyword) {
       newParams.set('keyword', keyword)
-      newParams.set('page', '1')
     } else {
       newParams.delete('keyword')
-      newParams.set('page', '1')
     }
+    newParams.set('page', '1') // 搜尋時重設分頁
     router.push(`?${newParams.toString()}`)
   }
 
@@ -124,6 +146,23 @@ export default function VenueListPage() {
     )
 
   // #region 資料顯示選項
+
+  // 評分系統選項
+  const ratingOptions = [
+    { label: <>全部</>, value: 'all' },
+    ...[2, 3, 4, 5].map((num) => ({
+      label: (
+        <>
+          {Array.from({ length: num }).map((_, i) => (
+            <Star key={i} className="text-yellow-400 fill-yellow-400" />
+          ))}
+          {num === 5 ? '5星' : `${num}星以上`}
+        </>
+      ),
+      value: String(num),
+    })),
+  ]
+
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
@@ -134,6 +173,9 @@ export default function VenueListPage() {
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem key="all" value="all">
+              全部
+            </SelectItem>
             {locations.length === 0 ? (
               <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
             ) : (
@@ -155,6 +197,9 @@ export default function VenueListPage() {
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem key="all" value="all">
+              全部
+            </SelectItem>
             {sports?.length === 0 ? (
               <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
             ) : (
@@ -169,37 +214,41 @@ export default function VenueListPage() {
       ),
     },
     {
-      label: '日期',
+      label: '評分',
       component: (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className={`w-full h-10 bg-accent justify-between font-normal${
-                !date ? ' text-gray-500' : ' text-accent-foreground'
-              }`}
-            >
-              {date ? date.toLocaleDateString() : '請選擇預訂日期'}
-              <ChevronDownIcon />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              captionLayout="dropdown"
-              onSelect={(date) => {
-                setDate(date)
-                setOpen(false)
-              }}
-              className={errors.date ? 'border border-red-500 rounded-md' : ''}
-            />
-          </PopoverContent>
-          {errors.date && (
-            <p className="text-sm text-red-500 mt-1">{errors.date}</p>
-          )}
-        </Popover>
+        <Select value={minRating} onValueChange={setMinRating}>
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+            <SelectValue placeholder="請選擇評分星等" />
+          </SelectTrigger>
+          <SelectContent>
+            {ratingOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      label: '關鍵字',
+      component: (
+        <div className="relative flex items-center">
+          <Search
+            className="absolute left-3 text-accent-foreground/50"
+            size={20}
+          />
+          <Input
+            type="search"
+            className="w-full bg-accent text-accent-foreground !h-10 pl-10"
+            placeholder="請輸入關鍵字"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch(keyword)
+            }}
+          />
+        </div>
       ),
     },
   ]
@@ -217,11 +266,17 @@ export default function VenueListPage() {
       >
         <SearchField
           fields={searchFields}
-          onSearch={handleSearch}
+          onSearch={() => handleSearch(keyword)}
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport sportItems={sports} />
+      <ScrollAreaSport
+        sportItems={sports}
+        onSportSelect={(id) => {
+          setSportId(id)
+          handleSearch(keyword, id)
+        }}
+      />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <h3 className="text-center text-lg font-normal tracking-[24px]">

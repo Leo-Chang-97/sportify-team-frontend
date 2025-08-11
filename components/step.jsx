@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CheckIcon } from 'lucide-react'
+import { FaCheck } from 'react-icons/fa'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
@@ -60,7 +60,7 @@ export function Step({
                 'w-8 h-8 text-sm font-medium'
               )}
             >
-              {step.completed ? <CheckIcon className="w-4 h-4" /> : step.id}
+              {step.completed ? <FaCheck className="w-4 h-4" /> : step.id}
             </Badge>
 
             {/* Step title */}
