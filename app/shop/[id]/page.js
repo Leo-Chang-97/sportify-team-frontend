@@ -1,20 +1,13 @@
 'use client'
 
-import { Minus, Plus, Heart } from 'lucide-react'
-import Image from 'next/image'
 import React, { useState, useEffect, useMemo } from 'react'
-import {
-  fetchMemberOptions,
-  fetchSportOptions,
-  fetchBrandOptions,
-} from '@/api/common'
-import { toast } from 'sonner'
+import { Minus, Plus, Heart } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
-import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
+import Image from 'next/image'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import {
   Carousel,
   CarouselContent,
@@ -22,8 +15,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
-import { useParams, useRouter } from 'next/navigation'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -34,6 +25,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+// components
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
+import { getProductImageUrl } from '@/api/admin/shop/image'
+import {
+  fetchMemberOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api/common'
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
   currency: 'TWD',
@@ -159,7 +163,20 @@ export default function ProductDetailPage() {
     }
   }
 
-  if (!product || isDataLoading) return <div>載入中...</div>
+  //  #region 載入和錯誤狀態處理
+  if (isDataLoading) return <LoadingState message="載入商品資料中..." />
+  if (error)
+    return (
+      <ErrorState
+        title="商品資料載入失敗"
+        message={`載入錯誤：${error.message}` || '找不到您要查看的商品資料'}
+        onRetry={mutate}
+        backUrl="/shop"
+        backLabel="返回商品列表"
+      />
+    )
+
+  if (!product) return <div>載入中...</div>
   return (
     <>
       <Navbar />

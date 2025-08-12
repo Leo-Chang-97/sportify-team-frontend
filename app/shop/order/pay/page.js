@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import useSWR from 'swr'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
-import useSWR from 'swr'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -14,12 +16,7 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
 import { Input } from '@/components/ui/input'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -29,6 +26,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+// components
+import { Navbar } from '@/components/navbar'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import Footer from '@/components/footer'
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
@@ -38,9 +51,12 @@ import ReceiptTypeSelector, {
 import DeliveryMethodSelector, {
   DeliveryOptions,
 } from '@/components/delivery-method-selector'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, getCheckoutData, checkout } from '@/api'
+// 其他
 import { validateField } from '@/lib/utils'
-import { toast } from 'sonner'
 import { API_SERVER } from '@/lib/api-path'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -50,8 +66,9 @@ const steps = [
   { id: 3, title: '完成訂單', completed: false },
 ]
 
-export default function ProductListPage() {
+export default function ProductPaymentPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   // 暫時註解登入檢查，用於測試
   // const { user, isAuthenticated } = useAuth()
 
@@ -77,6 +94,7 @@ export default function ProductListPage() {
   })
   const [errors, setErrors] = useState({})
   const [touchedFields, setTouchedFields] = useState({}) // 追蹤欄位是否已被觸碰（用於決定是否顯示驗證錯誤）
+  const [showEcpayDialog, setShowEcpayDialog] = useState(false) // ECPay 確認對話框狀態
 
   // ===== 數據獲取 =====
   const {
@@ -228,51 +246,73 @@ export default function ProductListPage() {
     }
   }
 
-  // 驗證所有表單欄位
-  const validateAllFields = () => {
-    const newErrors = {}
-    newErrors.recipient = validateField(
-      'recipient',
-      formData.recipient || '',
-      true
-    )
-    newErrors.phone = validateField('phone', formData.phone || '', true)
-    newErrors.address = validateField(
-      'address',
-      formData.address || '',
-      true,
-      selectedDelivery
-    )
-    newErrors.delivery = validateField('delivery', selectedDelivery || '', true)
-    newErrors.payment = validateField('payment', selectedPayment || '', true)
-    newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
-    newErrors.carrierId = validateField(
-      'carrierId',
-      formData.carrierId || '',
-      true
-    )
-    newErrors.companyId = validateField(
-      'companyId',
-      formData.companyId || '',
-      true
-    )
+  // 處理ECPay付款確認
+  const handleEcpayConfirm = async () => {
+    try {
+      // 準備商品名稱
+      const itemsArray = carts.map(
+        (cartItem) => `${cartItem.product.name}x${cartItem.quantity}`
+      )
+      const items = itemsArray.join(',')
+      const amount = totalPrice + shippingFee
 
-    setErrors(newErrors)
+      // 準備購物車項目資料（符合後端期望的格式）
+      const cartItems = carts.map((cartItem) => ({
+        productId: cartItem.product.id, // 使用 cartItem.product.id
+        quantity: cartItem.quantity,
+      }))
 
-    // 標記所有欄位為已觸碰
-    setTouchedFields({
-      recipient: true,
-      phone: true,
-      address: true,
-      delivery: true,
-      payment: true,
-      receipt: true,
-      carrierId: true,
-      companyId: true,
-    })
+      // 先建立訂單到資料庫
+      const orderData = {
+        recipient: formData.recipient,
+        phone: formData.phone,
+        address: formData.address || '', // 如果不是宅配可能為空
+        deliveryId: parseInt(selectedDelivery), // 轉換為數字
+        paymentId: parseInt(selectedPayment), // 轉換為數字
+        invoiceData: {
+          invoiceId: parseInt(selectedReceipt), // 轉換為數字
+          carrier: formData.carrierId || null,
+          tax: formData.companyId || null,
+        },
+      }
 
-    // 檢查是否有任何錯誤
-    return !Object.values(newErrors).some((error) => error !== '')
+      // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
+      const checkoutPayload = {
+        memberId: TEST_USER_ID, // 使用測試用會員ID
+        orderData: orderData,
+        cartItems: cartItems,
+      }
+
+      const orderResult = await checkout(checkoutPayload)
+
+      if (orderResult.success) {
+        // 訂單建立成功，準備成功頁面資料並存到 localStorage
+        const successData = {
+          carts: carts,
+          userInfo: formData,
+          totalPrice: totalPrice + shippingFee,
+          itemCount: itemCount,
+          shippingFee: shippingFee,
+          orderId: orderResult.data.id,
+          ...getSelectedOptions(),
+        }
+
+        // 將訂單資料存到 localStorage (給綠界付款完成後使用)
+        localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
+        // console.log('訂單資料已存入 localStorage:', successData)
+
+        // 導向 ECPay
+        router.push(
+          `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
+        )
+      } else {
+        toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
+        console.error('訂單建立失敗:', orderResult)
+      }
+    } catch (error) {
+      console.error('ECPay付款錯誤:', error)
+      toast.error('付款過程發生錯誤，請稍後再試')
+    }
   }
 
   // 處理ECPay付款
@@ -302,74 +342,8 @@ export default function ProductListPage() {
         return
       }
 
-      // 準備商品名稱
-      const itemsArray = carts.map(
-        (cartItem) => `${cartItem.product.name}x${cartItem.quantity}`
-      )
-      const items = itemsArray.join(',')
-      const amount = totalPrice + shippingFee
-
-      if (window.confirm('確認要導向至ECPay(綠界金流)進行付款?')) {
-        // 準備購物車項目資料（符合後端期望的格式）
-        const cartItems = carts.map((cartItem) => ({
-          productId: cartItem.product.id, // 使用 cartItem.product.id
-          quantity: cartItem.quantity,
-        }))
-
-        // 先建立訂單到資料庫
-        const orderData = {
-          recipient: formData.recipient,
-          phone: formData.phone,
-          address: formData.address || '', // 如果不是宅配可能為空
-          deliveryId: parseInt(selectedDelivery), // 轉換為數字
-          paymentId: parseInt(selectedPayment), // 轉換為數字
-          invoiceData: {
-            invoiceId: parseInt(selectedReceipt), // 轉換為數字
-            carrier: formData.carrierId || null,
-            tax: formData.companyId || null,
-          },
-        }
-
-        // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
-        const checkoutPayload = {
-          memberId: TEST_USER_ID, // 使用測試用會員ID
-          orderData: orderData,
-          cartItems: cartItems,
-        }
-
-        // console.log('發送到後端的資料:', checkoutPayload) // 除錯用
-        // console.log('表單資料狀態:', formData) // 檢查表單資料
-        // console.log('選擇的選項:', {
-        //   selectedDelivery,
-        //   selectedPayment,
-        //   selectedReceipt,
-        // }) // 檢查選擇狀態
-
-        const orderResult = await checkout(checkoutPayload)
-
-        if (orderResult.success) {
-          // 訂單建立成功，準備成功頁面資料並存到 localStorage
-          const successData = {
-            carts: carts,
-            userInfo: formData,
-            totalPrice: totalPrice + shippingFee,
-            itemCount: itemCount,
-            shippingFee: shippingFee,
-            orderId: orderResult.data.id,
-            ...getSelectedOptions(),
-          }
-
-          // 將訂單資料存到 localStorage (給綠界付款完成後使用)
-          localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
-          // console.log('訂單資料已存入 localStorage:', successData)
-
-          // 導向 ECPay
-          window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
-        } else {
-          toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
-          console.error('訂單建立失敗:', orderResult)
-        }
-      }
+      // 顯示確認對話框
+      setShowEcpayDialog(true)
     } catch (error) {
       console.error('ECPay付款錯誤:', error)
       toast.error('付款過程發生錯誤，請稍後再試')
@@ -478,8 +452,10 @@ export default function ProductListPage() {
               ...getSelectedOptions(),
             }
 
-            // 導向成功頁面
-            window.location.href = `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
+            // 導向成功頁面，帶上訂單資料
+            router.push(
+              `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
+            )
           } else {
             toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
             console.error('訂單建立失敗:', orderResult)
@@ -524,18 +500,7 @@ export default function ProductListPage() {
 
   // 載入狀態處理
   if (isCartLoading) {
-    return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center py-20">載入中...</div>
-          </div>
-        </section>
-        <Footer />
-      </>
-    )
+    return <LoadingState message="載入購物車資料中..." />
   }
 
   // 暫時註解登入狀態檢查，用於測試
@@ -559,18 +524,13 @@ export default function ProductListPage() {
   // 錯誤狀態處理
   if (cartError) {
     return (
-      <>
-        <Navbar />
-        <BreadcrumbAuto />
-        <section className="px-4 md:px-6 py-10">
-          <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-            <div className="text-center py-20 text-red-500">
-              載入失敗: {cartError.message}
-            </div>
-          </div>
-        </section>
-        <Footer />
-      </>
+      <ErrorState
+        title="購物車資料載入失敗"
+        message={`載入錯誤：${cartError.message}` || '載入購物車資料時發生錯誤'}
+        onRetry={() => window.location.reload()}
+        backUrl="/shop/order"
+        backLabel="返回購物車"
+      />
     )
   }
 
@@ -585,223 +545,245 @@ export default function ProductListPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableHeader className="border-b-2 border-card-foreground">
-                <TableRow className="text-lg">
-                  <TableHead className="font-bold w-1/2 text-accent-foreground">
-                    商品名稱
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground">
-                    單價
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center">
-                    數量
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-card-foreground">
-                {carts && carts.length > 0 ? (
-                  carts.map((cartItem) => {
-                    // 處理圖片路徑
-                    const product = cartItem.product
-                    const imageFileName = product.images?.[0]?.url || ''
-
-                    return (
-                      <TableRow key={cartItem.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                              <Image
-                                className="object-cover w-full h-full"
-                                src={getProductImageUrl(imageFileName)}
-                                alt={product.name}
-                                width={40}
-                                height={40}
-                              />
-                            </div>
-                            <span className="text-base whitespace-normal text-accent-foreground">
-                              {product.name}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-accent-foreground">
-                          ${formatPrice(product.price)}
-                        </TableCell>
-                        <TableCell className="text-accent-foreground">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="w-12 text-center select-none">
-                              {cartItem.quantity}
-                            </span>
-                          </div>
-                        </TableCell>
+          <div className="flex  flex-col md:flex-row gap-6">
+            {/* 左側內容 */}
+            <div className="flex flex-3 flex-col min-w-0 gap-5">
+              <Card>
+                <CardContent>
+                  <Table className="w-full table-fixed">
+                    <TableHeader className="border-b-2 border-card-foreground">
+                      <TableRow className="text-lg">
+                        <TableHead className="font-bold w-1/2 text-accent-foreground">
+                          商品名稱
+                        </TableHead>
+                        <TableHead className="font-bold w-1/4 text-accent-foreground">
+                          單價
+                        </TableHead>
+                        <TableHead className="font-bold w-1/4 text-accent-foreground text-center">
+                          數量
+                        </TableHead>
                       </TableRow>
-                    )
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={3}
-                      className="text-center py-8 text-muted-foreground"
+                    </TableHeader>
+                    <TableBody className="divide-y divide-card-foreground">
+                      {carts && carts.length > 0 ? (
+                        carts.map((cartItem) => {
+                          // 處理圖片路徑
+                          const product = cartItem.product
+                          const imageFileName = product.images?.[0]?.url || ''
+
+                          return (
+                            <TableRow key={cartItem.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                                    <Image
+                                      className="object-cover w-full h-full"
+                                      src={getProductImageUrl(imageFileName)}
+                                      alt={product.name}
+                                      width={40}
+                                      height={40}
+                                    />
+                                  </div>
+                                  <span className="text-base whitespace-normal text-accent-foreground">
+                                    {product.name}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-accent-foreground">
+                                ${formatPrice(product.price)}
+                              </TableCell>
+                              <TableCell className="text-accent-foreground">
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="w-12 text-center select-none">
+                                    {cartItem.quantity}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-center py-8 text-muted-foreground"
+                          >
+                            購物車是空的
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="flex flex-col gap-6">
+                  {/* 收件人資料 */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">訂單人資料</Label>
+                    <div className="space-y-2 grid gap-3">
+                      <div className="grid w-full items-center gap-3">
+                        <Label htmlFor="recipient">收件人</Label>
+                        <Input
+                          type="text"
+                          id="recipient"
+                          placeholder="請填寫收件人姓名"
+                          className={`w-full ${errors.recipient ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
+                          value={formData.recipient || ''}
+                          onChange={(e) =>
+                            handleInputChange('recipient', e.target.value)
+                          }
+                          onBlur={(e) =>
+                            handleInputBlur('recipient', e.target.value)
+                          }
+                        />
+                        {errors.recipient && (
+                          <span className="text-destructive text-sm">
+                            {errors.recipient}
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid w-full items-center gap-3">
+                        <Label htmlFor="phone">手機號碼</Label>
+                        <Input
+                          type="text"
+                          id="phone"
+                          placeholder="請填寫電話號碼(例：0912345678)"
+                          className={`w-full ${errors.phone ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
+                          value={formData.phone || ''}
+                          onChange={(e) =>
+                            handleInputChange('phone', e.target.value)
+                          }
+                          onBlur={(e) =>
+                            handleInputBlur('phone', e.target.value)
+                          }
+                        />
+                        {errors.phone && (
+                          <span className="text-destructive text-sm">
+                            {errors.phone}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {/* 物流方式 */}
+                  <div data-field="delivery">
+                    <DeliveryMethodSelector
+                      selectedDelivery={selectedDelivery}
+                      onDeliveryChange={(value) =>
+                        handleSelectChange(
+                          'delivery',
+                          value,
+                          setSelectedDelivery
+                        )
+                      }
+                      errors={errors}
+                      formData={formData}
+                      onInputChange={handleInputChange}
+                      onInputBlur={handleInputBlur}
+                    />
+                  </div>
+                  {/* 付款方式 */}
+                  <div data-field="payment">
+                    <PaymentMethodSelector
+                      selectedPayment={selectedPayment}
+                      onPaymentChange={(value) =>
+                        handleSelectChange('payment', value, setSelectedPayment)
+                      }
+                      options={[
+                        paymentOptions[0],
+                        paymentOptions[1],
+                        paymentOptions[2],
+                      ]}
+                      errors={errors}
+                    />
+                  </div>
+                  {/* 發票類型 */}
+                  <div data-field="receipt">
+                    <ReceiptTypeSelector
+                      selectedReceipt={selectedReceipt}
+                      formData={formData}
+                      onInputChange={handleInputChange}
+                      onInputBlur={handleInputBlur}
+                      errors={errors}
+                      onReceiptChange={(value) =>
+                        handleSelectChange('receipt', value, setSelectedReceipt)
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            {/* 右側明細卡片 */}
+            <div className="flex-1 text-accent-foreground sticky top-28 max-h-[calc(100vh-104px)] self-start">
+              <Card className="h-70">
+                <CardContent className="flex flex-col justify-between h-full">
+                  <Table className="w-full table-fixed text-base">
+                    <TableBody>
+                      <TableRow className="flex justify-end">
+                        <TableCell></TableCell>
+                        <TableCell>共有{itemCount}件商品</TableCell>
+                      </TableRow>
+                      <TableRow className="flex justify-between">
+                        <TableCell>商品金額</TableCell>
+                        <TableCell>${formatPrice(totalPrice)}</TableCell>
+                      </TableRow>
+                      <TableRow className="flex justify-between border-b border-card-foreground">
+                        <TableCell>運費</TableCell>
+                        <TableCell>${formatPrice(shippingFee)}</TableCell>
+                      </TableRow>
+                      <TableRow className="flex justify-between">
+                        <TableCell>商品小計</TableCell>
+                        <TableCell>${formatPrice(totalPrice)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                  <div className="flex justify-between">
+                    <Link href="/shop/order">
+                      <Button variant="default" className="w-[120px]">
+                        返回購物車
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="highlight"
+                      className="w-[120px]"
+                      onClick={handlePayment}
                     >
-                      購物車是空的
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <Card>
-            <CardContent className="flex flex-col gap-6">
-              {/* 收件人資料 */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">訂單人資料</Label>
-                <div className="space-y-2 grid gap-3">
-                  <div className="grid w-full items-center gap-3">
-                    <Label htmlFor="recipient">收件人</Label>
-                    <Input
-                      type="text"
-                      id="recipient"
-                      placeholder="請填寫收件人姓名"
-                      className={`w-full ${errors.recipient ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
-                      value={formData.recipient || ''}
-                      onChange={(e) =>
-                        handleInputChange('recipient', e.target.value)
-                      }
-                      onBlur={(e) =>
-                        handleInputBlur('recipient', e.target.value)
-                      }
-                    />
-                    {errors.recipient && (
-                      <span className="text-destructive text-sm">
-                        {errors.recipient}
-                      </span>
-                    )}
+                      付款
+                    </Button>
                   </div>
-                  <div className="grid w-full items-center gap-3">
-                    <Label htmlFor="phone">手機號碼</Label>
-                    <Input
-                      type="text"
-                      id="phone"
-                      placeholder="請填寫電話號碼(例：0912345678)"
-                      className={`w-full ${errors.phone ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
-                      value={formData.phone || ''}
-                      onChange={(e) =>
-                        handleInputChange('phone', e.target.value)
-                      }
-                      onBlur={(e) => handleInputBlur('phone', e.target.value)}
-                    />
-                    {errors.phone && (
-                      <span className="text-destructive text-sm">
-                        {errors.phone}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* 物流方式 */}
-              <div data-field="delivery">
-                <DeliveryMethodSelector
-                  selectedDelivery={selectedDelivery}
-                  onDeliveryChange={(value) =>
-                    handleSelectChange('delivery', value, setSelectedDelivery)
-                  }
-                  errors={errors}
-                  formData={formData}
-                  onInputChange={handleInputChange}
-                  onInputBlur={handleInputBlur}
-                />
-              </div>
-              {/* 付款方式 */}
-              <div data-field="payment">
-                <PaymentMethodSelector
-                  selectedPayment={selectedPayment}
-                  onPaymentChange={(value) =>
-                    handleSelectChange('payment', value, setSelectedPayment)
-                  }
-                  options={[
-                    paymentOptions[0],
-                    paymentOptions[1],
-                    paymentOptions[2],
-                  ]}
-                  errors={errors}
-                />
-              </div>
-              {/* 發票類型 */}
-              <div data-field="receipt">
-                <ReceiptTypeSelector
-                  selectedReceipt={selectedReceipt}
-                  formData={formData}
-                  onInputChange={handleInputChange}
-                  onInputBlur={handleInputBlur}
-                  errors={errors}
-                  onReceiptChange={(value) =>
-                    handleSelectChange('receipt', value, setSelectedReceipt)
-                  }
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              {/* <Link
-                  href={`/venue/reservation/success?data=${encodeURIComponent(JSON.stringify(orderSummary))}`}
-                  className="w-full sm:w-auto"
-                >
-                  <Button size="lg" className="w-full">
-                    確認付款
-                    <ClipboardCheck />
-                  </Button>
-                </Link> */}
-              <div className="flex flex-col">
-                <span className="text-base text-right p-2 text-muted-foreground">
-                  共有{itemCount}件商品
-                </span>
-                <Table className="table-fixed flex justify-end">
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="text-base pr-10 text-accent-foreground">
-                        商品金額
-                      </TableCell>
-                      <TableCell className="text-base font-bold text-accent-foreground">
-                        ${formatPrice(totalPrice)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow className="border-b border-card-foreground">
-                      <TableCell className="text-base pr-10 text-accent-foreground">
-                        運費
-                      </TableCell>
-                      <TableCell className="text-base font-bold text-accent-foreground text-right">
-                        ${formatPrice(shippingFee)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-base pr-10 text-accent-foreground">
-                        商品小計
-                      </TableCell>
-                      <TableCell className="text-base font-bold text-accent-foreground">
-                        ${formatPrice(totalPrice + shippingFee)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </CardFooter>
-          </Card>
-          <div className="flex justify-between">
-            <Link href="/shop/order">
-              <Button variant="outline" className="w-[120px]">
-                返回購物車
-              </Button>
-            </Link>
-            <Button
-              variant="highlight"
-              className="w-[120px]"
-              onClick={handlePayment}
-            >
-              付款
-            </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* ECPay 付款確認對話框 */}
+      <AlertDialog open={showEcpayDialog} onOpenChange={setShowEcpayDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認付款</AlertDialogTitle>
+            <AlertDialogDescription>
+              確認是否導向至 ECPay(綠界金流) 進行付款？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowEcpayDialog(false)}>
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowEcpayDialog(false)
+                handleEcpayConfirm()
+              }}
+            >
+              確認付款
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </>
   )

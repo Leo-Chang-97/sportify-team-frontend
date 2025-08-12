@@ -3,9 +3,13 @@
 // hooks
 import { useState, useEffect, useMemo } from 'react'
 import { useVenue } from '@/contexts/venue-context'
+import { useAuth } from '@/contexts/auth-context'
 
 // utils
 import { validateField, cn } from '@/lib/utils'
+import { API_SERVER } from '@/lib/api-path'
+import { toast } from 'sonner'
+import { format } from 'date-fns'
 
 // Icon
 import { CreditCard } from 'lucide-react'
@@ -13,6 +17,7 @@ import { CreditCard } from 'lucide-react'
 // API 請求
 import { fetchCenter } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
+import { createReservation } from '@/api/venue/reservation'
 
 // next 元件
 import Link from 'next/link'
@@ -24,7 +29,6 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-
 import {
   Card,
   CardContent,
@@ -32,27 +36,39 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
 import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
-
+import { LoadingState, ErrorState } from '@/components/loading-states'
+4
 export default function PaymentPage() {
   // #region 路由和URL參數
   const router = useRouter()
-
+  const { user } = useAuth()
   // #region 狀態管理
   const [centerData, setCenterData] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false) // 建立訂單載入狀態
+  const [isLoadingCenter, setIsLoadingCenter] = useState(true) // 載入場館資料狀態
   const [errors, setErrors] = useState({})
 
   const { venueData, setVenueData } = useVenue()
@@ -64,13 +80,17 @@ export default function PaymentPage() {
 
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
-    name: '',
+    name: user?.name || '',
     phone: '',
-    email: '',
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
   })
   console.log('venueData', venueData)
+
+  // ECPay 確認對話框狀態
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
+  const [paymentParams, setPaymentParams] = useState(null)
+
   // #region 副作用處理
 
   // #region Center資料
@@ -78,7 +98,7 @@ export default function PaymentPage() {
     console.log('centerId:', centerId)
     const fetchCenterData = async () => {
       try {
-        setLoading(true)
+        setIsLoadingCenter(true)
         // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
         const centerData = await fetchCenter(centerId)
         setCenterData(centerData.record)
@@ -88,7 +108,7 @@ export default function PaymentPage() {
         setErrors(err.message)
         toast.error('載入場館資料失敗')
       } finally {
-        setLoading(false)
+        setIsLoadingCenter(false)
       }
     }
 
@@ -134,11 +154,125 @@ export default function PaymentPage() {
     }
   }
 
-  // 處理付款按鈕點擊
-  const handlePayment = () => {
+  // #region 處裡建立訂單
+  const handleReservation = async () => {
+    // e.preventDefault()
+    setErrors({})
+    setIsCreatingOrder(true)
+
+    console.log('venueData.timeSlots 內容:', venueData.timeSlots) // 詳細除錯
+
+    // 檢查 timeSlots 是否為空
+    if (!venueData.timeSlots || venueData.timeSlots.length === 0) {
+      toast.error('請選擇場地時段')
+      setIsCreatingOrder(false)
+      return false
+    }
+
+    // 準備 courtTimeSlotId 陣列 - 從 venueData.timeSlots 中提取 courtTimeSlotId
+    const courtTimeSlotIds = []
+
+    for (const slot of venueData.timeSlots) {
+      console.log('處理時段:', slot) // 除錯
+
+      if (slot.courtTimeSlotId) {
+        const id = parseInt(slot.courtTimeSlotId)
+        if (!isNaN(id)) {
+          courtTimeSlotIds.push(id)
+        } else {
+          console.error('無效的 courtTimeSlotId:', slot.courtTimeSlotId)
+          toast.error('場地時段 ID 格式錯誤')
+          setIsCreatingOrder(false)
+          return false
+        }
+      } else {
+        console.error('缺少 courtTimeSlotId:', slot)
+        toast.error('場地時段資料不完整')
+        setIsCreatingOrder(false)
+        return false
+      }
+    }
+
+    if (courtTimeSlotIds.length === 0) {
+      toast.error('沒有有效的場地時段')
+      setIsCreatingOrder(false)
+      return false
+    }
+
+    // 準備日期字串 - 轉換為 YYYY-MM-DD 格式
+    const dateString = venueData.selectedDate
+      ? format(venueData.selectedDate, 'yyyy-MM-dd')
+      : null
+
+    console.log(dateString)
+
+    if (!dateString) {
+      toast.error('請選擇預約日期')
+      setIsCreatingOrder(false)
+      return false
+    }
+
+    const reservationData = {
+      memberId: user?.id || 102,
+      courtTimeSlotId: courtTimeSlotIds, // 使用處理過的 ID 陣列
+      date: dateString, // 使用字串格式的日期
+      statusId: 1,
+      price: venueData.totalPrice,
+      paymentId: parseInt(selectedPayment), // 轉換為數字
+      invoiceId: parseInt(selectedReceipt), // 轉換為數字
+      carrier: formData.carrierId || '', // 空字串而非 null
+      tax: formData.companyId || '', // 空字串而非 null
+    }
+
+    console.log('發送訂單資料:', reservationData) // 除錯用
+
+    try {
+      const result = await createReservation(reservationData)
+      if (result.success) {
+        // const successMessage = '新增預約成功！'
+        // toast.success(successMessage)
+        console.log('訂單建立成功:', result) // 除錯用
+        return { success: true, reservationId: result.insertId } // 回傳成功狀態和訂單ID
+      } else {
+        toast.error('建立訂單失敗: ' + (result.message || '未知錯誤'))
+        console.error('訂單建立失敗:', result)
+        return { success: false } // 回傳失敗狀態
+      }
+    } catch (error) {
+      console.error('建立訂單錯誤:', error) // 除錯用
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data
+      ) {
+        const result = error.response.data
+        const errs = {}
+        const shown = {}
+        result.issues?.forEach((issue) => {
+          const field = issue.path[0]
+          if (shown[field]) return
+          errs[field] = issue.message
+          shown[field] = true
+        })
+        setErrors(errs)
+        if (Object.keys(errs).length === 0) {
+          toast.error(result.message || '輸入資料有誤')
+        }
+      } else {
+        const errorMessage = '新增預約失敗：'
+        toast.error(errorMessage + (error.message || '未知錯誤'))
+      }
+      return false // 返回失敗狀態
+    } finally {
+      setIsCreatingOrder(false)
+    }
+  }
+
+  // #region 處理付款按鈕點擊
+  const handlePayment = async () => {
     // 先執行驗證並獲取錯誤
     const newErrors = {}
-    newErrors.name = validateField('recipient', formData.name || '', true)
+    newErrors.name = validateField('name', formData.name || '', true)
     newErrors.phone = validateField('phone', formData.phone || '', true)
     newErrors.payment = validateField('payment', selectedPayment || '', true)
     newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
@@ -163,15 +297,50 @@ export default function PaymentPage() {
     const hasErrors = Object.values(newErrors).some((error) => error !== '')
 
     if (!hasErrors) {
-      // 表單驗證通過，導向成功頁面
-      // 更新 context 包含用戶資料和付款資訊
+      // 表單驗證通過，更新 context 包含用戶資料和付款資訊
       setVenueData({
         ...venueData,
         userInfo: formData,
         ...getSelectedOptions(),
       })
-      // 使用 router 跳轉到成功頁面
-      router.push('/venue/reservation/success')
+
+      // 先建立訂單
+      const reservationResult = await handleReservation()
+
+      if (reservationResult && reservationResult.success) {
+        // 訂單建立成功，根據付款方式決定下一步
+        const reservationId = reservationResult.reservationId
+
+        // 定義 amount 和 items
+        const amount = venueData.totalPrice
+        const itemsArray = venueData.timeSlots.map(
+          (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
+        )
+        const items = itemsArray.join(',')
+
+        if (selectedPayment === '1') {
+          // 綠界
+          setPaymentParams({
+            method: 'ecpay',
+            amount,
+            items,
+            reservationId,
+          })
+          setShowPaymentDialog(true)
+        } else if (selectedPayment === '2') {
+          // Line Pay
+          setPaymentParams({
+            method: 'linepay',
+            amount,
+            items,
+            reservationId,
+          })
+          setShowPaymentDialog(true)
+        } else {
+          router.push('/venue/reservation/success')
+        }
+      }
+      // 如果訂單建立失敗，handleReservation 內部已經處理錯誤訊息
     } else {
       // 表單驗證失敗，滾動到第一個錯誤欄位
       const errorFields = [
@@ -203,6 +372,32 @@ export default function PaymentPage() {
     }
   }
 
+  // #region 處理ECPay確認付款
+  const handlePaymentConfirm = () => {
+    if (!paymentParams) {
+      toast.error('付款參數錯誤，請重新嘗試')
+      return
+    }
+
+    const { method, amount, items, reservationId } = paymentParams
+
+    switch (method) {
+      case 'ecpay':
+        window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+        break
+      case 'linepay':
+        window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+        break
+      default:
+        toast.error('不支援的付款方式')
+    }
+  }
+
+  //  #region 載入和錯誤狀態處理
+  /* if (isLoadingCenter) {
+    return <LoadingState message="載入場館資料中..." />
+  } */
+
   // #region 資料顯示選項
   const steps = [
     { id: 1, title: '選擇場地與時間', completed: true },
@@ -228,7 +423,7 @@ export default function PaymentPage() {
           </section>
           <section className="flex flex-col md:flex-row gap-6">
             {/* 付款流程 */}
-            <section className="order-2 md:order-1 flex-2 w-full">
+            <section className="flex-2 w-full">
               <h2 className="text-xl font-semibold mb-4">付款方式</h2>
               <Card>
                 <CardContent className="flex flex-col gap-6">
@@ -291,7 +486,7 @@ export default function PaymentPage() {
                     options={[
                       paymentOptions[0],
                       paymentOptions[1],
-                      paymentOptions[4],
+                      paymentOptions[3],
                     ]}
                     errors={errors}
                   />
@@ -310,7 +505,7 @@ export default function PaymentPage() {
               </Card>
             </section>
             {/* 訂單確認 */}
-            <section className="order-1 md:order-2 flex-1 w-full">
+            <section className="flex-1 w-full">
               <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
 
               {/* 訂單摘要卡片 */}
@@ -400,8 +595,13 @@ export default function PaymentPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Button size="lg" className="w-full" onClick={handlePayment}>
-                    確認付款
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handlePayment}
+                    disabled={isCreatingOrder}
+                  >
+                    {isCreatingOrder ? '處理中...' : '確認付款'}
                     <CreditCard />
                   </Button>
                 </CardFooter>
@@ -410,6 +610,41 @@ export default function PaymentPage() {
           </section>
         </div>
       </main>
+
+      {/* ECPay 付款確認對話框 */}
+      <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認付款</AlertDialogTitle>
+            <AlertDialogDescription>
+              {paymentParams?.method === 'ecpay'
+                ? '確認是否導向至 ECPay(綠界金流) 進行付款？'
+                : paymentParams?.method === 'applepay'
+                  ? '確認是否使用 Apple Pay 進行付款？'
+                  : '確認是否進行付款？'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowPaymentDialog(false)
+                setPaymentParams(null)
+              }}
+            >
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowPaymentDialog(false)
+                handlePaymentConfirm()
+              }}
+            >
+              確認付款
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </>
   )

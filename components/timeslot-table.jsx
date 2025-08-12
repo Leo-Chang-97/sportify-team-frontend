@@ -85,9 +85,17 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
           const court = courts.find((c) => c.id === courtId)
           const timeSlot = timeSlots.find((t) => t.id === timeSlotId)
           const price = getPrice(courtId, timeSlotId)
+
+          // 找到對應的 courtTimeSlot 來獲取 ID
+          const courtTimeSlot = courtTimeSlots.find(
+            (item) =>
+              item.court?.id === courtId && item.timeSlot?.id === timeSlotId
+          )
+
           return {
             courtId,
             timeSlotId,
+            courtTimeSlotId: courtTimeSlot?.id, // 添加 courtTimeSlotId
             courtName: court?.name,
             timeRange: timeSlot?.label,
             price,
@@ -96,7 +104,7 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
       }
       onSelectionChange(selectionData)
     }
-  }, [selectedTimeSlots, onSelectionChange])
+  }, [selectedTimeSlots, onSelectionChange, courtTimeSlots])
 
   // #region 事件處理函數
   // 切換選擇狀態（只允許選擇可預約的時段）
@@ -220,7 +228,7 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                   style={{ width: 20, display: 'inline-block' }}
                                 >
                                   {selected ? (
-                                    <FaCircleCheck className="text-highlight" />
+                                    <FaCircleCheck className="text-primary-foreground" />
                                   ) : (
                                     <span className="text-primary">
                                       <FaRegCircleCheck />
