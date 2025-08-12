@@ -8,20 +8,13 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 
 // Icon
-import { Star, Search } from 'lucide-react'
+import { AlertCircle, Star, Search } from 'lucide-react'
 
 // API 請求
 import { fetchLocationOptions, fetchSportOptions } from '@/api'
 import { fetchCenters } from '@/api/venue/center'
 
 // UI 元件
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -278,28 +271,32 @@ export default function VenueListPage() {
         }}
       />
       <main className="px-4 md:px-6 py-10">
-        <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
+        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6">
           <h3 className="text-center text-lg font-normal tracking-[24px]">
             精·選·場·館
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {data?.rows.map((data) => (
-              <CenterCard
-                key={data.id}
-                // onAddToCart={handleAddToCart}
-                // onAddToWishlist={handleAddToWishlist}
-                data={data}
-              />
-            ))}
+            {data?.rows.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground py-12 text-lg">
+                <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">
+                  沒有符合資料，請重新搜尋
+                </h3>
+              </div>
+            ) : (
+              data?.rows.map((data) => <CenterCard key={data.id} data={data} />)
+            )}
           </div>
-          <PaginationBar
-            page={data.page}
-            totalPages={data.totalPages}
-            perPage={data.perPage}
-            onPageChange={(targetPage) => {
-              handlePagination(targetPage)
-            }}
-          />
+          {data?.rows.length > 0 && (
+            <PaginationBar
+              page={data.page}
+              totalPages={data.totalPages}
+              perPage={data.perPage}
+              onPageChange={(targetPage) => {
+                handlePagination(targetPage)
+              }}
+            />
+          )}
         </div>
       </main>
 
