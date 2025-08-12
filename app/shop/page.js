@@ -74,7 +74,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
           >
             {/* 運動類型 */}
             <AccordionItem value="sport-type" className="border-b-0">
-              <AccordionTrigger className="text-lg font-bold text-foreground">
+              <AccordionTrigger className="text-lg font-bold text-foreground hover:no-underline">
                 運動類型
               </AccordionTrigger>
               <AccordionContent className="p-2 space-y-2">
@@ -97,7 +97,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                       onClose() // 關閉側邊欄
                     }}
                   >
-                    <span className="text-base font-regular text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-foreground hover:text-input">
                       {sport.name}
                     </span>
                   </Label>
@@ -106,7 +106,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
             </AccordionItem>
             {/* 品牌 */}
             <AccordionItem value="brand">
-              <AccordionTrigger className="text-lg font-bold text-foreground">
+              <AccordionTrigger className="text-lg font-bold text-foreground hover:no-underline">
                 品牌
               </AccordionTrigger>
               <AccordionContent className="p-2 space-y-2">
@@ -129,7 +129,7 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
                       onClose() // 關閉側邊欄
                     }}
                   >
-                    <span className="text-base font-regular text-foreground hover:border-b hover:border-muted">
+                    <span className="text-base font-regular text-foreground hover:text-input">
                       {brand.name}
                     </span>
                   </Label>
@@ -482,7 +482,7 @@ export default function ProductListPage() {
                         router.push(`?${newParams.toString()}`)
                       }}
                     >
-                      <span className="text-base font-regular text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-foreground hover:text-input">
                         {sport.name}
                       </span>
                     </label>
@@ -510,7 +510,7 @@ export default function ProductListPage() {
                         router.push(`?${newParams.toString()}`)
                       }}
                     >
-                      <span className="text-base font-regular text-foreground hover:text-foreground hover:border-b hover:border-muted">
+                      <span className="text-base font-regular text-foreground hover:text-input">
                         {brand.name}
                       </span>
                     </label>
@@ -539,7 +539,7 @@ export default function ProductListPage() {
                   backLabel="返回首頁"
                 />
               ) : products.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}
