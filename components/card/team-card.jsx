@@ -82,7 +82,7 @@ export function TeamCard({
                 {CurrentSportIcon && (
                   <CurrentSportIcon className="w-6 h-6 text-background" />
                 )}
-                <div className="justify-start text-background text-base font-normal font-['Noto_Sans_TC'] leading-normal">
+                <div className="justify-start text-background text-base font-normal leading-normal">
                   {sportType || '運動類型'}
                 </div>
               </div>
