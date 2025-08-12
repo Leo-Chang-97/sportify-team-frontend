@@ -715,7 +715,7 @@ export default function ProductPaymentPage() {
               </Card>
             </div>
             {/* 右側明細卡片 */}
-            <div className="flex-1 text-accent-foreground sticky top-28 max-h-[calc(100vh-104px)] self-start">
+            <div className="flex-1 text-accent-foreground sticky top-32 max-h-[calc(100vh-104px)] self-start">
               <Card className="h-70">
                 <CardContent className="flex flex-col justify-between h-full">
                   <Table className="w-full table-fixed text-base">
