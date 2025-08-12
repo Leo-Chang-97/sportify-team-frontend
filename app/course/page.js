@@ -57,7 +57,7 @@ export default function VenueListPage() {
   const [statusId, setStatusId] = useState('')
   const [date, setDate] = useState(null)
   const [price, setPrice] = useState('')
-  
+
   // ===== 新增：關鍵字搜尋狀態 =====
   const [keyword, setKeyword] = useState('')
 
@@ -83,69 +83,75 @@ export default function VenueListPage() {
     {
       id: 1,
       title: '羽球課程',
-      description: '透過完整而有系統的訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
+      description:
+        '透過完整而有系統的訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
       image: '/product-pic/badminton-course.png',
       icon: '',
       price: 4800,
       duration: '6-8週',
       level: '初級',
-      category: 'badminton'
+      category: 'badminton',
     },
     {
       id: 2,
       title: '桌球課程',
-      description: '學習桌球，從基礎開始培養運動技巧與身體能力，提供多元且充滿樂趣，重新認識、建立桌球基礎運動技能，循序漸進的課程訓練。',
+      description:
+        '學習桌球，從基礎開始培養運動技巧與身體能力，提供多元且充滿樂趣，重新認識、建立桌球基礎運動技能，循序漸進的課程訓練。',
       image: '/product-pic/tabletennis-course.jpg',
       icon: '',
       price: 4500,
       duration: '8週',
       level: '初級',
-      category: 'table-tennis'
+      category: 'table-tennis',
     },
     {
       id: 3,
       title: '網球課程',
-      description: '專業網球訓練課程，從基本握拍到進階技巧，培養正確的網球技術與戰術思維，適合各年齡層學員參與學習。',
+      description:
+        '專業網球訓練課程，從基本握拍到進階技巧，培養正確的網球技術與戰術思維，適合各年齡層學員參與學習。',
       image: '/product-pic/tennis-course.jpg',
       icon: '',
       price: 5200,
       duration: '10週',
       level: '中級',
-      category: 'tennis'
+      category: 'tennis',
     },
     {
       id: 4,
       title: '籃球課程',
-      description: '全方位籃球技能訓練，包含基本功練習、戰術配合、體能訓練，培養團隊合作精神與競技能力。',
+      description:
+        '全方位籃球技能訓練，包含基本功練習、戰術配合、體能訓練，培養團隊合作精神與競技能力。',
       image: '/product-pic/basketball-course.png',
       icon: '',
       price: 4800,
       duration: '6週',
       level: '初級',
-      category: 'basketball'
+      category: 'basketball',
     },
     {
       id: 5,
       title: '排球課程',
-      description: '排球基礎與進階技術教學，學習發球、接球、扣球等技巧，培養團隊默契與運動精神。',
+      description:
+        '排球基礎與進階技術教學，學習發球、接球、扣球等技巧，培養團隊默契與運動精神。',
       image: '/product-pic/volleyball-course.png',
       icon: '',
       price: 4300,
       duration: '8週',
       level: '初級',
-      category: 'volleyball'
+      category: 'volleyball',
     },
     {
       id: 6,
       title: '游泳課程',
-      description: '從基礎水性到各式泳姿教學，安全的水上運動訓練，適合初學者到進階學員的完整游泳課程。',
+      description:
+        '從基礎水性到各式泳姿教學，安全的水上運動訓練，適合初學者到進階學員的完整游泳課程。',
       image: '/product-pic/squash-course.png',
       icon: '',
       price: 5500,
       duration: '12週',
       level: '初級',
-      category: 'swimming'
-    }
+      category: 'swimming',
+    },
   ]
 
   // ===== 載入資料 =====
@@ -176,7 +182,7 @@ export default function VenueListPage() {
           { id: 3, name: '網球' },
           { id: 4, name: '籃球' },
           { id: 5, name: '排球' },
-          { id: 6, name: '游泳' }
+          { id: 6, name: '游泳' },
         ])
         // setSports([
         //   { id: 1, name: '台北體育館' },
@@ -187,7 +193,6 @@ export default function VenueListPage() {
         // 載入課程資料
         setCourses(coursesData)
         setFilteredCourses(coursesData)
-
       } catch (error) {
         console.error('載入資料失敗:', error)
         // 確保課程資料還是能載入
@@ -201,23 +206,25 @@ export default function VenueListPage() {
   // ===== 搜尋和篩選功能 =====
   const handleSearch = () => {
     console.log('搜尋:', { locationId, sportId, keyword })
-    
+
     let filtered = coursesData
 
     // 根據運動類型篩選
     if (locationId) {
       const sportMapping = {
-        '1': 'badminton',
-        '2': 'table-tennis',
-        '3': 'tennis',
-        '4': 'basketball',
-        '5': 'volleyball',
-        '6': 'swimming'
+        1: 'badminton',
+        2: 'table-tennis',
+        3: 'tennis',
+        4: 'basketball',
+        5: 'volleyball',
+        6: 'swimming',
       }
-      
+
       const targetCategory = sportMapping[locationId]
       if (targetCategory) {
-        filtered = filtered.filter(course => course.category === targetCategory)
+        filtered = filtered.filter(
+          (course) => course.category === targetCategory
+        )
       }
     }
 
@@ -228,10 +235,11 @@ export default function VenueListPage() {
 
     // 根據關鍵字篩選
     if (keyword.trim()) {
-      filtered = filtered.filter(course => 
-        course.title.toLowerCase().includes(keyword.toLowerCase()) ||
-        course.description.toLowerCase().includes(keyword.toLowerCase()) ||
-        course.level.toLowerCase().includes(keyword.toLowerCase())
+      filtered = filtered.filter(
+        (course) =>
+          course.title.toLowerCase().includes(keyword.toLowerCase()) ||
+          course.description.toLowerCase().includes(keyword.toLowerCase()) ||
+          course.level.toLowerCase().includes(keyword.toLowerCase())
       )
     }
 
@@ -253,7 +261,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-white !h-10 text-black ">
             <SelectValue placeholder="請選運動" />
           </SelectTrigger>
           <SelectContent>
@@ -274,7 +282,7 @@ export default function VenueListPage() {
       label: '場館',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-white !h-10 text-black ">
             <SelectValue placeholder="請選擇場館" />
           </SelectTrigger>
           <SelectContent>
@@ -299,7 +307,7 @@ export default function VenueListPage() {
           placeholder="請輸入課程名稱或關鍵字"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="w-full h-10 bg-white"
+          className="w-full h-10 bg-white text-black"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               handleSearch()
@@ -325,29 +333,27 @@ export default function VenueListPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      
+
       <ScrollAreaSport sportItems={sports} />
-      
+
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
           {/* 標題和篩選結果資訊 */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-lg text-center">精選課程</h3>
               <p className="text-sm text-gray-600 mt-2">
-                {keyword.trim() && (
-                  <span>關鍵字「{keyword}」</span>
-                )}
+                {keyword.trim() && <span>關鍵字「{keyword}」</span>}
                 共找到 {filteredCourses.length} 門課程
               </p>
             </div>
-            
+
             {/* 重設篩選按鈕 */}
             {(locationId || sportId || keyword.trim()) && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleResetFilter}
                 className="text-sm"
+                disabled={!locationId && !sportId && !keyword.trim()} // 當沒有任何篩選條件時禁用
               >
                 清除篩選
               </Button>
@@ -363,8 +369,8 @@ export default function VenueListPage() {
             ) : (
               <div className="col-span-full text-center py-12">
                 <p className="text-gray-500 text-lg">沒有找到符合條件的課程</p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleResetFilter}
                   className="mt-4"
                 >
@@ -377,7 +383,7 @@ export default function VenueListPage() {
           {/* 載入更多按鈕 */}
           {filteredCourses.length > 0 && filteredCourses.length >= 6 && (
             <div className="text-center mt-8">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   console.log('載入更多課程')
@@ -389,7 +395,7 @@ export default function VenueListPage() {
           )}
         </div>
       </section>
-      
+
       <Footer />
     </>
   )

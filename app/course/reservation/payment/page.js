@@ -314,7 +314,7 @@ export default function CoursePaymentPage() {
                 </CardContent>
 
                 <CardFooter className="flex gap-3">
-                  <Link href="/course" className="flex-1">
+                  <Link href="/course/id" className="flex-1">
                     <Button
                       variant="secondary"
                       size="lg"

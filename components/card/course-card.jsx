@@ -26,8 +26,8 @@ const CourseCard = ({ course }) => {
         />
       </div>
       
-      {/* 浮起來的資訊卡片 */}
-      <div className="relative -mt-16 mx-4 bg-slate-700/85 backdrop-blur-sm rounded-lg border-gray-100 z-10">
+      {/* 浮起來的資訊卡片 - 固定高度確保等高 */}
+      <div className="relative -mt-16 bg-slate-700/85 backdrop-blur-sm rounded-lg border-gray-100 z-10 min-h-[200px]">
         <div className="p-6">
           {/* 課程圖示和標題 */}
           <div className="flex items-center mb-4">
@@ -37,8 +37,18 @@ const CourseCard = ({ course }) => {
             <h3 className="text-xl font-bold text-white">{courseData.title}</h3>
           </div>
           
-          {/* 描述文字 */}
-          <p className="text-white text-sm leading-relaxed mb-6">
+          {/* 描述文字 - 使用自定義樣式限制為三行 */}
+          <p 
+            className="text-white text-sm leading-relaxed mb-6"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              height: '4.5rem', // 約三行的高度 (1.5rem line-height × 3)
+            }}
+          >
             {courseData.description}
           </p>
           
