@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Calendar } from '@/components/date-calendar'
+import { Status, StatusIndicator, StatusLabel } from '@/components/ui/status'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -491,10 +492,12 @@ export default function ReservationPage() {
                             {...props}
                             className={cn(
                               'aspect-[3/2] flex flex-col md:gap-1 items-center justify-center w-full h-full p-1 text-base rounded-md transition-colors',
-                              modifiers.selected &&
-                                'bg-primary text-primary-foreground',
+                              modifiers.selected
+                                ? 'bg-blue-100 text-primary'
+                                : modifiers.today
+                                  ? 'bg-orange-100 text-highlight'
+                                  : '',
                               !modifiers.selected && 'hover:bg-background/10',
-                              modifiers.today && 'bg-blue-100 text-blue-700',
                               modifiers.disabled
                                 ? 'opacity-50 cursor-not-allowed'
                                 : 'cursor-pointer'
@@ -507,7 +510,7 @@ export default function ReservationPage() {
                             {hasData && availableCount !== null && !isPast && (
                               <span
                                 className={cn(
-                                  'text-xs md:text-sm w-full font-medium md:py-1 rounded',
+                                  'flex justify-center text-xs md:text-sm w-full font-medium md:py-1 rounded',
                                   modifiers.selected &&
                                     'text-primary-foreground',
                                   !modifiers.selected &&
@@ -518,11 +521,28 @@ export default function ReservationPage() {
                                     'text-green-700'
                                 )}
                               >
-                                {modifiers.selected
-                                  ? '已選擇'
-                                  : availableCount === 0
-                                    ? '已額滿'
-                                    : `餘${availableCount}`}
+                                {modifiers.selected ? (
+                                  <Status status="maintenance">
+                                    <StatusIndicator />
+                                    <StatusLabel className="hidden sm:inline">
+                                      已選擇
+                                    </StatusLabel>
+                                  </Status>
+                                ) : availableCount === 0 ? (
+                                  <Status status="offline">
+                                    <StatusIndicator />
+                                    <StatusLabel className="hidden sm:inline">
+                                      已額滿
+                                    </StatusLabel>
+                                  </Status>
+                                ) : (
+                                  <Status status="online">
+                                    <StatusIndicator />
+                                    <StatusLabel className="hidden sm:inline">
+                                      {availableCount}
+                                    </StatusLabel>
+                                  </Status>
+                                )}
                               </span>
                             )}
                           </button>
