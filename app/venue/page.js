@@ -140,7 +140,7 @@ export default function VenueListPage() {
 
   // #region 資料顯示選項
 
-  // 評分系統選項
+  // #region 評分系統選項
   const ratingOptions = [
     { label: <>全部</>, value: 'all' },
     ...[2, 3, 4, 5].map((num) => ({
@@ -156,7 +156,7 @@ export default function VenueListPage() {
     })),
   ]
 
-  // 定義 Hero Banner 搜尋欄位
+  //#region  定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
       label: '地區',
