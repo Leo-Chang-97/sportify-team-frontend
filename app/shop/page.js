@@ -66,6 +66,8 @@ const MobileSidebar = ({
   selectedBrands,
   handleSportChange,
   handleBrandChange,
+  priceRange,
+  setPriceRange,
 }) => {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -80,7 +82,7 @@ const MobileSidebar = ({
         <div className="flex-1 overflow-y-auto p-4">
           <Accordion
             type="multiple"
-            defaultValue={['sport-type']}
+            defaultValue={['sport-type','brand']}
             className="w-full"
           >
             {/* 運動類型 */}
@@ -108,7 +110,7 @@ const MobileSidebar = ({
               </AccordionContent>
             </AccordionItem>
             {/* 品牌 */}
-            <AccordionItem value="brand">
+            <AccordionItem value="brand" className="border-b-0">
               <AccordionTrigger className="text-lg font-bold text-foreground hover:no-underline">
                 品牌
               </AccordionTrigger>
@@ -131,6 +133,31 @@ const MobileSidebar = ({
                 ))}
               </AccordionContent>
             </AccordionItem>
+            {/* 價格區間 */}
+            <div className="my-6 flex flex-col gap-5">
+              <span className="text-lg font-bold mb-4 text-foreground">
+                價格區間
+              </span>
+              <Slider
+                value={priceRange}
+                onValueChange={setPriceRange}
+                min={0}
+                max={3500}
+                step={10}
+                onValueCommit={(values) => {
+                  const [minPrice, maxPrice] = values
+                  const newParams = new URLSearchParams(searchParams.toString())
+                  newParams.set('minPrice', minPrice)
+                  newParams.set('maxPrice', maxPrice)
+                  newParams.set('page', '1') // 篩選後回到第一頁
+                  router.push(`?${newParams.toString()}`)
+                }}
+              />
+              <div className="flex justify-between text-sm">
+                <span>${priceRange[0]}</span>
+                <span>${priceRange[1]}</span>
+              </div>
+            </div>
           </Accordion>
         </div>
       </SheetContent>
@@ -154,7 +181,7 @@ export default function ProductListPage() {
     name: '',
     count: 0,
   })
-  const [priceRange, setPriceRange] = useState([0, 1600])
+  const [priceRange, setPriceRange] = useState([0, 3500])
   const [selectedSports, setSelectedSports] = useState([])
   const [selectedBrands, setSelectedBrands] = useState([])
 
@@ -243,15 +270,12 @@ export default function ProductListPage() {
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
       const keyword = event.target.value.trim()
-      const newParams = new URLSearchParams(searchParams.toString())
-      // 執行搜尋時，清除分類篩選
-      newParams.delete('sportId')
-      newParams.delete('brandId')
-      newParams.delete('sort')
+      // 清空 Checkbox 狀態
+      setSelectedSports([])
+      setSelectedBrands([])
+      const newParams = new URLSearchParams()
       if (keyword) {
         newParams.set('keyword', keyword)
-      } else {
-        newParams.delete('keyword')
       }
       newParams.set('page', '1')
       router.push(`?${newParams.toString()}`)
@@ -260,15 +284,12 @@ export default function ProductListPage() {
 
   const handleSearchClick = () => {
     const keyword = searchKeyword.trim()
-    const newParams = new URLSearchParams(searchParams.toString())
-    // 執行搜尋時，清除分類篩選
-    newParams.delete('sportId')
-    newParams.delete('brandId')
-    newParams.delete('sort')
+    // 清空 checkbox 狀態
+    setSelectedSports([])
+    setSelectedBrands([])
+    const newParams = new URLSearchParams()
     if (keyword) {
       newParams.set('keyword', keyword)
-    } else {
-      newParams.delete('keyword')
     }
     newParams.set('page', '1')
     router.push(`?${newParams.toString()}`)
@@ -361,6 +382,16 @@ export default function ProductListPage() {
     router.push(`?${newParams.toString()}`)
   }
 
+  const clearAllFilters = () => {
+    // 清空本地狀態
+    setSelectedSports([])
+    setSelectedBrands([])
+    setPriceRange([0, 3500])
+    // 清空 URL 參數
+    const newParams = new URLSearchParams()
+    router.push(`?${newParams.toString()}`)
+  }
+
   return (
     <>
       <Navbar />
@@ -382,6 +413,9 @@ export default function ProductListPage() {
                 <p className="text-base font-regular text-foreground">
                   共有{selectedCategory.count}筆商品
                 </p>
+                <Button variant="outline" onClick={clearAllFilters}>
+                  清除條件
+                </Button>
               </div>
             )}
             {/* 桌面版搜尋和排序區域 */}
@@ -396,7 +430,7 @@ export default function ProductListPage() {
                   placeholder="請輸入關鍵字"
                 />
                 <Button
-                  variant={'outline'}
+                  variant={'highlight'}
                   onClick={handleSearchClick}
                   className="h-8 w-8 absolute right-2 flex items-center justify-center"
                 >
@@ -423,12 +457,13 @@ export default function ProductListPage() {
             {/* 標題區域 */}
             {selectedCategory.name && (
               <div className="flex flex-col items-start justify-center gap-3">
-                <p className="text-2xl font-bold text-foreground">
-                  搜尋結果
-                </p>
+                <p className="text-2xl font-bold text-foreground">搜尋結果</p>
                 <p className="text-base font-regular text-foreground">
                   共有{selectedCategory.count}筆商品
                 </p>
+                <Button variant="outline" onClick={clearAllFilters}>
+                  清除條件
+                </Button>
               </div>
             )}
 
@@ -535,9 +570,11 @@ export default function ProductListPage() {
                 </div>
               </div>
               <div className="mb-8 flex flex-col gap-5">
-                <span className='text-xl font-bold mb-4 text-foreground'>價格區間</span>
+                <span className="text-xl font-bold mb-4 text-foreground">
+                  價格區間
+                </span>
                 <Slider
-                  defaultValue={priceRange}
+                  value={priceRange}
                   onValueChange={setPriceRange}
                   min={0}
                   max={3500}
@@ -568,9 +605,11 @@ export default function ProductListPage() {
               selectedBrands={selectedBrands}
               handleSportChange={handleSportChange}
               handleBrandChange={handleBrandChange}
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
             />
             {/* 商品列表 */}
-            <div className="flex-1">
+            <div className="flex flex-col min-h-screen flex-1">
               {isDataLoading ? (
                 <LoadingState message="載入商品資料中..." />
               ) : error ? (
@@ -601,19 +640,21 @@ export default function ProductListPage() {
                   <p>查無此商品</p>
                 </div>
               )}
+              {/* 分頁 */}
+              <div className="pt-5 mt-auto">
+                {data && (
+                  <PaginationBar
+                    page={data.page}
+                    totalPages={data.totalPages}
+                    perPage={data.perPage}
+                    onPageChange={(targetPage) => {
+                      handlePagination(targetPage)
+                    }}
+                  />
+                )}
+              </div>
             </div>
           </div>
-          {/* 分頁 */}
-          {data && (
-            <PaginationBar
-              page={data.page}
-              totalPages={data.totalPages}
-              perPage={data.perPage}
-              onPageChange={(targetPage) => {
-                handlePagination(targetPage)
-              }}
-            />
-          )}
         </div>
       </section>
       <Footer />
