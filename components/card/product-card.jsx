@@ -65,14 +65,14 @@ export function ProductCard({
             `
               relative h-full overflow-hidden rounded py-0 transition-all
               duration-200 ease-in-out
-              hover:shadow-md gap-0
+              hover:shadow-md gap-3
             `,
             isHovered && 'ring-1 ring-primary/20'
           )}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <AspectRatio ratio={4 / 3} className="overflow-hidden relative p-4">
+          <AspectRatio ratio={4 / 3} className="overflow-hidden relative">
             <Image
               alt={product?.name || '商品圖片'}
               className={cn(
@@ -85,7 +85,7 @@ export function ProductCard({
             />
           </AspectRatio>
 
-          <CardContent>
+          <CardContent className='px-4 md:px-6'>
             {/* 運動和品牌 */}
             <div className="flex items-center justify-between my-2">
               <span className="text-sm text-muted-foreground">
@@ -122,7 +122,7 @@ export function ProductCard({
             <CardFooter className="p-4 pt-0">
               <Button
                 className={cn(
-                  'w-full gap-2 transition-all',
+                  'w-full gap-1 transition-all',
                   isAddingToCart && 'opacity-70',
                   'cursor-pointer'
                 )}
@@ -145,7 +145,7 @@ export function ProductCard({
           )}
 
           {variant === 'compact' && (
-            <CardFooter className="px-6 pt-0 pb-4">
+            <CardFooter className="px-4 md:px-6 pt-0 pb-4">
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-base text-destructive">
@@ -153,45 +153,61 @@ export function ProductCard({
                   </span>
                 </div>
                 <div className="flex">
-                  {/* 愛心按鈕 */}
+                  {/* 愛心 icon */}
                   {isMounted && (
-                    <Button
-                      className="h-8 w-8 rounded-full cursor-pointer"
+                    <span
+                      className={cn(
+                        'inline-flex items-center justify-center cursor-pointer',
+                        !isMounted ? 'opacity-60 pointer-events-none' : ''
+                      )}
                       onClick={handleAddToWishlist}
-                      size="icon"
-                      variant="ghost"
+                      title="加入收藏"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ')
+                          handleAddToWishlist(e)
+                      }}
                     >
                       <Heart
                         className={cn(
-                          'h-4 w-4',
+                          'h-4 w-4 md:h-5 md:w-5 transition mr-1 md:mr-3',
                           isInWishlist
-                            ? 'fill-destructive text-destructive'
-                            : ''
+                            ? 'fill-destructive text-destructive scale-110'
+                            : 'text-muted-foreground hover:text-destructive'
                         )}
                       />
                       <span className="sr-only">加入收藏</span>
-                    </Button>
+                    </span>
                   )}
-                  {/* 購物車按鈕 */}
-                  <Button
-                    className="h-8 w-8 rounded-full cursor-pointer"
-                    disabled={!isMounted || isAddingToCart}
+                  {/* 購物車 icon */}
+                  <span
+                    className={cn(
+                      'inline-flex items-center justify-center cursor-pointer',
+                      !isMounted || isAddingToCart
+                        ? 'opacity-60 pointer-events-none'
+                        : ''
+                    )}
                     onClick={handleAddToCart}
-                    size="icon"
-                    variant="ghost"
+                    title="加入購物車"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (
+                        (e.key === 'Enter' || e.key === ' ') &&
+                        isMounted &&
+                        !isAddingToCart
+                      )
+                        handleAddToCart(e)
+                    }}
                   >
                     {isMounted && isAddingToCart ? (
-                      <div
-                        className={`
-                        h-4 w-4 animate-spin rounded-full border-2
-                        border-primary border-t-transparent
-                      `}
-                      />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     ) : (
-                      <ShoppingCart className="h-4 w-4" />
+                      <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-primary transition" />
                     )}
                     <span className="sr-only">加入購物車</span>
-                  </Button>
+                  </span>
                 </div>
               </div>
             </CardFooter>
