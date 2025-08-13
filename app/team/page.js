@@ -184,7 +184,7 @@ export default function TeamPage() {
                     onToggleExpand={() => handleToggleExpand(index)}
                     teamName={team.name}
                     sportType={team.court?.sport?.name || '未知運動'}
-                    currentMembers={team.memberCount}
+                    currentMembers={team._count?.TeamMember || 0}
                     maxMembers={team.capacity || 12}
                     location={team.court?.center?.name || '未知地點'}
                     time={team.practiceTime}
