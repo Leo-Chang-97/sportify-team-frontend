@@ -149,7 +149,7 @@ const brandItems = [
 
 const productHomeIcons = ['anta', 'asics', 'mizuno', 'Nike']
 
-const autoplay = Autoplay({ delay: 2200, stopOnInteraction: true })
+const autoplay = Autoplay({ delay: 2000, stopOnInteraction: true })
 
 export default function HomePage() {
   // #region 路由和URL參數
@@ -546,7 +546,7 @@ export default function HomePage() {
               return (
                 <CarouselItem
                   key={`${brandItem.iconKey}-${idx}`}
-                  className="pl-2 md:pl-4 basis-1/4 md:basis-1/5 lg:basis-1/6"
+                  className="pl-2 md:pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
                 >
                   <Link
                     href={href}
