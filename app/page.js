@@ -782,7 +782,7 @@ export default function HomePage() {
       </section>
 
       {/* 教練簡介 */}
-      <section className="px-4 md:px-6 py-12 md:py-20">
+      <section className="bg-background-dark px-4 md:px-6 py-12 md:pt-20 md:pb-30 mb-10">
         <div className="flex flex-col gap-8 container mx-auto max-w-screen-xl">
           <div className="flex flex-col gap-4 max-w-3xl mx-auto text-center">
             <motion.div
@@ -833,6 +833,68 @@ export default function HomePage() {
             >
               查看更多
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section - Train with Champions */}
+      <section className="relative bg-background text-white overflow-visible">
+        <div className="container mx-auto max-w-screen-xl px-4 md:px-6">
+          <div className="flex flex-col-reverse lg:flex-row items-center gap-6">
+            {/* 左側：運動員圖片（手機在下方） */}
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={0}
+              className="relative -mt-20 md:-mt-32 lg:-mt-40 w-full max-w-none overflow-visible lg:w-2/5"
+            >
+              <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
+                <Image
+                  src="/banner/player.png"
+                  alt="Professional Athlete"
+                  fill
+                  className="object-contain object-bottom"
+                />
+              </div>
+            </motion.div>
+            {/* 右側：文字內容（手機在上方） */}
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={1}
+              className="flex flex-col gap-6 lg:pl-8 lg:w-3/5"
+            >
+              <div>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                  立即加入SPORTIFY
+                </h2>
+              </div>
+              <motion.div
+                variants={fadeUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                custom={2}
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-white text-black border-white hover:bg-gray-100 font-semibold"
+                >
+                  Join Us Now!
+                </Button>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+        {/* 背景裝飾 */}
+        <div className="absolute top-1/2 right-0 transform -translate-y-1/2 opacity-5">
+          <div className="text-[20rem] font-bold text-white select-none">
+            SPORT
           </div>
         </div>
       </section>

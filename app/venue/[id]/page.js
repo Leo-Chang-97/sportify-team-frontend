@@ -246,6 +246,7 @@ export default function CenterDetailPage() {
                   <Button variant="outline" size="lg" className="w-full">
                     分享
                     <Share />
+                    {/* TODO:react share */}
                   </Button>
                 </Link>
                 <Link href="#" className="w-full sm:w-auto">
