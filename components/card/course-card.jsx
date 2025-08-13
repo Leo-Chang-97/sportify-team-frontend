@@ -78,7 +78,7 @@ const CourseCard = ({ course }) => {
         </div> */}
 
         {/* 狀態標籤 */}
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 right-3 z-10 flex justify-center">
           {isFullyBooked ? (
             <span className="bg-red-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
               額滿
@@ -88,14 +88,14 @@ const CourseCard = ({ course }) => {
               僅剩 {courseData.available_spots} 名額
             </span>
           ) : (
-            <span className="bg-green-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
+            <span className="bg-highlight backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
               報名中
             </span>
           )}
         </div>
 
         {/* 懸浮顯示：點擊查看詳情 */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+        <div className="absolute inset-0 bg-black/60 bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
           <div className="text-white text-center">
             <Eye className="w-6 h-6 mx-auto mb-1" />
             <span className="text-xs font-medium">點擊查看詳情</span>
@@ -106,7 +106,7 @@ const CourseCard = ({ course }) => {
       {/* 課程基本資訊 - 錯位玻璃模糊效果 */}
       <div className="relative -mt-16 mx-4 z-20">
         {/* 模糊背景卡片 */}
-        <div className="bg-white/20 backdrop-blur-lg rounded-xl shadow-xl ">
+        <div className="bg-primary/20 backdrop-blur-lg rounded-xl shadow-xl ">
           {/* 內容區域 */}
           <div className="p-4">
             {/* 課程標題和運動類型 */}
@@ -114,7 +114,7 @@ const CourseCard = ({ course }) => {
               <h3 className="text-lg font-bold text-white hover:text-blue-600 transition-colors line-clamp-1">
                 {courseData.title}
               </h3>
-              <span className="text-xs bg-blue-500/80 backdrop-blur-sm text-white px-2 py-1 rounded-full shrink-0 ml-2 shadow-sm">
+              <span className="text-xs bg-background/80 backdrop-blur-sm text-white px-2 py-1 rounded-full shrink-0 ml-2 shadow-sm">
                 {courseData.level}
               </span>
             </div>
@@ -155,7 +155,7 @@ const CourseCard = ({ course }) => {
                 className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
                   isFullyBooked 
                     ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80' 
-                    : 'bg-blue-600/80 hover:bg-blue-700/90'
+                    : 'bg-primary-600/80 hover:bg-primary'
                 } text-white font-medium`}
                 disabled={isFullyBooked}
               >
