@@ -78,6 +78,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Ripple } from '@/components/ui/ripple'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -243,22 +244,22 @@ export default function HomePage() {
           <Icon className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1} />
         </div>
         <div>
+          <span className="text-xs md:text-sm">{label}超過</span>
           <div className="flex items-center">
-            <motion.span className="font-bold text-highlight text-3xl md:text-5xl">
+            <motion.span className="font-bold text-highlight text-3xl md:text-5xl min-w-[2em]">
               {display}
             </motion.span>
-            <Plus strokeWidth={3} />
+            {/* <Plus strokeWidth={3} /> */}
           </div>
-          <span className="text-xs md:text-sm">{label}</span>
         </div>
       </div>
     )
   }
   const stats = [
-    { icon: School, count: 100, label: '場館數量' },
-    { icon: ShoppingCart, count: 50, label: '商品數量' },
-    { icon: Users, count: 200, label: '隊伍數量' },
-    { icon: BookOpen, count: 80, label: '課程數量' },
+    { icon: School, count: 100, label: '場館' },
+    { icon: ShoppingCart, count: 50, label: '商品' },
+    { icon: Users, count: 200, label: '隊伍' },
+    { icon: BookOpen, count: 80, label: '課程' },
   ]
 
   // 動畫參數
@@ -374,7 +375,7 @@ export default function HomePage() {
 
       {/* 數字紀錄 */}
       <section className="container mx-auto max-w-screen-xl px-4 md:px-6 py-12 md:py-20">
-        <section className="flex flex-wrap justify-around md:justify-between gap-6">
+        <section className="grid grid-cols-2 md:grid-cols-4 justify-around md:justify-between gap-6 place-items-center">
           {stats.map((stat, idx) => (
             <Feacture
               key={idx}
@@ -688,7 +689,7 @@ export default function HomePage() {
       <section className="relative px-4 md:px-6 py-12 md:py-20 bg-[url('/banner/team-banner.jpg')] bg-cover bg-center bg-fixed">
         {/* 遮罩層 */}
         <div className="absolute inset-0 bg-black/60 pointer-events-none z-0" />
-        <div className="relative flex flex-col md:flex-row justify-between container mx-auto max-w-screen-xl gap-6">
+        <div className="relative flex flex-col lg:flex-row justify-between container mx-auto max-w-screen-xl gap-6">
           {/* 標題區域 */}
           <div className="flex justify-between items-start">
             <div className="flex flex-col gap-4">
@@ -733,7 +734,7 @@ export default function HomePage() {
                 custom={3}
                 className="hidden md:block"
               >
-                <Button variant="highlight">LOOK MORE</Button>
+                <Button variant="highlight">立即報名</Button>
               </motion.div>
             </div>
           </div>
@@ -774,15 +775,17 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* 手機版 LOOK MORE 按鈕 */}
+          {/* 手機版 立即報名 按鈕 */}
           <div className="md:hidden flex justify-center">
-            <Button variant="highlight">LOOK MORE</Button>
+            <Button variant="highlight" className="w-full">
+              立即報名
+            </Button>
           </div>
         </div>
       </section>
 
       {/* 教練簡介 */}
-      <section className="bg-background-dark px-4 md:px-6 py-12 md:pt-20 md:pb-30 mb-10">
+      <section className="bg-background-dark px-4 md:px-6 py-12 md:pt-20 md:pb-30">
         <div className="flex flex-col gap-8 container mx-auto max-w-screen-xl">
           <div className="flex flex-col gap-4 max-w-3xl mx-auto text-center">
             <motion.div
@@ -837,18 +840,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Call to Action Section - Train with Champions */}
-      <section className="relative bg-background text-white overflow-visible">
-        <div className="container mx-auto max-w-screen-xl px-4 md:px-6">
-          <div className="flex flex-col-reverse lg:flex-row items-center gap-6">
-            {/* 左側：運動員圖片（手機在下方） */}
+      {/* 立即加入 */}
+      <section className="relative bg-[url('/banner/join-us.jpg')] bg-cover bg-top bg-fixed text-white overflow-visible">
+        <div className="container mx-auto max-w-screen-xl pt-10 md:pt-0 px-4 md:px-6">
+          <div className="absolute inset-0 bg-black/60 pointer-events-none z-0" />
+          <div className="flex flex-col-reverse lg:flex-row items-center gap-30 md:gap-20">
+            {/* 運動員圖片 */}
             <motion.div
               variants={fadeUpVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
               custom={0}
-              className="relative -mt-20 md:-mt-32 lg:-mt-40 w-full max-w-none overflow-visible lg:w-2/5"
+              className="relative -mt-20 md:-mt-32 lg:-mt-40 w-full max-w-none overflow-visible lg:w-2/5 z-10"
             >
               <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
                 <Image
@@ -859,18 +863,27 @@ export default function HomePage() {
                 />
               </div>
             </motion.div>
-            {/* 右側：文字內容（手機在上方） */}
+            {/* 文字內容 */}
             <motion.div
               variants={fadeUpVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
               custom={1}
-              className="flex flex-col gap-6 lg:pl-8 lg:w-3/5"
+              className="relative flex flex-col items-center justify-center gap-6 lg:pl-8 lg:w-3/5 z-10 md:min-h-[340px]"
             >
-              <div>
+              {/* Ripple 絕對定位在中央 */}
+              <Ripple className="hidden md:inline-block" />
+              <div className="relative z-10">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  立即加入SPORTIFY
+                  <span
+                    className={cn(
+                      'bg-clip-text text-transparent bg-gradient-to-r from-orange-600 via-white/90 to-purple-600'
+                    )}
+                  >
+                    立即加入
+                  </span>
+                  SPORTIFY
                 </h2>
               </div>
               <motion.div
@@ -879,22 +892,17 @@ export default function HomePage() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.3 }}
                 custom={2}
+                className="relative z-10"
               >
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="bg-white text-black border-white hover:bg-gray-100 font-semibold"
-                >
-                  Join Us Now!
-                </Button>
+                <Link href="/register">
+                  <div className="p-[1px] sm:p-[2px] bg-gradient-to-r from-orange-600 to-purple-600 rounded-full">
+                    <div className="bg-background transition-colors hover:bg-background/50 px-3 sm:px-8 py-1 sm:py-4 h-8 sm:h-12 rounded-full text-primary-foreground text-xs sm:text-sm flex items-center justify-center whitespace-nowrap">
+                      註冊會員
+                    </div>
+                  </div>
+                </Link>
               </motion.div>
             </motion.div>
-          </div>
-        </div>
-        {/* 背景裝飾 */}
-        <div className="absolute top-1/2 right-0 transform -translate-y-1/2 opacity-5">
-          <div className="text-[20rem] font-bold text-white select-none">
-            SPORT
           </div>
         </div>
       </section>
