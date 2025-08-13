@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
 
 // ===== 組件參數定義 =====
 export function LoginForm({
@@ -21,10 +22,23 @@ export function LoginForm({
   ...props
 }) {
   // ===== 狀態管理 =====
+  const [isLargeScreen, setIsLargeScreen] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      // 當寬度 >= 976px 時使用大螢幕布局
+      setIsLargeScreen(window.innerWidth >= 976)
+    }
+
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
 
   // ===== 事件處理函數 =====
   const handleInputChange = (name, value) => {
@@ -43,17 +57,21 @@ export function LoginForm({
 
   return (
     <div className={cn('flex justify-center', className)} {...props}>
-      <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl">
+      <Card
+        className={`overflow-hidden p-0 w-full ${isLargeScreen ? 'max-w-4xl' : 'max-w-sm'}`}
+      >
         <div className="flex flex-row">
-          <div
-            className="relative hidden md:block md:w-1/2 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url('/login/login.png')`,
-              backgroundPosition: 'left center',
-              backgroundSize: 'cover',
-            }}
-          ></div>
-          <div className="w-full md:w-1/2 p-6">
+          {isLargeScreen && (
+            <div
+              className="relative w-1/2 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('/login/login.png')`,
+                backgroundPosition: 'left center',
+                backgroundSize: 'cover',
+              }}
+            ></div>
+          )}
+          <div className={`p-6 ${isLargeScreen ? 'w-1/2' : 'w-full'}`}>
             <div className="mb-6">
               <h2 className="text-2xl font-bold">登入帳號</h2>
             </div>

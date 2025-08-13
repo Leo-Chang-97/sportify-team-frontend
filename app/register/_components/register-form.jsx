@@ -1,3 +1,5 @@
+'use client'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,9 +11,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useState } from 'react'
 
-// ===== 組件參數定義 =====
 export function RegisterForm({
   className,
   onSubmit,
@@ -20,7 +20,7 @@ export function RegisterForm({
   isLoading = false,
   ...props
 }) {
-  // ===== 狀態管理 =====
+  const [isLargeScreen, setIsLargeScreen] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,7 +29,18 @@ export function RegisterForm({
     phone: '',
   })
 
-  // ===== 事件處理函數 =====
+  useEffect(() => {
+    const checkScreenSize = () => {
+      // 當寬度 >= 976px 時使用大螢幕布局
+      setIsLargeScreen(window.innerWidth >= 976)
+    }
+
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -46,17 +57,21 @@ export function RegisterForm({
 
   return (
     <div className={cn('flex justify-center', className)} {...props}>
-      <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl">
+      <Card
+        className={`overflow-hidden p-0 w-full ${isLargeScreen ? 'max-w-4xl' : 'max-w-sm'}`}
+      >
         <div className="flex flex-row">
-          <div
-            className="relative hidden md:block md:w-1/2 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url('/login/login.png')`,
-              backgroundPosition: 'left center',
-              backgroundSize: 'cover',
-            }}
-          ></div>
-          <div className="w-full md:w-1/2 p-6">
+          {isLargeScreen && (
+            <div
+              className="relative w-1/2 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: `url('/login/login.png')`,
+                backgroundPosition: 'left center',
+                backgroundSize: 'cover',
+              }}
+            ></div>
+          )}
+          <div className={`p-6 ${isLargeScreen ? 'w-1/2' : 'w-full'}`}>
             <div className="mb-6">
               <h2 className="text-2xl font-bold">註冊帳號</h2>
             </div>
@@ -70,7 +85,8 @@ export function RegisterForm({
                     </div>
                   )}
 
-                  <div className="grid gap-3">
+                  {/* Email 欄位 */}
+                  <div className="h-[94px] flex flex-col justify-start gap-2">
                     <Label htmlFor="email">Email帳號</Label>
                     <Input
                       className={errors.email ? 'border-red-500' : ''}
@@ -83,12 +99,17 @@ export function RegisterForm({
                       }
                       disabled={isLoading}
                     />
-                    {errors.email && (
-                      <div className="text-red-500 text-sm">{errors.email}</div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.email && (
+                        <div className="text-red-500 text-sm">
+                          {errors.email}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid gap-3">
+                  {/* 姓名欄位 */}
+                  <div className="h-[94px] flex flex-col justify-start gap-2">
                     <Label htmlFor="name">姓名</Label>
                     <Input
                       className={errors.name ? 'border-red-500' : ''}
@@ -101,12 +122,17 @@ export function RegisterForm({
                       }
                       disabled={isLoading}
                     />
-                    {errors.name && (
-                      <div className="text-red-500 text-sm">{errors.name}</div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.name && (
+                        <div className="text-red-500 text-sm">
+                          {errors.name}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid gap-3">
+                  {/* 手機號碼欄位 */}
+                  <div className="h-[94px] flex flex-col justify-start gap-2">
                     <Label htmlFor="phone">手機號碼</Label>
                     <Input
                       className={errors.phone ? 'border-red-500' : ''}
@@ -119,12 +145,17 @@ export function RegisterForm({
                       }
                       disabled={isLoading}
                     />
-                    {errors.phone && (
-                      <div className="text-red-500 text-sm">{errors.phone}</div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.phone && (
+                        <div className="text-red-500 text-sm">
+                          {errors.phone}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid gap-3">
+                  {/* 密碼欄位 */}
+                  <div className="h-[94px] flex flex-col justify-start gap-2">
                     <Label htmlFor="password">密碼</Label>
                     <Input
                       className={errors.password ? 'border-red-500' : ''}
@@ -137,14 +168,17 @@ export function RegisterForm({
                       }
                       disabled={isLoading}
                     />
-                    {errors.password && (
-                      <div className="text-red-500 text-sm">
-                        {errors.password}
-                      </div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.password && (
+                        <div className="text-red-500 text-sm">
+                          {errors.password}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid gap-3">
+                  {/* 確認密碼欄位 */}
+                  <div className="h-[94px] flex flex-col justify-start gap-2">
                     <Label htmlFor="confirmPassword">確認密碼</Label>
                     <Input
                       className={errors.confirmPassword ? 'border-red-500' : ''}
@@ -157,11 +191,13 @@ export function RegisterForm({
                       }
                       disabled={isLoading}
                     />
-                    {errors.confirmPassword && (
-                      <div className="text-red-500 text-sm">
-                        {errors.confirmPassword}
-                      </div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.confirmPassword && (
+                        <div className="text-red-500 text-sm">
+                          {errors.confirmPassword}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-3">
