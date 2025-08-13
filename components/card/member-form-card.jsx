@@ -225,31 +225,31 @@ export default function FormCard() {
   // 如果還沒載入用戶資料，顯示載入中
   if (!user) {
     return (
-      <div className="w-[800px] h-[1200px] bg-white rounded-lg shadow-lg p-8 flex items-center justify-center">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1200px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="text-lg">載入中...</div>
       </div>
     )
   }
 
   return (
-    <div className="w-[800px] h-[1200px] bg-white rounded-lg shadow-lg p-8">
-      <div className="flex flex-col gap-4">
-        <div className="self-stretch py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
-          <div className="flex-1 justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1200px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
+          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
             帳號設定
           </div>
         </div>
 
         {/* 一般錯誤訊息 */}
         {errors.general && (
-          <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
+          <div className="text-red-500 text-xs sm:text-sm text-center bg-red-50 p-2 rounded">
             {errors.general}
           </div>
         )}
 
-        <div className="self-stretch flex flex-col justify-start items-start gap-6">
-          <div className="w-[627px] flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+        <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               email帳號
             </div>
             <input
@@ -257,11 +257,11 @@ export default function FormCard() {
               value={formData.email}
               readOnly
               disabled
-              className="self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] outline-gray-500 text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-gray-100 text-gray-600 cursor-not-allowed"
+              className="self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] outline-gray-500 text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-gray-100 text-gray-600 cursor-not-allowed text-sm sm:text-base"
             />
           </div>
-          <div className="w-[627px] flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               密碼
             </div>
             <input
@@ -271,23 +271,25 @@ export default function FormCard() {
               placeholder="請輸入新密碼（留空表示不修改）"
               className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
                 errors.password ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2`}
+              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
             />
             <div className="h-4 flex items-center">
               {errors.password && (
-                <div className="text-red-500 text-sm">{errors.password}</div>
+                <div className="text-red-500 text-xs sm:text-sm">
+                  {errors.password}
+                </div>
               )}
             </div>
           </div>
         </div>
-        <div className="self-stretch py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
-          <div className="flex-1 justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+        <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
+          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
             個人檔案
           </div>
         </div>
-        <div className="self-stretch flex flex-col justify-start items-start gap-6">
-          <div className="w-[627px] flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+        <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               姓名
             </div>
             <input
@@ -297,16 +299,18 @@ export default function FormCard() {
               placeholder="請輸入姓名"
               className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
                 errors.name ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2`}
+              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
             />
             <div className="h-4 flex items-center">
               {errors.name && (
-                <div className="text-red-500 text-sm">{errors.name}</div>
+                <div className="text-red-500 text-xs sm:text-sm">
+                  {errors.name}
+                </div>
               )}
             </div>
           </div>
-          <div className="w-[627px] flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               手機
             </div>
             <input
@@ -316,22 +320,24 @@ export default function FormCard() {
               placeholder="請輸入手機號碼"
               className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
                 errors.phone ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2`}
+              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
             />
             <div className="h-4 flex items-center">
               {errors.phone && (
-                <div className="text-red-500 text-sm">{errors.phone}</div>
+                <div className="text-red-500 text-xs sm:text-sm">
+                  {errors.phone}
+                </div>
               )}
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               性別
             </div>
             <select
               value={formData.gender}
               onChange={(e) => handleInputChange('gender', e.target.value)}
-              className="w-80 px-2 py-1 bg-white rounded-md outline outline-1 outline-offset-[-1px] outline-slate-900 text-slate-900 font-normal font-['Noto_Sans_TC'] leading-normal focus:outline-orange-500 focus:outline-2"
+              className="w-full sm:w-80 px-2 py-1 bg-white rounded-md outline outline-1 outline-offset-[-1px] outline-slate-900 text-slate-900 font-normal font-['Noto_Sans_TC'] leading-normal focus:outline-orange-500 focus:outline-2 text-sm sm:text-base"
             >
               <option value="">請選擇性別</option>
               <option value="male">男性</option>
@@ -342,8 +348,8 @@ export default function FormCard() {
               {/* 性別欄位目前沒有驗證，但保留空間以保持一致性 */}
             </div>
           </div>
-          <div className="w-[627px] flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               生日
             </div>
             <input
@@ -352,16 +358,18 @@ export default function FormCard() {
               onChange={(e) => handleInputChange('birthday', e.target.value)}
               className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
                 errors.birthday ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2`}
+              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
             />
             <div className="h-4 flex items-center">
               {errors.birthday && (
-                <div className="text-red-500 text-sm">{errors.birthday}</div>
+                <div className="text-red-500 text-xs sm:text-sm">
+                  {errors.birthday}
+                </div>
               )}
             </div>
           </div>
-          <div className="w-[627px] flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               聯絡地址
             </div>
             <input
@@ -369,24 +377,24 @@ export default function FormCard() {
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               placeholder="請輸入聯絡地址"
-              className="self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] outline-gray-500 text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2"
+              className="self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] outline-gray-500 text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base"
             />
             <div className="h-4 flex items-center">
               {/* 地址欄位目前沒有驗證，但保留空間以保持一致性 */}
             </div>
           </div>
         </div>
-        <div className="w-full py-8">
+        <div className="w-full py-4 sm:py-6 md:py-8">
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className={`px-12 py-4 w-full rounded-lg outline outline-1 outline-orange-500 inline-flex justify-center items-center overflow-hidden transition ${
+            className={`px-6 sm:px-8 md:px-12 py-3 sm:py-4 w-full rounded-lg outline outline-1 outline-orange-500 inline-flex justify-center items-center overflow-hidden transition ${
               isLoading
                 ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                 : 'hover:bg-orange-500 hover:text-white'
             }`}
           >
-            <div className="justify-start text-slate-900 text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+            <div className="justify-start text-slate-900 text-base sm:text-lg md:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
               {isLoading ? '儲存中...' : '儲存'}
             </div>
           </button>
