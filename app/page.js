@@ -10,6 +10,7 @@ import { FaBaby, FaPerson, FaMedal, FaTrophy } from 'react-icons/fa6'
 // utils
 import { cn } from '@/lib/utils'
 import { motion, useMotionValue, animate, useInView } from 'framer-motion'
+import Autoplay from 'embla-carousel-autoplay'
 
 // 資料請求函式庫
 import useSWR from 'swr'
@@ -24,9 +25,25 @@ import {
   BookOpen,
   Search,
 } from 'lucide-react'
+import {
+  AntaIcon,
+  AsicsIcon,
+  ButterflyIcon,
+  MizunoIcon,
+  MoltenIcon,
+  SpaldingIcon,
+  VictorIcon,
+  WilsonIcon,
+  YonexIcon,
+  NikeIcon,
+} from '@/components/icons/brand-icons'
 
 // API 請求
-import { fetchLocationOptions, fetchSportOptions } from '@/api'
+import {
+  fetchLocationOptions,
+  fetchSportOptions,
+  fetchBrandOptions,
+} from '@/api'
 import { fetchCenters } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
 
@@ -43,6 +60,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import {
   Carousel,
   CarouselContent,
@@ -59,10 +78,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 
 // 自訂元件
-import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import { HeroGeometric } from '@/components/shape-landing-hero'
@@ -86,6 +103,7 @@ export default function HomePage() {
 
   const [locations, setLocations] = useState([])
   const [sports, setSports] = useState([])
+  const [brandIdMap, setBrandIdMap] = useState({})
 
   // #region 數據獲取
   const {
@@ -108,6 +126,13 @@ export default function HomePage() {
 
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
+
+        const brandData = await fetchBrandOptions()
+        const map = {}
+        ;(brandData.rows || []).forEach((brand) => {
+          map[brand.name.toLowerCase()] = brand.id
+        })
+        setBrandIdMap(map)
       } catch (error) {
         console.error('載入選項失敗:', error)
         toast.error('載入選項失敗')
@@ -249,7 +274,37 @@ export default function HomePage() {
       },
     }),
   }
+  // 品牌圖標映射
+  const brandIconMap = {
+    anta: AntaIcon,
+    asics: AsicsIcon,
+    butterfly: ButterflyIcon,
+    mizuno: MizunoIcon,
+    molten: MoltenIcon,
+    spalding: SpaldingIcon,
+    victor: VictorIcon,
+    wilson: WilsonIcon,
+    yonex: YonexIcon,
+    Nike: NikeIcon,
+  }
 
+  // 定義 Brand 欄位
+  const brandItems = [
+    { iconKey: 'butterfly', label: 'Butterfly' },
+    { iconKey: 'molten', label: 'Molten' },
+    { iconKey: 'spalding', label: 'Spalding' },
+    { iconKey: 'victor', label: 'VICTOR' },
+    { iconKey: 'wilson', label: 'Wilson' },
+    { iconKey: 'yonex', label: 'Yonex' },
+    { iconKey: 'anta', label: 'Anta' },
+    { iconKey: 'asics', label: 'Asics' },
+    { iconKey: 'mizuno', label: 'Mizuno' },
+    { iconKey: 'Nike', label: 'Nike' },
+  ]
+
+  const productHomeIcons = ['anta', 'asics', 'mizuno', 'Nike']
+
+  const autoplay = Autoplay({ delay: 2000, stopOnInteraction: true })
   // 教練選項
   const coachs = [
     {
@@ -356,9 +411,9 @@ export default function HomePage() {
               <h3 className="italic text-highlight text-base sm:text-lg md:text-xl font-medium">
                 「想打就打，場地先幫你訂好！」
               </h3>
-              <p className="text-base max-w-md">
+              {/* <p className="text-base max-w-md">
                 透過平台快速搜尋並預約附近的運動場地，讓你專心享受比賽與運動。
-              </p>
+              </p> */}
             </motion.div>
           </div>
           <div className="flex flex-col md:flex-row gap-6">
@@ -559,8 +614,74 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 商城品牌（自動輪播） */}
       <section className="px-4 md:px-6 py-12 md:py-20">
-        <div className="container mx-auto max-w-screen-xl"></div>
+        <div className="flex flex-col gap-8 container mx-auto max-w-screen-xl">
+          <div className="flex flex-col gap-4 max-w-3xl mx-auto text-center">
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={0}
+            >
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                運動用品商城
+              </h2>
+            </motion.div>
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={1}
+            >
+              <h3 className="italic text-highlight text-base sm:text-lg md:text-xl font-medium">
+                「裝備到位，運動更盡興。」
+              </h3>
+              {/* <p className="text-base max-w-md">
+                精選各類運動用品與配件，從專業器材到運動服飾，一站式購足，品質保證，幫你用最合適的裝備迎接每場挑戰。
+              </p> */}
+            </motion.div>
+          </div>
+          <Carousel
+            plugins={[autoplay]}
+            onMouseEnter={autoplay.stop}
+            onMouseLeave={autoplay.reset}
+            className="relative w-full px-4 sm:px-12 overflow-hidden"
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {brandItems.map((brandItem, idx) => {
+                const IconComponent = brandIconMap[brandItem.iconKey]
+                const brandId = brandIdMap[brandItem.label.toLowerCase()]
+                const href = productHomeIcons.includes(brandItem.iconKey)
+                  ? `/shop?page=1`
+                  : brandId
+                    ? `/shop?brandId=${brandId}&page=1`
+                    : `/shop?keyword=${encodeURIComponent(brandItem.label)}&page=1`
+                return (
+                  <CarouselItem
+                    key={`${brandItem.iconKey}-${idx}`}
+                    className="pl-2 md:pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
+                  >
+                    <Link
+                      href={href}
+                      className="group flex items-center justify-center transition-all duration-300 hover:scale-105"
+                    >
+                      {IconComponent ? (
+                        <IconComponent className="w-20 h-20 text-foreground transition-opacity duration-300" />
+                      ) : (
+                        <span className="text-base">{brandItem.label}</span>
+                      )}
+                    </Link>
+                  </CarouselItem>
+                )
+              })}
+            </CarouselContent>
+            <CarouselPrevious className="hidden sm:flex left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur hover:bg-background" />
+            <CarouselNext className="hidden sm:flex right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur hover:bg-background" />
+          </Carousel>
+        </div>
       </section>
 
       {/* 組隊簡介 */}
@@ -685,9 +806,9 @@ export default function HomePage() {
               <h3 className="italic text-highlight text-base sm:text-lg md:text-xl font-medium">
                 「專業教練，帶你突破極限。」
               </h3>
-              <p className="text-base max-w-md">
+              {/* <p className="text-base max-w-md">
                 提供多元運動教練資訊與課程，依照你的需求與程度量身推薦，無論是基礎入門或技術進階，都能找到最適合的指導。
-              </p>
+              </p> */}
             </motion.div>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
