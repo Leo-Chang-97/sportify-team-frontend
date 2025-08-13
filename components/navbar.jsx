@@ -150,7 +150,7 @@ const UserMenu = ({
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <ChevronDownIcon className="h-3 w-3 ml-1" />
+        <ChevronDownIcon className="text-accent h-3 w-3 ml-1" />
         <span className="sr-only">User menu</span>
       </Button>
     </DropdownMenuTrigger>

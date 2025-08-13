@@ -63,7 +63,7 @@ export function ProductCard({
         <Card
           className={cn(
             `
-              relative h-full overflow-hidden rounded-lg py-0 transition-all
+              relative h-full overflow-hidden rounded py-0 transition-all
               duration-200 ease-in-out
               hover:shadow-md gap-3
             `,
@@ -72,69 +72,27 @@ export function ProductCard({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <AspectRatio
-            ratio={4 / 3}
-            className="bg-muted overflow-hidden rounded-t-lg relative"
-          >
-            {/* {product?.image && (
-              <Image
-                alt={product?.name}
-                className={cn(
-                  'object-cover transition-transform duration-300 ease-in-out',
-                  isHovered && 'scale-105'
-                )}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                src={product?.image}
-              />
-            )} */}
+          <AspectRatio ratio={4 / 3} className="overflow-hidden relative">
             <Image
               alt={product?.name || '商品圖片'}
               className={cn(
-                'object-cover transition-transform duration-300 ease-in-out w-full h-full',
+                'object-cover transition-transform duration-300 ease-in-out w-full h-full rounded-t',
                 isHovered && 'scale-105'
               )}
               src={getProductImageUrl(imageFileName)}
               width={300}
               height={300}
             />
-
-            {/* Wishlist button */}
-            {isMounted && (
-              <Button
-                className={cn(
-                  `
-                    absolute right-2 bottom-2 z-10 rounded-full bg-background/80
-                    backdrop-blur-sm transition-opacity duration-300
-                  `,
-                  !isHovered && !isInWishlist ? 'opacity-0' : ''
-                )}
-                onClick={handleAddToWishlist}
-                size="icon"
-                type="button"
-                variant="outline"
-              >
-                <Heart
-                  className={cn(
-                    'h-4 w-4',
-                    isInWishlist
-                      ? 'fill-destructive text-destructive'
-                      : 'text-muted-foreground'
-                  )}
-                />
-                <span className="sr-only">Add to wishlist</span>
-              </Button>
-            )}
           </AspectRatio>
 
-          <CardContent>
+          <CardContent className='px-4 md:px-6'>
             {/* 運動和品牌 */}
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground font-medium">
+            <div className="flex items-center justify-between my-2">
+              <span className="text-sm text-muted-foreground">
                 {product?.brand_name || product?.brand || '—'}
               </span>
               {product?.sport_name && (
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                <span className="text-sm outline rounded-sm px-2 py-0.5">
                   {product?.sport_name}
                 </span>
               )}
@@ -142,8 +100,8 @@ export function ProductCard({
             {/* Product name with line clamp */}
             <h3
               className={`
-                line-clamp-2 text-lg font-medium transition-colors
-                group-hover:text-primary min-h-[56px]
+                line-clamp-2 text-base font-medium transition-colors
+                group-hover:text-primary
               `}
             >
               {product?.name}
@@ -152,7 +110,7 @@ export function ProductCard({
             {variant === 'default' && (
               <>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span className="font-medium text-lg text-destructive">
+                  <span className="font-medium text-base text-destructive">
                     NTD${product?.price}
                   </span>
                 </div>
@@ -164,7 +122,7 @@ export function ProductCard({
             <CardFooter className="p-4 pt-0">
               <Button
                 className={cn(
-                  'w-full gap-2 transition-all',
+                  'w-full gap-1 transition-all',
                   isAddingToCart && 'opacity-70',
                   'cursor-pointer'
                 )}
@@ -187,32 +145,70 @@ export function ProductCard({
           )}
 
           {variant === 'compact' && (
-            <CardFooter className="px-6 pt-0 pb-4">
+            <CardFooter className="px-4 md:px-6 pt-0 pb-4">
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-lg text-destructive">
+                  <span className="font-medium text-base text-destructive">
                     NTD${product?.price}
                   </span>
                 </div>
-                <Button
-                  className="h-8 w-8 rounded-full cursor-pointer"
-                  disabled={!isMounted || isAddingToCart}
-                  onClick={handleAddToCart}
-                  size="icon"
-                  variant="ghost"
-                >
-                  {isMounted && isAddingToCart ? (
-                    <div
-                      className={`
-                        h-4 w-4 animate-spin rounded-full border-2
-                        border-primary border-t-transparent
-                      `}
-                    />
-                  ) : (
-                    <ShoppingCart className="h-4 w-4" />
+                <div className="flex">
+                  {/* 愛心 icon */}
+                  {isMounted && (
+                    <span
+                      className={cn(
+                        'inline-flex items-center justify-center cursor-pointer',
+                        !isMounted ? 'opacity-60 pointer-events-none' : ''
+                      )}
+                      onClick={handleAddToWishlist}
+                      title="加入收藏"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ')
+                          handleAddToWishlist(e)
+                      }}
+                    >
+                      <Heart
+                        className={cn(
+                          'h-4 w-4 md:h-5 md:w-5 transition mr-1 md:mr-3',
+                          isInWishlist
+                            ? 'fill-destructive text-destructive scale-110'
+                            : 'text-muted-foreground hover:text-destructive'
+                        )}
+                      />
+                      <span className="sr-only">加入收藏</span>
+                    </span>
                   )}
-                  <span className="sr-only">加入購物車</span>
-                </Button>
+                  {/* 購物車 icon */}
+                  <span
+                    className={cn(
+                      'inline-flex items-center justify-center cursor-pointer',
+                      !isMounted || isAddingToCart
+                        ? 'opacity-60 pointer-events-none'
+                        : ''
+                    )}
+                    onClick={handleAddToCart}
+                    title="加入購物車"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (
+                        (e.key === 'Enter' || e.key === ' ') &&
+                        isMounted &&
+                        !isAddingToCart
+                      )
+                        handleAddToCart(e)
+                    }}
+                  >
+                    {isMounted && isAddingToCart ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hover:text-primary transition" />
+                    )}
+                    <span className="sr-only">加入購物車</span>
+                  </span>
+                </div>
               </div>
             </CardFooter>
           )}

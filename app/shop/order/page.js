@@ -288,7 +288,7 @@ export default function CartListPage() {
                 </Table>
               </CardContent>
             </Card>
-            <Card className="flex-1 h-70 text-accent-foreground sticky top-28 max-h-[calc(100vh-104px)] self-start">
+            <Card className="flex-1 h-70 text-accent-foreground sticky top-32 max-h-[calc(100vh-104px)] self-start">
               <CardContent className="flex flex-col justify-between h-full">
                 <Table className="w-full table-fixed text-base">
                   <TableBody>

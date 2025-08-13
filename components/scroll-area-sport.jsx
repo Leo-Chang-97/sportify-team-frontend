@@ -24,7 +24,7 @@ const sportIconMap = {
   baseball: BaseballBatIcon,
   billiard: BilliardBallIcon,
 }
-export default function ScrollAreaSport({ sportItems }) {
+export default function ScrollAreaSport({ sportItems, onSportSelect }) {
   return (
     <div className="w-full bg-background px-4 md:px-6">
       <div className="container mx-auto flex flex-col max-w-screen-xl items-center justify-between pt-10">
@@ -36,7 +36,8 @@ export default function ScrollAreaSport({ sportItems }) {
               return (
                 <div
                   key={idx}
-                  className="flex flex-col items-center min-w-[120px] shrink-0 py-4 rounded-lg hover:bg-foreground/10 transition-colors"
+                  className="flex flex-col items-center min-w-[120px] shrink-0 py-4 rounded-lg hover:bg-foreground/10 transition-colors cursor-pointer"
+                  onClick={() => onSportSelect?.(item.id)}
                 >
                   <div className="w-16 h-16 bg-foreground/10 rounded-full flex items-center justify-center mb-3">
                     {IconComponent && <IconComponent className="!w-10 !h-10" />}

@@ -1,15 +1,11 @@
 // components/TeamCard.jsx
-
 'use client'
 
-// import Image from 'next/image' // 移除 next/image 導入，因為它在非 Next.js 環境中無法解析
 import Link from 'next/link'
 import * as React from 'react'
-import { useState } from 'react' // <--- 新增: 引入 useState Hook 來管理狀態
-import { cn } from '@/lib/utils' // 假設您有這個工具函數
-import { Badge } from '@/components/ui/badge' // 假設您有這個 Badge 元件
-import { Button } from '@/components/ui/button' // 假設您有這個 Button 元件
-import { Card, CardContent, CardFooter } from '@/components/card/card' // 假設您有這些 Card 元件
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   BasketballIcon,
   BadmintonIcon,
@@ -18,70 +14,33 @@ import {
   VolleyballIcon,
   SoccerIcon,
   BaseballBatIcon,
-} from '../icons/sport-icons' //引入ICON
-import { ChevronDownIcon, ChevronUpIcon, UserIcon } from 'lucide-react' // <--- 新增: 引入向下的和向上的箭頭圖示，以及使用者圖示
+} from '../icons/sport-icons'
+import { ChevronDownIcon, ChevronUpIcon, UserIcon } from 'lucide-react'
+
+// 內嵌的 SVG 預設圖片，不會被任何廣告攔截器封鎖
+const FALLBACK_IMAGE_URL =
+  "data:image/svg+xml,%3Csvg width='256' height='192' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='16' fill='%23333' text-anchor='middle' dominant-baseline='middle'%3E無圖片%3C/text%3E%3C/svg%3E"
 
 export function TeamCard({
+  isExpanded,
+  onToggleExpand,
   teamName = '先發一對',
   sportType = '籃球',
   currentMembers = 5,
   maxMembers = 12,
   location = '北投運動中心',
   time = '星期(一、三、六）  早上9點',
-  skillLevel = '新手', // 新增技能等級 prop
-  isNews = true, // 是否有NEWS標籤
-  imageUrl = '/product-pic/photo-1505740420928-5e560c06d30e.avif', // 新增圖片 URL prop
+  skillLevel = '新手',
+  isNews = true,
+  imageUrl,
 }) {
-  // <--- 新增: 狀態來控制卡片內容的展開/收合 --->
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  // 模擬從資料庫獲取的隊員資料
   const mockMembers = [
     { id: 1, name: '陳XX', skill: '擅長籃球、網球', level: '程度中手' },
     { id: 2, name: '洪XX', skill: '擅長足球、網球', level: '程度新手' },
     { id: 3, name: '林XX', skill: '擅長籃球、網球', level: '程度老手' },
     { id: 4, name: '隊員 Amy', skill: '', level: '' },
-    // 更多隊員資料...
   ]
-  // 根據 skillLevel 決定標籤顏色和背景
-  const getSkillBadgeStyles = (level) => {
-    switch (level) {
-      case '新手':
-        return {
-          bgColor: 'bg-white',
-          textColor: 'text-slate-900',
-          outlineColor: 'outline-slate-900',
-        }
-      case '中手':
-        return {
-          bgColor: 'bg-gray-400',
-          textColor: 'text-white',
-          outlineColor: 'outline-gray-400',
-        }
-      case '熟手':
-        return {
-          bgColor: 'bg-gray-500',
-          textColor: 'text-white',
-          outlineColor: 'outline-gray-500',
-        }
-      case '老手':
-        return {
-          bgColor: 'bg-slate-900',
-          textColor: 'text-white',
-          outlineColor: 'outline-slate-900',
-        }
-      default:
-        return {
-          bgColor: 'bg-white',
-          textColor: 'text-slate-900',
-          outlineColor: 'outline-slate-900',
-        }
-    }
-  }
 
-  const skillStyles = getSkillBadgeStyles(skillLevel)
-
-  // 運動類型到圖示元件的映射
   const SportIcons = {
     籃球: BasketballIcon,
     羽毛球: BadmintonIcon,
@@ -89,136 +48,131 @@ export function TeamCard({
     網球: TennisIcon,
     排球: VolleyballIcon,
     足球: SoccerIcon,
-    棒球: BaseballBatIcon, // 假設棒球對應 BaseballBatIcon
-    // 您可以在這裡添加更多運動類型和對應的圖示
+    棒球: BaseballBatIcon,
   }
-
-  // 根據 sportType 獲取對應的圖示元件
-  const CurrentSportIcon = SportIcons[sportType] || null // 如果沒有匹配的圖示，則為 null
-
-  // 添加 console.log 以便在開發者工具中檢查值
-  console.log(
-    `TeamCard: sportType = "${sportType}", CurrentSportIcon =`,
-    CurrentSportIcon
-  )
+  const CurrentSportIcon = SportIcons[sportType] || null
 
   return (
-    <div
-      data-name="team-card-container"
-      className="w-full flex flex-col rounded-lg shadow-md overflow-hidden bg-card"
-    >
-      {/* 頂部主要資訊區塊 */}
-      <div className="w-full p-4 flex flex-col sm:flex-row justify-start sm:items-center gap-4">
-        {/* 隊伍圖片 (左側) */}
-        <div className="w-full sm:w-64 flex-shrink-0 flex flex-col justify-start items-start gap-2.5">
-          <img
-            src={imageUrl}
-            alt={teamName || '隊伍圖片'}
-            className="w-full h-auto rounded-lg object-cover"
-            onError={(e) => {
-              e.target.onerror = null
-              e.target.src = `https://placehold.co/256x192/E0E0E0/333333?text=無圖片`
-            }}
-          />
-        </div>
+    <div data-name="team-card-container" className="relative w-full">
+      <div
+        className={cn(
+          'w-full flex flex-col shadow-md overflow-hidden bg-card transition-all duration-300',
+          isExpanded ? 'rounded-t-lg' : 'rounded-lg'
+        )}
+      >
+        {/* ===== 【RWD 核心修改 1】讓 flex 容器在空間不足時可以換行，並讓子元素等高 ===== */}
+        <div className="w-full p-4 flex flex-col lg:flex-row justify-start lg:items-stretch gap-4">
+          {/* 隊伍圖片 (左側) */}
+          <div className="w-full lg:w-64 flex-shrink-0">
+            <img
+              src={imageUrl || FALLBACK_IMAGE_URL}
+              alt={teamName || '隊伍圖片'}
+              className="w-full h-full rounded-lg object-cover aspect-[4/3] lg:aspect-auto"
+              onError={(e) => {
+                e.target.onerror = null
+                e.target.src = FALLBACK_IMAGE_URL
+              }}
+            />
+          </div>
 
-        {/* 隊伍相關資訊 (中間區域，大螢幕時 flex-1 佔據剩餘空間) */}
-        <div className="flex-1 flex flex-col justify-start items-start gap-2 h-auto">
-          {/* 運動類型標籤 */}
-          <div className="inline-flex justify-start items-center gap-2 flex-wrap content-center">
-            <div className="px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-border flex justify-center items-center gap-2">
-              {CurrentSportIcon && (
-                <CurrentSportIcon className="w-6 h-6 text-background" />
-              )}
-              <div className="justify-start text-background text-base font-normal font-['Noto_Sans_TC'] leading-normal">
-                {sportType || '運動類型'}
+          {/* 隊伍相關資訊 (中間區域) */}
+          <div className="flex-1 flex flex-col justify-start items-start gap-2 h-auto min-w-0">
+            <div className="inline-flex justify-start items-center gap-2 flex-wrap content-center">
+              <div className="px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-border flex justify-center items-center gap-2">
+                {CurrentSportIcon && (
+                  <CurrentSportIcon className="w-6 h-6 text-background" />
+                )}
+                <div className="justify-start text-background text-base font-normal leading-normal">
+                  {sportType || '運動類型'}
+                </div>
+              </div>
+            </div>
+            <div className="self-stretch flex flex-col justify-start items-start gap-2">
+              <div className="self-stretch justify-start text-card-foreground text-xl font-bold leading-7 truncate">
+                {teamName || 'Team Name'}
+              </div>
+              <div className="w-full justify-start text-muted-foreground text-base font-normal leading-normal truncate">
+                {`${currentMembers || 0} / ${maxMembers || 0} 目前隊伍人數`}
+              </div>
+              <div className="w-full justify-start text-muted-foreground text-base font-normal leading-normal truncate">
+                {location || '地點'}
+              </div>
+              <div className="w-full justify-start text-muted-foreground text-base font-normal leading-normal truncate">
+                {time || '時間'}
               </div>
             </div>
           </div>
-          {/* 隊伍詳細資訊 */}
-          <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-card-foreground text-xl font-bold leading-7">
-              {teamName || 'Team Name'}
-            </div>
-            <div className="w-52 justify-start text-muted-foreground text-base font-normal leading-normal">
-              {`${currentMembers || 0} / ${maxMembers || 0} 目前隊伍人數`}
-            </div>
-            <div className="w-52 justify-start text-muted-foreground text-base font-normal leading-normal">
-              {location || '地點'}
-            </div>
-            <div className="w-52 justify-start text-muted-foreground text-base font-normal leading-normal">
-              {time || '時間'}
-            </div>
-          </div>
-        </div>
 
-        {/* 右側區塊，包含標籤和按鈕 */}
-        {/* 在手機版佔滿寬度，在大螢幕時寬度自適應並右對齊 */}
-        <div className="w-full sm:w-auto sm:h-40 flex flex-col sm:flex-col justify-between sm:items-end items-center gap-4 mt-4 sm:mt-0">
-          {/* 標籤容器，手機版左右延伸，大螢幕右對齊 */}
-          <div className="flex flex-col items-end gap-2.5">
-            {/* NEWS標籤 */}
-            {isNews && (
+          {/* ===== 【排版核心修改 2】重構右側區塊的佈局 ===== */}
+          <div className="w-full lg:w-auto flex flex-col justify-between items-stretch lg:items-end mt-4 lg:mt-0 gap-2">
+            {/* 標籤固定在最上方 */}
+            <div className="flex justify-end items-start gap-2.5">
+              {isNews && (
+                <Badge
+                  variant="default"
+                  size="lg"
+                  className="bg-gradient-to-r bg-highlight text-base"
+                >
+                  News
+                </Badge>
+              )}
               <Badge
-                variant="default"
+                variant="outline"
                 size="lg"
-                className="bg-gradient-to-r bg-highlight text-base"
+                className="bg-gradient-to-r text-base text-slate-900"
               >
-                News
+                {skillLevel}
               </Badge>
-            )}
-            {/* 技能等級標籤 */}
-            <Badge
+            </div>
+            {/* 按鈕固定在最下方 */}
+            <Button
+              onClick={onToggleExpand}
               variant="outline"
-              size="lg"
-              className="bg-gradient-to-r text-base text-slate-900"
+              className="flex-shrink-0 mt-auto"
             >
-              {skillLevel}
-            </Badge>
+              <span>詳細</span>
+              {isExpanded ? (
+                <ChevronUpIcon className="w-5 h-5 text-primary-foreground" />
+              ) : (
+                <ChevronDownIcon className="w-5 h-5 text-primary-foreground" />
+              )}
+            </Button>
           </div>
-          {/* 詳細按鈕，手機版佔滿寬度，大螢幕寬度自適應並右對齊 */}
-          <Button onClick={() => setIsExpanded(!isExpanded)} variant="outline">
-            <span>詳細</span>
-            {isExpanded ? (
-              <ChevronUpIcon className="w-5 h-5 text-primary-foreground" />
-            ) : (
-              <ChevronDownIcon className="w-5 h-5 text-primary-foreground" />
-            )}
-          </Button>
         </div>
       </div>
 
       {/* 展開內容 */}
       <div
         className={cn(
-          'w-full bg-sidebar-border overflow-hidden transition-all duration-500 ease-in-out',
-          isExpanded
-            ? 'max-h-screen opacity-100 p-4 pt-2 '
-            : 'max-h-0 opacity-0 p-0'
+          'absolute top-full left-0 right-0 z-10 w-full bg-sidebar-border overflow-hidden transition-all duration-300 ease-in-out rounded-b-lg shadow-lg',
+          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         )}
       >
-        <div className="flex w-full justify-between">
-          <div className="text-lg font-bold text-sidebar-primary">隊伍成員</div>
-          {/* 加入按鈕 */}
-          <div className="flex justify-end">
-            <Button className="bg-highlight">加入</Button>
+        <div className="p-4 pt-2">
+          <div className="flex w-full justify-between items-center mb-2">
+            <div className="text-lg font-bold text-sidebar-primary">
+              隊伍成員
+            </div>
+            <div className="flex justify-end">
+              <Button className="bg-highlight">加入</Button>
+            </div>
           </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {mockMembers.map((member) => (
+              <li key={member.id} className="flex items-center gap-2">
+                <UserIcon className="w-5 h-5 text-muted-foreground" />
+                <div className="flex flex-col">
+                  <span className="text-base text-card-foreground">
+                    {member.name}
+                  </span>
+                  {member.skill && member.level && (
+                    <span className="text-sm text-muted-foreground">{`${member.skill} / ${member.level}`}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mockMembers.map((member) => (
-            <li key={member.id} className="flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-muted-foreground" />
-              <div className="flex flex-col">
-                <span className="text-base text-card-foreground">
-                  {member.name}
-                </span>
-                {member.skill && member.level && (
-                  <span className="text-sm text-muted-foreground">{`${member.skill} / ${member.level}`}</span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   )
