@@ -106,9 +106,9 @@ export default function CourseSuccessPage() {
               
               {/* 成功圖標和標題 */}
               <div className="text-center mb-16 mt-8">
-                <div className="flex justify-center mb-4">
-                  <div className="rounded-full bg-highligh p-4">
-                    <FaCheck className="w-16 h-16 " />
+                <div className="flex justify-center mb-4 ">
+                  <div className="rounded-full bg-highlight p-4">
+                    <FaCheck className="w-8 h-8  " />
                   </div>
                 </div>
                 <h1 className="text-2xl font-bold text-foreground mb-2">
@@ -204,12 +204,12 @@ export default function CourseSuccessPage() {
               </div>
 
               {/* 按鈕區域 */}
-              <div className="flex justify-center gap-4 mt-8">
+              <div className="flex justify-between gap-4 mt-8">
                 <Link href="/course">
                   <Button 
                     variant="outline" 
                     size="lg"
-                    className="px-8 py-3 text-gray-600 border-gray-300 hover:bg-gray-50"
+                    className="px-8 py-3 text-white border-gray-300 hover:bg-gray-50"
                   >
                     返回總覽
                   </Button>
