@@ -4,6 +4,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
+// icons
+import { FaBaby, FaPerson, FaMedal, FaTrophy } from 'react-icons/fa6'
+
 // utils
 import { cn } from '@/lib/utils'
 import { motion, useMotionValue, animate, useInView } from 'framer-motion'
@@ -64,64 +67,7 @@ import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import { HeroGeometric } from '@/components/shape-landing-hero'
 import { LoadingState, ErrorState } from '@/components/loading-states'
-
-// 數字紀錄
-function Feacture({ icon: Icon, count, label }) {
-  const ref = React.useRef(null)
-  const inView = useInView(ref, { once: true, amount: 0.5 })
-  const motionValue = useMotionValue(0)
-  const [display, setDisplay] = useState(0)
-
-  useEffect(() => {
-    if (inView) {
-      const controls = animate(motionValue, count, {
-        duration: 1.2,
-        ease: 'easeOut',
-        onUpdate: (latest) => setDisplay(Math.floor(latest)),
-      })
-      return controls.stop
-    }
-  }, [inView, count, motionValue])
-
-  return (
-    <div ref={ref} className="flex items-center gap-4">
-      <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center border border-accent rounded">
-        <Icon className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1} />
-      </div>
-      <div>
-        <div className="flex items-center">
-          <motion.span className="font-bold text-highlight text-3xl md:text-5xl">
-            {display}
-          </motion.span>
-          <Plus strokeWidth={3} />
-        </div>
-        <span className="text-xs md:text-sm">{label}</span>
-      </div>
-    </div>
-  )
-}
-
-// 主頁面使用
-const stats = [
-  { icon: School, count: 100, label: '場館數量' },
-  { icon: ShoppingCart, count: 50, label: '商品數量' },
-  { icon: Users, count: 200, label: '隊伍數量' },
-  { icon: BookOpen, count: 80, label: '課程數量' },
-]
-
-// 動畫參數
-const fadeUpVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 1,
-      delay: 0.5 + i * 0.2,
-      ease: [0.25, 0.4, 0.25, 1],
-    },
-  }),
-}
+import { CoachCard } from '@/components/card/coach-card'
 
 export default function HomePage() {
   // #region 路由和URL參數
@@ -202,7 +148,9 @@ export default function HomePage() {
     router.push(`?${newParams.toString()}`)
   }
 
-  // 評分系統選項
+  // #region 資料顯示選項
+
+  // 評分系統
   const ratingOptions = [
     { label: <>全部</>, value: 'all' },
     ...[2, 3, 4, 5].map((num) => ({
@@ -245,6 +193,95 @@ export default function HomePage() {
       </div>
     )
   }
+
+  // 數字紀錄
+  function Feacture({ icon: Icon, count, label }) {
+    const ref = React.useRef(null)
+    const inView = useInView(ref, { once: true, amount: 0.5 })
+    const motionValue = useMotionValue(0)
+    const [display, setDisplay] = useState(0)
+
+    useEffect(() => {
+      if (inView) {
+        const controls = animate(motionValue, count, {
+          duration: 1.2,
+          ease: 'easeOut',
+          onUpdate: (latest) => setDisplay(Math.floor(latest)),
+        })
+        return controls.stop
+      }
+    }, [inView, count, motionValue])
+
+    return (
+      <div ref={ref} className="flex items-center gap-4">
+        <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center border border-accent rounded">
+          <Icon className="w-8 h-8 md:w-10 md:h-10" strokeWidth={1} />
+        </div>
+        <div>
+          <div className="flex items-center">
+            <motion.span className="font-bold text-highlight text-3xl md:text-5xl">
+              {display}
+            </motion.span>
+            <Plus strokeWidth={3} />
+          </div>
+          <span className="text-xs md:text-sm">{label}</span>
+        </div>
+      </div>
+    )
+  }
+  const stats = [
+    { icon: School, count: 100, label: '場館數量' },
+    { icon: ShoppingCart, count: 50, label: '商品數量' },
+    { icon: Users, count: 200, label: '隊伍數量' },
+    { icon: BookOpen, count: 80, label: '課程數量' },
+  ]
+
+  // 動畫參數
+  const fadeUpVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 1,
+        delay: i * 0.3,
+        ease: [0.25, 0.4, 0.25, 1],
+      },
+    }),
+  }
+
+  // 教練選項
+  const coachs = [
+    {
+      id: 1,
+      name: '王大明',
+      avatar: '/coach/coach1.jpg',
+      sport: '羽球',
+      bio: '熱愛心肺訓練，協助學員提升耐力。',
+    },
+    {
+      id: 2,
+      name: '李小美',
+      avatar: '/coach/coach2.jpg',
+      sport: '桌球',
+      bio: '專注於功能性與運動表現訓練。',
+    },
+    {
+      id: 3,
+      name: '陳建志',
+      avatar: '/coach/coach3.jpg',
+      sport: '籃球',
+      bio: '專長於運動傷害復健與功能性訓練。',
+    },
+    {
+      id: 4,
+      name: '林怡君',
+      avatar: '/coach/coach4.jpg',
+      sport: '足球',
+      bio: '專業CrossFit教練，強調功能性訓練。',
+    },
+  ]
+
   //  #region 載入和錯誤狀態處理
   if (isDataLoading) return <LoadingState message="載入場館資料中..." />
   if (error)
@@ -269,6 +306,7 @@ export default function HomePage() {
           alt="Banner"
           fill
           className="object-cover"
+          priority
         />
         <HeroGeometric
           badge="Sport + Simplify"
@@ -280,7 +318,7 @@ export default function HomePage() {
       </section>
 
       {/* 數字紀錄 */}
-      <section className="container mx-auto max-w-screen-xl px-4 md:px-6 py-20">
+      <section className="container mx-auto max-w-screen-xl px-4 md:px-6 py-12 md:py-20">
         <section className="flex flex-wrap justify-around md:justify-between gap-6">
           {stats.map((stat, idx) => (
             <Feacture
@@ -294,32 +332,45 @@ export default function HomePage() {
       </section>
 
       {/* 快速預訂場地 */}
-      <section className="bg-background-dark px-4 md:px-6 py-20">
-        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6">
-          <div className="max-w-3xl mx-auto text-center">
+      <section className="bg-background-dark px-4 md:px-6 py-12 md:py-20">
+        <div className="flex flex-col gap-8 container mx-auto max-w-screen-xl">
+          <div className="flex flex-col gap-4 max-w-3xl mx-auto text-center">
             <motion.div
               variants={fadeUpVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
+              custom={0}
             >
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 md:mb-8 tracking-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
-                  馬上預訂
-                </span>
-                <span
-                  className={cn(
-                    'bg-clip-text text-transparent bg-gradient-to-r from-orange-600 via-white/90 to-purple-600'
-                  )}
-                >
-                  找好地方運動
-                </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                運動場地預訂
               </h2>
+            </motion.div>
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={1}
+            >
+              <h3 className="italic text-highlight text-base sm:text-lg md:text-xl font-medium">
+                「想打就打，場地先幫你訂好！」
+              </h3>
+              <p className="text-base max-w-md">
+                透過平台快速搜尋並預約附近的運動場地，讓你專心享受比賽與運動。
+              </p>
             </motion.div>
           </div>
           <div className="flex flex-col md:flex-row gap-6">
             {/* 精選場館 */}
-            <div className="flex-2 relative">
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={2}
+              className="flex-2 relative"
+            >
               <Carousel className="w-full">
                 <CarouselContent>
                   {data?.rows && data.rows.length > 0 ? (
@@ -382,116 +433,285 @@ export default function HomePage() {
                 <CarouselPrevious className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10" />
                 <CarouselNext className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10" />
               </Carousel>
-            </div>
+            </motion.div>
 
             {/* 快速搜尋 */}
-            <Card className="flex-1 w-full">
-              <CardHeader>
-                <CardTitle>請輸入篩選條件</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form>
-                  <div className="flex flex-col gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">地區</Label>
-                      <Select value={locationId} onValueChange={setLocationId}>
-                        <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
-                          <SelectValue placeholder="請選擇地區" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem key="all" value="all">
-                            全部
-                          </SelectItem>
-                          {locations.length === 0 ? (
-                            <div className="px-3 py-2 text-gray-400">
-                              沒有符合資料
-                            </div>
-                          ) : (
-                            locations.map((loc) => (
-                              <SelectItem
-                                key={loc.id}
-                                value={loc.id.toString()}
-                              >
-                                {loc.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">運動</Label>
-                      <Select value={sportId} onValueChange={setSportId}>
-                        <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
-                          <SelectValue placeholder="請選擇運動" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem key="all" value="all">
-                            全部
-                          </SelectItem>
-                          {sports?.length === 0 ? (
-                            <div className="px-3 py-2 text-gray-400">
-                              沒有符合資料
-                            </div>
-                          ) : (
-                            sports.map((sport) => (
-                              <SelectItem
-                                key={sport.id}
-                                value={sport.id.toString()}
-                              >
-                                {sport.name || sport.id}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">評分</Label>
-                      <Select value={minRating} onValueChange={setMinRating}>
-                        <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
-                          <SelectValue placeholder="請選擇評分星等" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ratingOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={3}
+              className="flex-1 w-full"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>請輸入篩選條件</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form>
+                    <div className="flex flex-col gap-6">
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">地區</Label>
+                        <Select
+                          value={locationId}
+                          onValueChange={setLocationId}
+                        >
+                          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                            <SelectValue placeholder="請選擇地區" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem key="all" value="all">
+                              全部
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">關鍵字</Label>
-                      <div className="relative flex items-center">
-                        <Search
-                          className="absolute left-3 text-accent-foreground/50"
-                          size={20}
-                        />
-                        <Input
-                          type="search"
-                          className="w-full bg-accent text-accent-foreground !h-10 pl-10"
-                          placeholder="請輸入關鍵字"
-                          value={keyword}
-                          onChange={(e) => setKeyword(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSearch(keyword)
-                          }}
-                        />
+                            {locations.length === 0 ? (
+                              <div className="px-3 py-2 text-gray-400">
+                                沒有符合資料
+                              </div>
+                            ) : (
+                              locations.map((loc) => (
+                                <SelectItem
+                                  key={loc.id}
+                                  value={loc.id.toString()}
+                                >
+                                  {loc.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">運動</Label>
+                        <Select value={sportId} onValueChange={setSportId}>
+                          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                            <SelectValue placeholder="請選擇運動" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem key="all" value="all">
+                              全部
+                            </SelectItem>
+                            {sports?.length === 0 ? (
+                              <div className="px-3 py-2 text-gray-400">
+                                沒有符合資料
+                              </div>
+                            ) : (
+                              sports.map((sport) => (
+                                <SelectItem
+                                  key={sport.id}
+                                  value={sport.id.toString()}
+                                >
+                                  {sport.name || sport.id}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">評分</Label>
+                        <Select value={minRating} onValueChange={setMinRating}>
+                          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                            <SelectValue placeholder="請選擇評分星等" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ratingOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">關鍵字</Label>
+                        <div className="relative flex items-center">
+                          <Search
+                            className="absolute left-3 text-accent-foreground/50"
+                            size={20}
+                          />
+                          <Input
+                            type="search"
+                            className="w-full bg-accent text-accent-foreground !h-10 pl-10"
+                            placeholder="請輸入關鍵字"
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSearch(keyword)
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex-col gap-4">
-                <Button variant="highlight" type="submit" className="w-full">
-                  搜尋
-                </Button>
-                <Button variant="secondary" type="submit" className="w-full">
-                  查看更多
-                </Button>
-              </CardFooter>
-            </Card>
+                  </form>
+                </CardContent>
+                <CardFooter className="flex-col gap-4">
+                  <Button variant="highlight" type="submit" className="w-full">
+                    搜尋
+                  </Button>
+                  <Button variant="secondary" type="submit" className="w-full">
+                    查看更多
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 md:px-6 py-12 md:py-20">
+        <div className="container mx-auto max-w-screen-xl"></div>
+      </section>
+
+      {/* 組隊簡介 */}
+      <section className="relative px-4 md:px-6 py-12 md:py-20 bg-[url('/banner/team-banner.jpg')] bg-cover bg-center bg-fixed">
+        {/* 遮罩層 */}
+        <div className="absolute inset-0 bg-black/60 pointer-events-none z-0" />
+        <div className="relative flex flex-col md:flex-row justify-between container mx-auto max-w-screen-xl gap-6">
+          {/* 標題區域 */}
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-4">
+              <motion.div
+                variants={fadeUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                custom={0}
+              >
+                <h3 className="italic text-highlight text-base sm:text-lg md:text-xl font-medium">
+                  「沒隊友？這裡就是你的球隊！」
+                </h3>
+              </motion.div>
+              <motion.div
+                variants={fadeUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                custom={1}
+              >
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                  組隊找人打球
+                </h2>
+              </motion.div>
+              <motion.div
+                variants={fadeUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                custom={2}
+              >
+                <p className="text-base max-w-md mb-4">
+                  快速配對有相同興趣與水平的球友，不管是臨時湊人還是長期戰隊，都能輕鬆組成團隊，一起享受運動的樂趣。
+                </p>
+              </motion.div>
+              <motion.div
+                variants={fadeUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                custom={3}
+                className="hidden md:block"
+              >
+                <Button variant="highlight">LOOK MORE</Button>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* 比賽卡片 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { title: '新手', icon: <FaBaby /> },
+              { title: '中手', icon: <FaPerson /> },
+              { title: '熟手', icon: <FaMedal /> },
+              { title: '老手', icon: <FaTrophy /> },
+            ].map((level, index) => (
+              <motion.div
+                key={level.title}
+                variants={fadeUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                custom={index + 4}
+              >
+                <Card className="bg-white text-gray-900 h-full p-0 md:p-2">
+                  <CardContent className="flex flex-col items-center justify-center p-8 h-full">
+                    <div className="text-6xl mb-4 text-background">
+                      {level.icon}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4 text-center">
+                      {level.title}
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      className="text-primary hover:primary/90 font-medium"
+                    >
+                      查看更多
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 手機版 LOOK MORE 按鈕 */}
+          <div className="md:hidden flex justify-center">
+            <Button variant="highlight">LOOK MORE</Button>
+          </div>
+        </div>
+      </section>
+
+      {/* 教練簡介 */}
+      <section className="px-4 md:px-6 py-12 md:py-20">
+        <div className="flex flex-col gap-8 container mx-auto max-w-screen-xl">
+          <div className="flex flex-col gap-4 max-w-3xl mx-auto text-center">
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={0}
+            >
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                找教練上課
+              </h2>
+            </motion.div>
+            <motion.div
+              variants={fadeUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={1}
+            >
+              <h3 className="italic text-highlight text-base sm:text-lg md:text-xl font-medium">
+                「專業教練，帶你突破極限。」
+              </h3>
+              <p className="text-base max-w-md">
+                提供多元運動教練資訊與課程，依照你的需求與程度量身推薦，無論是基礎入門或技術進階，都能找到最適合的指導。
+              </p>
+            </motion.div>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {coachs?.length &&
+              coachs?.map((coach) => (
+                <motion.div
+                  variants={fadeUpVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.3 }}
+                  custom={coach.id}
+                  key={coach.id}
+                >
+                  <CoachCard data={coach} />
+                </motion.div>
+              ))}
+          </div>
+          <div className="flex flex-col items-center">
+            <Button
+              variant="highlight"
+              className="h-8 sm:h-10 w-full md:w-auto"
+            >
+              查看更多
+            </Button>
           </div>
         </div>
       </section>
