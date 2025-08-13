@@ -37,6 +37,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Slider } from '@/components/ui/slider'
+import { Checkbox } from '@/components/ui/checkbox'
 // components 其他
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -55,7 +57,16 @@ import {
 } from '@/api'
 
 // 手機側邊欄
-const MobileSidebar = ({ open, onClose, sports, brands }) => {
+const MobileSidebar = ({
+  open,
+  onClose,
+  sports,
+  brands,
+  selectedSports,
+  selectedBrands,
+  handleSportChange,
+  handleBrandChange,
+}) => {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -79,28 +90,20 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
               </AccordionTrigger>
               <AccordionContent className="p-2 space-y-2">
                 {sports.map((sport) => (
-                  <Label
+                  <label
                     key={sport.id}
                     className="flex items-center space-x-2 cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      const newParams = new URLSearchParams(
-                        searchParams.toString()
-                      )
-                      newParams.set('sportId', sport.id.toString())
-                      newParams.delete('brandId') // 清除其他篩選條件
-                      newParams.delete('keyword')
-                      newParams.delete('sort')
-                      newParams.set('page', '1') // 重置到第一頁
-                      router.push(`?${newParams.toString()}`)
-                      onClose() // 關閉側邊欄
-                    }}
                   >
+                    <Checkbox
+                      checked={selectedSports.includes(sport.id)}
+                      onCheckedChange={(checked) =>
+                        handleSportChange(sport.id, checked)
+                      }
+                    />
                     <span className="text-base font-regular text-foreground hover:text-input">
                       {sport.name}
                     </span>
-                  </Label>
+                  </label>
                 ))}
               </AccordionContent>
             </AccordionItem>
@@ -111,28 +114,20 @@ const MobileSidebar = ({ open, onClose, sports, brands }) => {
               </AccordionTrigger>
               <AccordionContent className="p-2 space-y-2">
                 {brands.map((brand) => (
-                  <Label
+                  <label
                     key={brand.id}
                     className="flex items-center space-x-2 cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      const newParams = new URLSearchParams(
-                        searchParams.toString()
-                      )
-                      newParams.set('brandId', brand.id.toString())
-                      newParams.delete('sportId') // 清除其他篩選條件
-                      newParams.delete('keyword')
-                      newParams.delete('sort')
-                      newParams.set('page', '1') // 重置到第一頁
-                      router.push(`?${newParams.toString()}`)
-                      onClose() // 關閉側邊欄
-                    }}
                   >
+                    <Checkbox
+                      checked={selectedBrands.includes(brand.id)}
+                      onCheckedChange={(checked) =>
+                        handleBrandChange(brand.id, checked)
+                      }
+                    />
                     <span className="text-base font-regular text-foreground hover:text-input">
                       {brand.name}
                     </span>
-                  </Label>
+                  </label>
                 ))}
               </AccordionContent>
             </AccordionItem>
@@ -159,6 +154,9 @@ export default function ProductListPage() {
     name: '',
     count: 0,
   })
+  const [priceRange, setPriceRange] = useState([0, 1600])
+  const [selectedSports, setSelectedSports] = useState([])
+  const [selectedBrands, setSelectedBrands] = useState([])
 
   // ===== URL 參數處理 =====
   const queryParams = useMemo(() => {
@@ -331,6 +329,38 @@ export default function ProductListPage() {
     }
   }
 
+  const handleSportChange = (id, checked) => {
+    const updated = checked
+      ? [...selectedSports, id]
+      : selectedSports.filter((sportId) => sportId !== id)
+    setSelectedSports(updated)
+
+    const newParams = new URLSearchParams(searchParams.toString())
+    if (updated.length > 0) {
+      newParams.set('sportId', updated.join(','))
+    } else {
+      newParams.delete('sportId')
+    }
+    newParams.set('page', '1')
+    router.push(`?${newParams.toString()}`)
+  }
+
+  const handleBrandChange = (id, checked) => {
+    const updated = checked
+      ? [...selectedBrands, id]
+      : selectedBrands.filter((brandId) => brandId !== id)
+    setSelectedBrands(updated)
+
+    const newParams = new URLSearchParams(searchParams.toString())
+    if (updated.length > 0) {
+      newParams.set('brandId', updated.join(','))
+    } else {
+      newParams.delete('brandId')
+    }
+    newParams.set('page', '1')
+    router.push(`?${newParams.toString()}`)
+  }
+
   return (
     <>
       <Navbar />
@@ -346,7 +376,8 @@ export default function ProductListPage() {
             {selectedCategory.name && (
               <div className="flex flex-col items-start justify-center gap-3">
                 <p className="text-2xl font-bold text-foreground">
-                  "{selectedCategory.name}" 的結果
+                  {/* "{selectedCategory.name}" 的結果 */}
+                  搜尋結果
                 </p>
                 <p className="text-base font-regular text-foreground">
                   共有{selectedCategory.count}筆商品
@@ -393,7 +424,7 @@ export default function ProductListPage() {
             {selectedCategory.name && (
               <div className="flex flex-col items-start justify-center gap-3">
                 <p className="text-2xl font-bold text-foreground">
-                  "{selectedCategory.name}" 的結果
+                  搜尋結果
                 </p>
                 <p className="text-base font-regular text-foreground">
                   共有{selectedCategory.count}筆商品
@@ -468,20 +499,13 @@ export default function ProductListPage() {
                     <label
                       key={sport.id}
                       className="flex items-center space-x-2 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        const newParams = new URLSearchParams(
-                          searchParams.toString()
-                        )
-                        newParams.set('sportId', sport.id.toString())
-                        newParams.delete('brandId') // 清除其他篩選條件
-                        newParams.delete('keyword')
-                        newParams.delete('sort')
-                        newParams.set('page', '1') // 重置到第一頁
-                        router.push(`?${newParams.toString()}`)
-                      }}
                     >
+                      <Checkbox
+                        checked={selectedSports.includes(sport.id)}
+                        onCheckedChange={(checked) =>
+                          handleSportChange(sport.id, checked)
+                        }
+                      />
                       <span className="text-base font-regular text-foreground hover:text-input">
                         {sport.name}
                       </span>
@@ -496,25 +520,42 @@ export default function ProductListPage() {
                     <label
                       key={brand.id}
                       className="flex items-center space-x-2 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        const newParams = new URLSearchParams(
-                          searchParams.toString()
-                        )
-                        newParams.set('brandId', brand.id.toString())
-                        newParams.delete('sportId') // 清除其他篩選條件
-                        newParams.delete('keyword')
-                        newParams.delete('sort')
-                        newParams.set('page', '1') // 重置到第一頁
-                        router.push(`?${newParams.toString()}`)
-                      }}
                     >
+                      <Checkbox
+                        checked={selectedBrands.includes(brand.id)}
+                        onCheckedChange={(checked) =>
+                          handleBrandChange(brand.id, checked)
+                        }
+                      />
                       <span className="text-base font-regular text-foreground hover:text-input">
                         {brand.name}
                       </span>
                     </label>
                   ))}
+                </div>
+              </div>
+              <div className="mb-8 flex flex-col gap-5">
+                <span className='text-xl font-bold mb-4 text-foreground'>價格區間</span>
+                <Slider
+                  defaultValue={priceRange}
+                  onValueChange={setPriceRange}
+                  min={0}
+                  max={3500}
+                  step={10}
+                  onValueCommit={(values) => {
+                    const [minPrice, maxPrice] = values
+                    const newParams = new URLSearchParams(
+                      searchParams.toString()
+                    )
+                    newParams.set('minPrice', minPrice)
+                    newParams.set('maxPrice', maxPrice)
+                    newParams.set('page', '1') // 篩選後回到第一頁
+                    router.push(`?${newParams.toString()}`)
+                  }}
+                />
+                <div className="flex justify-between text-sm">
+                  <span>${priceRange[0]}</span>
+                  <span>${priceRange[1]}</span>
                 </div>
               </div>
             </div>
@@ -523,6 +564,10 @@ export default function ProductListPage() {
               onClose={() => setSidebarOpen(false)}
               sports={sports}
               brands={brands}
+              selectedSports={selectedSports}
+              selectedBrands={selectedBrands}
+              handleSportChange={handleSportChange}
+              handleBrandChange={handleBrandChange}
             />
             {/* 商品列表 */}
             <div className="flex-1">
