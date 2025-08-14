@@ -199,11 +199,7 @@ export function CenterCard({
                   const IconComponent = sportIconMap[item.iconKey]
                   return (
                     <Link href="#" key={idx}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="hover:bg-primary/10"
-                      >
+                      <Button variant="secondary" size="sm">
                         {IconComponent && (
                           <IconComponent className="!w-6 !h-6" />
                         )}
@@ -222,7 +218,7 @@ export function CenterCard({
             <Button
               onClick={() => router.push(`/venue/${data.id}`)}
               variant="secondary"
-              className="hover:bg-primary/10 w-full flex-1"
+              className="w-full flex-1"
             >
               詳細
               <Eye />

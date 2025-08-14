@@ -6,11 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
@@ -25,7 +21,7 @@ const steps = [
 
 export default function CourseSuccessPage() {
   const searchParams = useSearchParams()
-  
+
   // 訂單資訊狀態
   const [orderData, setOrderData] = useState({
     // 課程資訊
@@ -37,20 +33,20 @@ export default function CourseSuccessPage() {
     startDate: new Date('2025-02-01'),
     endDate: new Date('2025-04-08'),
     location: '體育館青少年A教室',
-    courseImage: '/product-pic/volleyball-course.png',
-    
+    courseImage: '/course-pic/volleyball-course.png',
+
     // 訂單資訊
     orderNumber: '1234567890',
     orderDate: new Date(),
     totalPrice: 4800,
-    
+
     // 用戶資訊
     userInfo: {
       name: '張美美',
       phone: '0912345678',
       email: 'example@email.com',
     },
-    
+
     // 付款資訊
     paymentMethod: '線上付款',
     receiptType: '個人發票',
@@ -72,13 +68,13 @@ export default function CourseSuccessPage() {
         if (decodedData.orderDate) {
           decodedData.orderDate = new Date(decodedData.orderDate)
         }
-        
+
         // 生成訂單編號（如果沒有的話）
         if (!decodedData.orderNumber) {
           decodedData.orderNumber = Date.now().toString()
         }
-        
-        setOrderData(prev => ({ ...prev, ...decodedData }))
+
+        setOrderData((prev) => ({ ...prev, ...decodedData }))
       } catch (error) {
         console.error('解析訂單資料失敗:', error)
       }
@@ -103,7 +99,6 @@ export default function CourseSuccessPage() {
           {/* 主要內容區域 */}
           <section className="flex justify-center">
             <div className="w-full max-w-4xl">
-              
               {/* 成功圖標和標題 */}
               <div className="text-center mb-16 mt-8">
                 <div className="flex justify-center mb-4 ">
@@ -118,7 +113,6 @@ export default function CourseSuccessPage() {
 
               {/* 雙欄布局 */}
               <div className="grid md:grid-cols-2 gap-6">
-                
                 {/* 左側：課程資訊 */}
                 <Card>
                   <CardHeader className="pb-8">
@@ -128,7 +122,7 @@ export default function CourseSuccessPage() {
                     {/* 課程圖片 */}
                     {orderData.courseImage && (
                       <div className="w-full h-48 mb-8">
-                        <AspectRatio ratio={16/9} className="bg-muted">
+                        <AspectRatio ratio={16 / 9} className="bg-muted">
                           <Image
                             alt={orderData.courseName}
                             className="object-cover rounded"
@@ -139,23 +133,31 @@ export default function CourseSuccessPage() {
                         </AspectRatio>
                       </div>
                     )}
-                    
+
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">課程名稱:</span>
-                        <span className="font-medium text-blue-600">{orderData.courseName}</span>
+                        <span className="font-medium text-blue-600">
+                          {orderData.courseName}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">授課教練:</span>
-                        <span className="font-medium">{orderData.instructor}</span>
+                        <span className="font-medium">
+                          {orderData.instructor}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">開課日期:</span>
-                        <span className="font-medium">{orderData.startDate?.toLocaleDateString('zh-TW')}</span>
+                        <span className="font-medium">
+                          {orderData.startDate?.toLocaleDateString('zh-TW')}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">上課時段:</span>
-                        <span className="font-medium">{orderData.schedule}</span>
+                        <span className="font-medium">
+                          {orderData.schedule}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -170,27 +172,39 @@ export default function CourseSuccessPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">訂單編號</span>
-                        <span className="font-medium">{orderData.orderNumber}</span>
+                        <span className="font-medium">
+                          {orderData.orderNumber}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">訂購人</span>
-                        <span className="font-medium">{orderData.userInfo.name}</span>
+                        <span className="font-medium">
+                          {orderData.userInfo.name}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">手機號碼</span>
-                        <span className="font-medium">{orderData.userInfo.phone}</span>
+                        <span className="font-medium">
+                          {orderData.userInfo.phone}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">付款方式</span>
-                        <span className="font-medium">{orderData.paymentMethod}</span>
+                        <span className="font-medium">
+                          {orderData.paymentMethod}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">發票類型</span>
-                        <span className="font-medium">{orderData.receiptType}</span>
+                        <span className="font-medium">
+                          {orderData.receiptType}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-muted-foreground">訂單金額</span>
-                        <span className="font-bold text-lg text-blue-600">NT$ {orderData.totalPrice}</span>
+                        <span className="font-bold text-lg text-blue-600">
+                          NT$ {orderData.totalPrice}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">訂單狀態</span>
@@ -206,8 +220,8 @@ export default function CourseSuccessPage() {
               {/* 按鈕區域 */}
               <div className="flex justify-between gap-4 mt-8">
                 <Link href="/course">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="lg"
                     className="px-8 py-3 text-white border-gray-300 hover:bg-gray-50"
                   >
@@ -215,7 +229,7 @@ export default function CourseSuccessPage() {
                   </Button>
                 </Link>
                 <Link href="/member/orders">
-                  <Button 
+                  <Button
                     size="lg"
                     className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white"
                   >
