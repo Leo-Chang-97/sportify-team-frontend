@@ -52,29 +52,29 @@ const CourseCard = ({ course }) => {
       instructor: courseData.instructor_name,
       duration: courseData.duration,
       schedule: courseData.schedule_display,
-      
+
       // 課程時間（可以根據實際需求調整）
       startDate: new Date('2025-02-01'),
       endDate: new Date('2025-04-08'),
-      
+
       // 地點資訊
       location: '體育館青少年A教室',
-      
+
       // 人數資訊 - 從 capacity_display "8/15人" 中提取數字
       students: parseInt(courseData.capacity_display.split('/')[0]) || 0,
       maxStudents: parseInt(courseData.capacity_display.split('/')[1]) || 15,
-      
+
       // 價格資訊
       unitPrice: courseData.price,
       totalPrice: courseData.price,
-      
+
       // 課程圖片
       courseImage: courseData.image,
-      
+
       // 其他資訊
       courseLevel: courseData.level,
       ageGroup: '中學-高中、國小中高年級以上',
-      sportName: courseData.sport_name
+      sportName: courseData.sport_name,
     }
 
     // 跳轉到付款頁面，並通過 URL 參數傳遞課程資料
@@ -85,7 +85,7 @@ const CourseCard = ({ course }) => {
   return (
     <div className="max-w-md mx-auto relative">
       {/* 課程圖片 */}
-      <div 
+      <div
         className="relative h-64 overflow-hidden rounded-lg shadow-lg cursor-pointer group"
         onClick={handleImageClick}
       >
@@ -164,12 +164,13 @@ const CourseCard = ({ course }) => {
             {/* 立即報名按鈕 */}
             <div className="space-y-2">
               <Button
+                variant="secondary"
                 onClick={handleEnrollment}
                 className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
                   isFullyBooked
                     ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80'
-                    : 'bg-primary-600/80 hover:bg-primary'
-                } text-white font-medium`}
+                    : 'hover:bg-gray-300'
+                } font-medium`}
                 disabled={isFullyBooked}
               >
                 {isFullyBooked ? '課程額滿' : '立即報名'}
