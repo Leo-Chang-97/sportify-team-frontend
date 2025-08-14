@@ -60,7 +60,7 @@ export default function CoursePaymentPage() {
     students: 3, // 目前已報名人數
     unitPrice: 4800, // 單價
     totalPrice: 4800, // 總價（單人價格）
-    courseImage: '/product-pic/volleyball-course.png',
+    courseImage: '/course-pic/volleyball-course.png',
     // 課程詳細資訊
     ageGroup: '中學-高中、國小中學年以上',
     maxStudents: 10, // 課程最大人數
@@ -181,6 +181,11 @@ export default function CoursePaymentPage() {
                   <PaymentMethodSelector
                     selectedPayment={selectedPayment}
                     onPaymentChange={setSelectedPayment}
+                    options={[
+                      paymentOptions[0],
+                      paymentOptions[1],
+                      paymentOptions[3],
+                    ]}
                   />
 
                   {/* 發票類型 */}
@@ -324,7 +329,7 @@ export default function CoursePaymentPage() {
                     </Button>
                   </Link>
                   <Link
-                    href={`/course/payment/success?data=${encodeURIComponent(
+                    href={`/course/booking/success?data=${encodeURIComponent(
                       JSON.stringify({
                         ...orderSummary,
                         userInfo: formData,
