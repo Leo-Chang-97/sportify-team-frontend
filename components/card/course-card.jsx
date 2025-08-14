@@ -1,18 +1,19 @@
 // components/card/course-card.jsx - 簡化版本
-import React from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { User, Calendar, MapPin, Users, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { User, Calendar, MapPin, Users, Eye } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const CourseCard = ({ course }) => {
-  const router = useRouter();
+  const router = useRouter()
 
   // 預設資料
   const defaultCourse = {
     id: 1,
     title: '羽球課程',
-    description: '完整而有系統的羽球訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
+    description:
+      '完整而有系統的羽球訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
     image: '/product-pic/badminton-course.png',
     price: 4800,
     duration: '6-8週',
@@ -21,61 +22,81 @@ const CourseCard = ({ course }) => {
     sport_name: '羽球',
     schedule_display: '時間待定',
     capacity_display: '0/0人',
-    available_spots: 10
-  };
+    available_spots: 10,
+  }
 
-  const courseData = { ...defaultCourse, ...course };
+  const courseData = { ...defaultCourse, ...course }
 
   // 檢查是否還有名額
-  const isFullyBooked = courseData.available_spots <= 0;
-  const isLowAvailability = courseData.available_spots <= 3 && courseData.available_spots > 0;
+  const isFullyBooked = courseData.available_spots <= 0
+  const isLowAvailability =
+    courseData.available_spots <= 3 && courseData.available_spots > 0
 
-  // 處理點擊卡片跳轉到詳細頁面
-  const handleCardClick = (e) => {
-    // 如果點擊的是按鈕，不要觸發卡片點擊
-    if (e.target.closest('button')) {
-      return;
-    }
-    router.push(`/course/${courseData.id}`);
-  };
+  // 處理點擊圖片跳轉到詳細頁面
+  const handleImageClick = (e) => {
+    e.stopPropagation()
+    router.push(`/course/${courseData.id}`)
+  }
 
-  // 處理查看詳情
-  const handleViewDetails = (e) => {
-    e.stopPropagation(); // 防止冒泡到卡片點擊
-    router.push(`/course/${courseData.id}`);
-  };
-
-  // 處理立即報名
+  // 處理立即報名 - 跳轉到付款頁面
   const handleEnrollment = (e) => {
-    e.stopPropagation(); // 防止冒泡到卡片點擊
-    if (isFullyBooked) return;
-    
-    // 直接跳轉到課程詳細頁面，讓用戶在那裡報名
-    router.push(`/course/${courseData.id}`);
-  };
+    e.stopPropagation() // 防止冒泡到卡片點擊
+    if (isFullyBooked) return
+
+    // 準備付款頁面需要的課程資料
+    const enrollmentData = {
+      // 基本課程資訊
+      courseId: courseData.id,
+      courseName: courseData.title,
+      courseType: '團體課程',
+      instructor: courseData.instructor_name,
+      duration: courseData.duration,
+      schedule: courseData.schedule_display,
+      
+      // 課程時間（可以根據實際需求調整）
+      startDate: new Date('2025-02-01'),
+      endDate: new Date('2025-04-08'),
+      
+      // 地點資訊
+      location: '體育館青少年A教室',
+      
+      // 人數資訊 - 從 capacity_display "8/15人" 中提取數字
+      students: parseInt(courseData.capacity_display.split('/')[0]) || 0,
+      maxStudents: parseInt(courseData.capacity_display.split('/')[1]) || 15,
+      
+      // 價格資訊
+      unitPrice: courseData.price,
+      totalPrice: courseData.price,
+      
+      // 課程圖片
+      courseImage: courseData.image,
+      
+      // 其他資訊
+      courseLevel: courseData.level,
+      ageGroup: '中學-高中、國小中高年級以上',
+      sportName: courseData.sport_name
+    }
+
+    // 跳轉到付款頁面，並通過 URL 參數傳遞課程資料
+    const queryString = encodeURIComponent(JSON.stringify(enrollmentData))
+    router.push(`/course/payment?data=${queryString}`)
+  }
 
   return (
-    <div 
-      className="max-w-md mx-auto relative cursor-pointer group"
-      onClick={handleCardClick}
-    >
+    <div className="max-w-md mx-auto relative">
       {/* 課程圖片 */}
-      <div className="relative h-64 overflow-hidden rounded-lg shadow-lg">
-        <img 
-          src={courseData.image} 
-          alt={courseData.title} 
+      <div 
+        className="relative h-64 overflow-hidden rounded-lg shadow-lg cursor-pointer group"
+        onClick={handleImageClick}
+      >
+        <img
+          src={courseData.image}
+          alt={courseData.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
             e.target.src = '/product-pic/default-course.png'
           }}
         />
-        
-        {/* 價格標籤
-        <div className="absolute top-3 left-3 z-10">
-          <span className="bg-blue-600/90 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-sm font-bold shadow-md">
-            NT$ {courseData.price.toLocaleString()}
-          </span>
-        </div> */}
 
         {/* 狀態標籤 */}
         <div className="absolute top-3 right-3 z-10 flex justify-center">
@@ -123,38 +144,30 @@ const CourseCard = ({ course }) => {
             <div className="space-y-2 mb-4">
               <div className="flex items-center text-white text-sm">
                 <User className="w-4 h-4 mr-2 text-highlight shrink-0" />
-                <span className="truncate">教練：{courseData.instructor_name}</span>
+                <span className="truncate">
+                  教練：{courseData.instructor_name}
+                </span>
               </div>
               <div className="flex items-center text-white text-sm">
                 <Users className="w-4 h-4 mr-2 text-highlight shrink-0" />
-                <span className="truncate">報名人數：{courseData.capacity_display}</span>
+                <span className="truncate">
+                  報名人數：{courseData.capacity_display}
+                </span>
               </div>
             </div>
-
             {/* 課程描述（簡短版） */}
             <div className="mb-4">
               <p className="text-white text-sm leading-relaxed line-clamp-2">
                 {courseData.description}
               </p>
             </div>
-
-            {/* 按鈕區域 */}
+            {/* 立即報名按鈕 */}
             <div className="space-y-2">
-              {/* 查看完整詳情按鈕
               <Button
-                onClick={handleViewDetails}
-                className="w-full flex items-center justify-center space-x-2 border-0 text-white-700 hover:bg-gray-100/60 h-9 backdrop-blur-sm bg-white/40 hover:border-white-300"
-              >
-                <Eye className="w-4 h-4" />
-                <span>查看完整詳情</span>
-              </Button> */}
-
-              {/* 立即報名按鈕 */}
-              <Button 
                 onClick={handleEnrollment}
                 className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
-                  isFullyBooked 
-                    ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80' 
+                  isFullyBooked
+                    ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80'
                     : 'bg-primary-600/80 hover:bg-primary'
                 } text-white font-medium`}
                 disabled={isFullyBooked}
@@ -166,7 +179,7 @@ const CourseCard = ({ course }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CourseCard;
+export default CourseCard

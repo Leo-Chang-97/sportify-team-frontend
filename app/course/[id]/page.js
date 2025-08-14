@@ -250,7 +250,7 @@ export default function VenueListPage() {
                   <span className="text-slate-300 text-xs sm:text-sm">一期十堂</span>
                   <span className="text-white text-lg sm:text-xl font-bold">4800</span>
                 </div>
-                <Link href={`/course/reservation/payment`} className="w-full sm:w-auto">
+                <Link href={`/course/booking/payment`} className="w-full sm:w-auto">
                 <button className="bg-orange-500 hover:bg-orange-500 px-4 sm:px-6 py-2 rounded text-white text-sm font-medium transition-colors w-full sm:w-auto">
                   立即報名
                 </button>

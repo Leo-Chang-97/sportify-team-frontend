@@ -1,36 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import {
-  createReservation,
-  fetchReservation,
-  updateReservation,
-  fetchMemberOptions,
-  fetchLocationOptions,
-  fetchTimePeriodOptions,
-  fetchCenterOptions,
   fetchSportOptions,
-  fetchCourtOptions,
-  fetchTimeSlotOptions,
-  fetchCourtTimeSlotOptions,
-  fetchStatusOptions,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -39,24 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import CourseCard from '@/components/card/course-card'
-import { ChevronDownIcon } from 'lucide-react'
-
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
   const [isLoading, setIsLoading] = useState(false)
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
 
-  const [memberId, setMemberId] = useState('')
   const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [courtId, setCourtIds] = useState('')
-  const [timePeriodId, setTimePeriodId] = useState('')
-  const [timeSlotId, setTimeSlotIds] = useState('')
-  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
-  const [statusId, setStatusId] = useState('')
   const [date, setDate] = useState(null)
-  const [price, setPrice] = useState('')
 
   // ===== 新增：關鍵字搜尋狀態 =====
   const [keyword, setKeyword] = useState('')
@@ -68,20 +37,11 @@ export default function VenueListPage() {
 
   const [members, setMembers] = useState([])
   const [locations, setLocations] = useState([])
-  const [centers, setCenters] = useState([])
-  const [sports, setSports] = useState([])
-  const [courts, setCourts] = useState([])
-  const [timePeriods, setTimePeriods] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
-  const [courtTimeSlots, setCourtTimeSlots] = useState([])
-  const [status, setStatus] = useState([])
 
+  const [sports, setSports] = useState([])
   // ===== 課程資料狀態 =====
   const [courses, setCourses] = useState([])
   const [filteredCourses, setFilteredCourses] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
 
   // ===== 擴展課程資料至12堂 =====
   const coursesData = [
