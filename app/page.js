@@ -430,7 +430,7 @@ export default function HomePage() {
               <Carousel className="w-full">
                 <CarouselContent>
                   {data?.rows && data.rows.length > 0 ? (
-                    data.rows.slice(0, 5).map((center, index) => (
+                    data.rows.slice(1, 6).map((center, index) => (
                       <CarouselItem
                         key={center.id || index}
                         className="flex justify-center"
@@ -686,7 +686,7 @@ export default function HomePage() {
       </section>
 
       {/* 組隊簡介 */}
-      <section className="relative px-4 md:px-6 py-12 md:py-20 bg-[url('/banner/team-banner.jpg')] bg-cover bg-center bg-fixed">
+      <section className="relative px-4 md:px-6 py-12 md:py-20 bg-[url('/banner/team-hero.jpg')] bg-cover bg-center bg-fixed">
         {/* 遮罩層 */}
         <div className="absolute inset-0 bg-black/60 pointer-events-none z-0" />
         <div className="relative flex flex-col lg:flex-row justify-between container mx-auto max-w-screen-xl gap-6">

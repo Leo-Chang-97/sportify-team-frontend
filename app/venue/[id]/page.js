@@ -38,6 +38,16 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
+import {
+  FacebookShareButton,
+  LineShareButton,
+  TwitterShareButton,
+  ThreadsShareButton,
+  LineIcon,
+  XIcon,
+  ThreadsIcon,
+} from 'react-share'
+import { FaFacebook } from 'react-icons/fa6'
 
 // API 請求
 import { fetchCenter } from '@/api/venue/center'
@@ -58,6 +68,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -70,6 +85,7 @@ import { CardFooter } from '@/components/card/card'
 const Map = dynamic(() => import('@/components/map'), {
   ssr: false,
 })
+
 const range = (length) => Array.from({ length }, (_, i) => i)
 
 // #region 評論區元件
@@ -116,9 +132,9 @@ function RatingSection({ centerId, ratings }) {
 
       {/* 評分輸入區 */}
       <Card className="mb-6">
-        <CardHeader>
+        {/* <CardHeader>
           <h3 className="text-lg font-semibold">留下您的評價</h3>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent className="space-y-4">
           {/* 星星評分 */}
           <div className="flex flex-col gap-2">
@@ -128,17 +144,17 @@ function RatingSection({ centerId, ratings }) {
                 <button
                   key={i}
                   type="button"
-                  className="focus:outline-none focus:ring-2 focus:ring-highlight rounded"
+                  className="focus:outline-none focus:ring-2 focus:ring-yellow-200 rounded"
                   onMouseEnter={() => setHoverRating(i + 1)}
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setUserRating(i + 1)}
                 >
                   <Star
                     className={cn(
-                      'h-8 w-8 transition-colors',
+                      'w-6 h-6 transition-colors',
                       (hoverRating || userRating) > i
                         ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-muted-foreground hover:text-yellow-400'
+                        : 'text-muted-foreground/50 hover:text-yellow-400'
                     )}
                   />
                 </button>
@@ -203,7 +219,7 @@ function RatingSection({ centerId, ratings }) {
                                   'h-4 w-4',
                                   i < rating.rating
                                     ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-muted-foreground'
+                                    : 'text-muted-foreground/50'
                                 )}
                               />
                             ))}
@@ -228,7 +244,7 @@ function RatingSection({ centerId, ratings }) {
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            <Star className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
+            <Star className="mx-auto mb-2 text-muted-foreground/50" />
             <p>尚無評價，成為第一個評價的人吧！</p>
           </div>
         )}
@@ -412,13 +428,31 @@ export default function CenterDetailPage() {
                 </Button>
               </Link>
               <div className="flex flex-row gap-2 w-full sm:w-auto">
-                <Link href={`/venue/center/1`} className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full">
-                    分享
-                    <Share />
-                    {/* TODO:react share */}
-                  </Button>
-                </Link>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="lg">
+                      分享
+                      <Share />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-fit px-2 py-2">
+                    <div className="flex flex-row gap-2 w-full sm:w-auto">
+                      <FacebookShareButton url={window.location.href}>
+                        <FaFacebook size={30} color="#1f7bf2" />
+                      </FacebookShareButton>
+                      <LineShareButton url={window.location.href}>
+                        <LineIcon size={32} round />
+                      </LineShareButton>
+                      <TwitterShareButton url={window.location.href}>
+                        <XIcon size={32} round />
+                      </TwitterShareButton>
+                      <ThreadsShareButton url={window.location.href}>
+                        <ThreadsIcon size={32} round />
+                      </ThreadsShareButton>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
                 <Link href="#" className="w-full sm:w-auto">
                   <Button variant="outline" size="lg" className="w-full">
                     收藏
@@ -434,7 +468,7 @@ export default function CenterDetailPage() {
           {/* 圖片 */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* Main image */}
-            <div className="overflow-hidden rounded-lg bg-muted">
+            <div className="overflow-hidden rounded-lg">
               <AspectRatio ratio={4 / 3} className="bg-muted">
                 <Image
                   alt={data.name || '場館圖片'}
@@ -448,7 +482,7 @@ export default function CenterDetailPage() {
             </div>
             {/* 2x2 grid image */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 1`}
@@ -460,7 +494,7 @@ export default function CenterDetailPage() {
                   />
                 </AspectRatio>
               </div>
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 2`}
@@ -471,7 +505,7 @@ export default function CenterDetailPage() {
                   />
                 </AspectRatio>
               </div>
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 3`}
@@ -482,7 +516,7 @@ export default function CenterDetailPage() {
                   />
                 </AspectRatio>
               </div>
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 4`}
