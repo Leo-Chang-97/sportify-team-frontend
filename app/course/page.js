@@ -1,36 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import {
-  createReservation,
-  fetchReservation,
-  updateReservation,
-  fetchMemberOptions,
-  fetchLocationOptions,
-  fetchTimePeriodOptions,
-  fetchCenterOptions,
   fetchSportOptions,
-  fetchCourtOptions,
-  fetchTimeSlotOptions,
-  fetchCourtTimeSlotOptions,
-  fetchStatusOptions,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -39,24 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import CourseCard from '@/components/card/course-card'
-import { ChevronDownIcon } from 'lucide-react'
-
 export default function VenueListPage() {
   // ===== 組件狀態管理 =====
   const [isLoading, setIsLoading] = useState(false)
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
 
-  const [memberId, setMemberId] = useState('')
   const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [courtId, setCourtIds] = useState('')
-  const [timePeriodId, setTimePeriodId] = useState('')
-  const [timeSlotId, setTimeSlotIds] = useState('')
-  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
-  const [statusId, setStatusId] = useState('')
   const [date, setDate] = useState(null)
-  const [price, setPrice] = useState('')
 
   // ===== 新增：關鍵字搜尋狀態 =====
   const [keyword, setKeyword] = useState('')
@@ -68,27 +37,19 @@ export default function VenueListPage() {
 
   const [members, setMembers] = useState([])
   const [locations, setLocations] = useState([])
-  const [centers, setCenters] = useState([])
-  const [sports, setSports] = useState([])
-  const [courts, setCourts] = useState([])
-  const [timePeriods, setTimePeriods] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
-  const [courtTimeSlots, setCourtTimeSlots] = useState([])
-  const [status, setStatus] = useState([])
 
+  const [sports, setSports] = useState([])
   // ===== 課程資料狀態 =====
   const [courses, setCourses] = useState([])
   const [filteredCourses, setFilteredCourses] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
 
   // ===== 擴展課程資料至12堂 =====
   const coursesData = [
     {
       id: 1,
       title: '羽球課程',
-      description: '透過完整而有系統的訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
+      description:
+        '透過完整而有系統的訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
       image: '/product-pic/badminton-course.png',
       icon: '',
       price: 4800,
@@ -99,7 +60,8 @@ export default function VenueListPage() {
     {
       id: 2,
       title: '桌球課程',
-      description: '學習桌球，從基礎開始培養運動技巧與身體能力，提供多元且充滿樂趣，重新認識、建立桌球基礎運動技能，循序漸進的課程訓練。',
+      description:
+        '學習桌球，從基礎開始培養運動技巧與身體能力，提供多元且充滿樂趣，重新認識、建立桌球基礎運動技能，循序漸進的課程訓練。',
       image: '/product-pic/tabletennis-course.jpg',
       icon: '',
       price: 4500,
@@ -110,7 +72,8 @@ export default function VenueListPage() {
     {
       id: 3,
       title: '網球課程',
-      description: '專業網球訓練課程，從基本握拍到進階技巧，培養正確的網球技術與戰術思維，適合各年齡層學員參與學習。',
+      description:
+        '專業網球訓練課程，從基本握拍到進階技巧，培養正確的網球技術與戰術思維，適合各年齡層學員參與學習。',
       image: '/product-pic/tennis-course.jpg',
       icon: '',
       price: 5200,
@@ -121,7 +84,8 @@ export default function VenueListPage() {
     {
       id: 4,
       title: '籃球課程',
-      description: '全方位籃球技能訓練，包含基本功練習、戰術配合、體能訓練，培養團隊合作精神與競技能力。',
+      description:
+        '全方位籃球技能訓練，包含基本功練習、戰術配合、體能訓練，培養團隊合作精神與競技能力。',
       image: '/product-pic/basketball-course.png',
       icon: '',
       price: 4800,
@@ -132,7 +96,8 @@ export default function VenueListPage() {
     {
       id: 5,
       title: '排球課程',
-      description: '排球基礎與進階技術教學，學習發球、接球、扣球等技巧，培養團隊默契與運動精神。',
+      description:
+        '排球基礎與進階技術教學，學習發球、接球、扣球等技巧，培養團隊默契與運動精神。',
       image: '/product-pic/volleyball-course.png',
       icon: '',
       price: 4300,
@@ -143,7 +108,8 @@ export default function VenueListPage() {
     {
       id: 6,
       title: '游泳課程',
-      description: '從基礎水性到各式泳姿教學，安全的水上運動訓練，適合初學者到進階學員的完整游泳課程。',
+      description:
+        '從基礎水性到各式泳姿教學，安全的水上運動訓練，適合初學者到進階學員的完整游泳課程。',
       image: '/product-pic/squash-course.png',
       icon: '',
       price: 5500,
@@ -155,7 +121,8 @@ export default function VenueListPage() {
     {
       id: 7,
       title: '羽球進階課程',
-      description: '進階羽球技術訓練，專注於競賽技巧、戰術應用與心理素質培養，適合有基礎的學員進一步提升技能。',
+      description:
+        '進階羽球技術訓練，專注於競賽技巧、戰術應用與心理素質培養，適合有基礎的學員進一步提升技能。',
       image: '/product-pic/badminton-course.png',
       icon: '',
       price: 5200,
@@ -166,7 +133,8 @@ export default function VenueListPage() {
     {
       id: 8,
       title: '桌球競技班',
-      description: '競技級桌球訓練，強化發球、接發球技術，培養比賽經驗與臨場反應能力。',
+      description:
+        '競技級桌球訓練，強化發球、接發球技術，培養比賽經驗與臨場反應能力。',
       image: '/product-pic/tabletennis-course.jpg',
       icon: '',
       price: 4800,
@@ -177,7 +145,8 @@ export default function VenueListPage() {
     {
       id: 9,
       title: '網球雙打班',
-      description: '專門針對雙打戰術的網球課程，學習配合技巧、站位策略與團隊默契培養。',
+      description:
+        '專門針對雙打戰術的網球課程，學習配合技巧、站位策略與團隊默契培養。',
       image: '/product-pic/tennis-course.jpg',
       icon: '',
       price: 5500,
@@ -188,7 +157,8 @@ export default function VenueListPage() {
     {
       id: 10,
       title: '籃球戰術班',
-      description: '深入籃球戰術教學，包含進攻戰術、防守體系、快攻配合等高階技巧訓練。',
+      description:
+        '深入籃球戰術教學，包含進攻戰術、防守體系、快攻配合等高階技巧訓練。',
       image: '/product-pic/basketball-course.png',
       icon: '',
       price: 5000,
@@ -199,7 +169,8 @@ export default function VenueListPage() {
     {
       id: 11,
       title: '排球扣球技巧班',
-      description: '專門強化排球扣球技術，包含助跑、起跳、揮臂動作與扣球戰術應用。',
+      description:
+        '專門強化排球扣球技術，包含助跑、起跳、揮臂動作與扣球戰術應用。',
       image: '/product-pic/volleyball-course.png',
       icon: '',
       price: 4600,
@@ -210,7 +181,8 @@ export default function VenueListPage() {
     {
       id: 12,
       title: '競技游泳班',
-      description: '競技游泳訓練課程，專注於四式技術精進、轉身技巧與競賽策略培養。',
+      description:
+        '競技游泳訓練課程，專注於四式技術精進、轉身技巧與競賽策略培養。',
       image: '/product-pic/squash-course.png',
       icon: '',
       price: 6000,
@@ -232,6 +204,8 @@ export default function VenueListPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        const sportData = await fetchSportOptions()
+        setSports(sportData.rows || [])
         // 使用靜態資料代替
         setMembers([])
         setLocations([
@@ -246,11 +220,10 @@ export default function VenueListPage() {
         // 載入課程資料
         setCourses(coursesData)
         setFilteredCourses(coursesData)
-        
+
         // 初始顯示前6個課程
         updateDisplayedCourses(coursesData, 1)
         setCurrentPage(1)
-
       } catch (error) {
         console.error('載入資料失敗:', error)
         // 確保課程資料還是能載入
@@ -323,7 +296,7 @@ export default function VenueListPage() {
   // ===== 載入更多課程功能 =====
   const handleLoadMore = () => {
     setIsLoading(true)
-    
+
     // 模擬載入延遲
     setTimeout(() => {
       const nextPage = currentPage + 1
@@ -415,7 +388,13 @@ export default function VenueListPage() {
         />
       </HeroBanner>
 
-      <ScrollAreaSport sportItems={sports} />
+      <ScrollAreaSport
+        sportItems={sports}
+        onSportSelect={(id) => {
+          setSportId(id)
+          handleSearch(keyword, id)
+        }}
+      />
 
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
@@ -445,7 +424,7 @@ export default function VenueListPage() {
           </div>
 
           {/* 動態顯示課程卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {displayedCourses.length > 0 ? (
               displayedCourses.map((course) => (
                 <CourseCard key={course.id} course={course} />
@@ -482,7 +461,8 @@ export default function VenueListPage() {
                   <>
                     載入更多課程
                     <span className="ml-2 text-sm text-gray-500">
-                      ({filteredCourses.length - displayedCourses.length} 門課程)
+                      ({filteredCourses.length - displayedCourses.length}{' '}
+                      門課程)
                     </span>
                   </>
                 )}
@@ -491,13 +471,15 @@ export default function VenueListPage() {
           )}
 
           {/* 已載入完所有課程的提示 */}
-          {displayedCourses.length > 0 && !hasMoreCourses && filteredCourses.length > 6 && (
-            <div className="text-center mt-8">
-              <p className="text-gray-500 text-sm">
-                已載入全部 {filteredCourses.length} 門課程
-              </p>
-            </div>
-          )}
+          {displayedCourses.length > 0 &&
+            !hasMoreCourses &&
+            filteredCourses.length > 6 && (
+              <div className="text-center mt-8">
+                <p className="text-gray-500 text-sm">
+                  已載入全部 {filteredCourses.length} 門課程
+                </p>
+              </div>
+            )}
         </div>
       </section>
 

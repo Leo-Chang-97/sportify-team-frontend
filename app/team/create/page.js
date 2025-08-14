@@ -256,7 +256,11 @@ export default function CreateTeamPage() {
               </div>
             )}
             <div className="flex justify-between items-center mt-8">
-              <Button variant="ghost" asChild>
+              <Button
+                variant="outline"
+                asChild
+                className="border-gray-300 text-gray-500 bg-gray-100 hover:bg-gray-500 hover:text-gray-900"
+              >
                 <Link href="/team" aria-label="返回上一頁">
                   <ChevronLeftIcon className="h-4 w-4" />
                   <span className="ml-2">{'返回上一頁'}</span>

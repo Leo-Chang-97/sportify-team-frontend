@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import { ModeToggle } from '@/components/ui/theme-mode-toggle'
 
 const Logo = (props) => {
   return (
@@ -208,10 +209,11 @@ export default function Footer() {
 
         <Separator className="mt-6" />
 
-        <section className="flex gap-2 mt-4">
+        <section className="flex justify-between items-center gap-2 mt-4">
           <span className="text-center text-xs text-muted-foreground">
             © 2025 All rights reserved. 本網站僅供學習與展示用途
           </span>
+          <ModeToggle />
         </section>
       </div>
     </footer>
