@@ -189,7 +189,7 @@ export default function CartListPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="flex flex-col md:flex-row justify-between gap-5 min-h-screen">
+          <div className="flex flex-col md:flex-row justify-between gap-5">
             <Card className="flex-3 self-start">
               <CardContent>
                 <Table className="w-full table-fixed">
