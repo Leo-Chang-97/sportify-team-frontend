@@ -452,7 +452,13 @@ export default function ReservationPage() {
               {/* 選擇預約日期 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇預約日期</h2>
-                <div data-testid="calendar">
+                <div
+                  data-testid="calendar"
+                  className={cn(
+                    'bg-card border rounded-lg p-6',
+                    errors.selectedDate && 'border-destructive'
+                  )}
+                >
                   <Calendar
                     mode="single"
                     selected={date}
@@ -477,9 +483,7 @@ export default function ReservationPage() {
                       return date < today || !availableCount
                     }}
                     className={cn(
-                      'w-full bg-accent text-accent-foreground rounded [--cell-size:3.5rem] aspect-3/2 object-cover',
-                      errors.selectedDate &&
-                        'border border-destructive rounded-md'
+                      'w-full bg-card text-accent-foreground rounded [--cell-size:3.5rem] aspect-3/2 object-cover p-0'
                     )}
                     components={{
                       DayButton: ({ day, modifiers, ...props }) => {
@@ -550,6 +554,28 @@ export default function ReservationPage() {
                       },
                     }}
                   />
+
+                  {/* 狀態說明 */}
+                  <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground border-t pt-4">
+                    <div className="flex items-center gap-2">
+                      <Status status="online" className="bg-transparent">
+                        <StatusIndicator />
+                      </Status>
+                      <span>可預約時段數</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Status status="offline" className="bg-transparent">
+                        <StatusIndicator />
+                      </Status>
+                      <span>已額滿</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Status status="maintenance" className="bg-transparent">
+                        <StatusIndicator />
+                      </Status>
+                      <span>已選擇</span>
+                    </div>
+                  </div>
                 </div>
                 {errors.selectedDate && (
                   <span className="text-destructive text-sm mt-2 block">
