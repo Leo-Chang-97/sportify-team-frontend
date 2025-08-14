@@ -73,6 +73,8 @@ export default function OrderDetailPage() {
         order.phone && { key: '手機號碼', value: order.phone },
         order.address && { key: '收件地址', value: order.address },
         order.delivery_name && { key: '物流方式', value: order.delivery_name },
+        order.delivery_name?.includes('7-11') &&
+          order.store_name && { key: '門市名稱', value: order.store_name },
         order.payment_name && { key: '付款方式', value: order.payment_name },
         order.invoice &&
           order.invoice.name && { key: '發票類型', value: order.invoice.name },

@@ -13,23 +13,15 @@ import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 
+// ===== 【修改 1】引入 teamService =====
+import { teamService } from '@/api/team/team'
+
+// ===== 【修改 2】移除舊的 fetchAPI 和 API_BASE_URL =====
 // --- API 請求相關設定 ---
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+// const API_BASE_URL = ...
+// async function fetchAPI(...) { ... }
 
-async function fetchAPI(url, options = {}) {
-  if (!API_BASE_URL) {
-    throw new Error('前端環境變數 NEXT_PUBLIC_API_BASE_URL 未設定！')
-  }
-  const fullUrl = `${API_BASE_URL}${url}`
-  const res = await fetch(fullUrl, options)
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}))
-    throw new Error(errorData.error || `請求 ${fullUrl} 失敗`)
-  }
-  return res.json()
-}
-
-// 輔助函數來為給定的月份/年份生成日曆網格
+// 輔助函數 (維持不變)
 const generateCalendarDays = (year, month) => {
   const days = []
   const date = new Date(year, month, 1)
@@ -71,10 +63,8 @@ const TeamDetailPage = () => {
       setIsLoading(true)
       setError(null)
       try {
-        // ===== 【唯一的修改點】 =====
-        // 將 API 路徑從 /api/team/${teamId}
-        // 改為符合後端自動化路由規則的 /api/team/details/${teamId}
-        const result = await fetchAPI(`/api/team/teams/${teamId}`)
+        // ===== 【修改 3】使用 teamService.fetchById 來獲取隊伍詳細資料 =====
+        const result = await teamService.fetchById(teamId)
 
         if (result.success && result.team) {
           setTeamData(result.team)
@@ -96,7 +86,7 @@ const TeamDetailPage = () => {
     loadTeamDetails()
   }, [teamId])
 
-  // 日曆相關函式
+  // --- 其他函式 (handleMonthChange, handleDayClick 等) 維持不變 ---
   const currentYear = displayDate.getFullYear()
   const currentMonth = displayDate.getMonth()
   const calendarDays = generateCalendarDays(currentYear, currentMonth)
@@ -137,6 +127,7 @@ const TeamDetailPage = () => {
     setNewMessage('')
   }
 
+  // --- 載入與錯誤畫面 (維持不變) ---
   if (isLoading) {
     return (
       <>
@@ -156,6 +147,7 @@ const TeamDetailPage = () => {
     )
   }
 
+  // --- JSX 渲染部分 (維持不變) ---
   return (
     <>
       <Navbar />

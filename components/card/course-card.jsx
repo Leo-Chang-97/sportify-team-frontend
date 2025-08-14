@@ -165,12 +165,13 @@ const CourseCard = ({ course }) => {
             {/* 立即報名按鈕 */}
             <div className="space-y-2">
               <Button
+                variant="secondary"
                 onClick={handleEnrollment}
                 className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
                   isFullyBooked
                     ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80'
-                    : 'bg-primary-600/80 hover:bg-primary'
-                } text-white font-medium`}
+                    : 'hover:bg-gray-300'
+                } font-medium`}
                 disabled={isFullyBooked}
               >
                 {isFullyBooked ? '課程額滿' : '立即報名'}
