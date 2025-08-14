@@ -1,16 +1,21 @@
 'use client'
+// hooks
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 
-import React, { useState, useEffect } from 'react'
-import {
-  fetchSportOptions,
-} from '@/api'
+// 資料請求函式庫
+import useSWR from 'swr'
+
+// API 請求
+import { fetchLocationOptions, fetchSportOptions } from '@/api'
+import { fetchLessons } from '@/api/course/lesson'
+
+// Icon
+import { AlertCircle } from 'lucide-react'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import HeroBanner, { SearchField } from '@/components/hero-banner'
-import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
   Select,
   SelectContent,
@@ -18,218 +23,81 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import CourseCard from '@/components/card/course-card'
-export default function VenueListPage() {
-  // ===== 組件狀態管理 =====
-  const [isLoading, setIsLoading] = useState(false)
 
+// 自訂元件
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
+import ScrollAreaSport from '@/components/scroll-area-sport'
+import CourseCard from '@/components/card/course-card'
+
+export default function VenueListPage() {
+  // #region 路由和URL參數
+  const searchParams = useSearchParams()
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+  const router = useRouter()
+
+  // #region 狀態管理
+  const [isLoading, setIsLoading] = useState(false)
   const [locationId, setLocationId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [date, setDate] = useState(null)
+  const [locations, setLocations] = useState([])
+  const [sports, setSports] = useState([])
 
   // ===== 新增：關鍵字搜尋狀態 =====
   const [keyword, setKeyword] = useState('')
 
-  // ===== 新增：分頁相關狀態 =====
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(6) // 每頁顯示6個課程
-  const [displayedCourses, setDisplayedCourses] = useState([]) // 當前顯示的課程
-
-  const [members, setMembers] = useState([])
-  const [locations, setLocations] = useState([])
-
-  const [sports, setSports] = useState([])
   // ===== 課程資料狀態 =====
   const [courses, setCourses] = useState([])
-  const [filteredCourses, setFilteredCourses] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalRows, setTotalRows] = useState(0)
 
-  // ===== 擴展課程資料至12堂 =====
-  const coursesData = [
-    {
-      id: 1,
-      title: '羽球課程',
-      description:
-        '透過完整而有系統的訓練流程規劃，培養深度專業認知與教學能力，運用多元及創新思維，帶領孩子探索身體，體驗不同的功能性，設計多元性的運動發展能力。',
-      image: '/product-pic/badminton-course.png',
-      icon: '',
-      price: 4800,
-      duration: '6-8週',
-      level: '初級',
-      category: 'badminton',
-    },
-    {
-      id: 2,
-      title: '桌球課程',
-      description:
-        '學習桌球，從基礎開始培養運動技巧與身體能力，提供多元且充滿樂趣，重新認識、建立桌球基礎運動技能，循序漸進的課程訓練。',
-      image: '/product-pic/tabletennis-course.jpg',
-      icon: '',
-      price: 4500,
-      duration: '8週',
-      level: '初級',
-      category: 'table-tennis',
-    },
-    {
-      id: 3,
-      title: '網球課程',
-      description:
-        '專業網球訓練課程，從基本握拍到進階技巧，培養正確的網球技術與戰術思維，適合各年齡層學員參與學習。',
-      image: '/product-pic/tennis-course.jpg',
-      icon: '',
-      price: 5200,
-      duration: '10週',
-      level: '中級',
-      category: 'tennis',
-    },
-    {
-      id: 4,
-      title: '籃球課程',
-      description:
-        '全方位籃球技能訓練，包含基本功練習、戰術配合、體能訓練，培養團隊合作精神與競技能力。',
-      image: '/product-pic/basketball-course.png',
-      icon: '',
-      price: 4800,
-      duration: '6週',
-      level: '初級',
-      category: 'basketball',
-    },
-    {
-      id: 5,
-      title: '排球課程',
-      description:
-        '排球基礎與進階技術教學，學習發球、接球、扣球等技巧，培養團隊默契與運動精神。',
-      image: '/product-pic/volleyball-course.png',
-      icon: '',
-      price: 4300,
-      duration: '8週',
-      level: '初級',
-      category: 'volleyball',
-    },
-    {
-      id: 6,
-      title: '游泳課程',
-      description:
-        '從基礎水性到各式泳姿教學，安全的水上運動訓練，適合初學者到進階學員的完整游泳課程。',
-      image: '/product-pic/squash-course.png',
-      icon: '',
-      price: 5500,
-      duration: '12週',
-      level: '初級',
-      category: 'swimming',
-    },
-    // ===== 新增6堂課程 =====
-    {
-      id: 7,
-      title: '羽球進階課程',
-      description:
-        '進階羽球技術訓練，專注於競賽技巧、戰術應用與心理素質培養，適合有基礎的學員進一步提升技能。',
-      image: '/product-pic/badminton-course.png',
-      icon: '',
-      price: 5200,
-      duration: '8週',
-      level: '進階',
-      category: 'badminton',
-    },
-    {
-      id: 8,
-      title: '桌球競技班',
-      description:
-        '競技級桌球訓練，強化發球、接發球技術，培養比賽經驗與臨場反應能力。',
-      image: '/product-pic/tabletennis-course.jpg',
-      icon: '',
-      price: 4800,
-      duration: '10週',
-      level: '進階',
-      category: 'table-tennis',
-    },
-    {
-      id: 9,
-      title: '網球雙打班',
-      description:
-        '專門針對雙打戰術的網球課程，學習配合技巧、站位策略與團隊默契培養。',
-      image: '/product-pic/tennis-course.jpg',
-      icon: '',
-      price: 5500,
-      duration: '8週',
-      level: '中級',
-      category: 'tennis',
-    },
-    {
-      id: 10,
-      title: '籃球戰術班',
-      description:
-        '深入籃球戰術教學，包含進攻戰術、防守體系、快攻配合等高階技巧訓練。',
-      image: '/product-pic/basketball-course.png',
-      icon: '',
-      price: 5000,
-      duration: '8週',
-      level: '進階',
-      category: 'basketball',
-    },
-    {
-      id: 11,
-      title: '排球扣球技巧班',
-      description:
-        '專門強化排球扣球技術，包含助跑、起跳、揮臂動作與扣球戰術應用。',
-      image: '/product-pic/volleyball-course.png',
-      icon: '',
-      price: 4600,
-      duration: '6週',
-      level: '中級',
-      category: 'volleyball',
-    },
-    {
-      id: 12,
-      title: '競技游泳班',
-      description:
-        '競技游泳訓練課程，專注於四式技術精進、轉身技巧與競賽策略培養。',
-      image: '/product-pic/squash-course.png',
-      icon: '',
-      price: 6000,
-      duration: '12週',
-      level: '進階',
-      category: 'swimming',
-    },
-  ]
+  // #region 數據獲取
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(
+    ['lessons', { ...queryParams, page: currentPage }],
+    async ([, params]) => {
+      // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+      return fetchLessons(params)
+    }
+  )
 
-  // ===== 分頁邏輯函數 =====
-  const updateDisplayedCourses = (coursesToDisplay, page = 1) => {
-    const startIndex = 0
-    const endIndex = page * itemsPerPage
-    const slicedCourses = coursesToDisplay.slice(startIndex, endIndex)
-    setDisplayedCourses(slicedCourses)
-  }
+  // 當數據更新時，處理分頁邏輯
+  useEffect(() => {
+    if (data) {
+      if (currentPage === 1) {
+        // 第一頁：直接設置課程
+        setCourses(data.rows || [])
+      } else {
+        // 其他頁：追加到現有課程
+        setCourses((prev) => [...prev, ...(data.rows || [])])
+      }
+      setTotalPages(data.totalPages || 1)
+      setTotalRows(data.totalRows || 0)
+    }
+  }, [data, currentPage])
 
+  // #region 副作用處理
   // ===== 載入資料 =====
   useEffect(() => {
     const loadData = async () => {
       try {
+        const locationData = await fetchLocationOptions()
+        setLocations(locationData.rows || [])
+
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
-        // 使用靜態資料代替
-        setMembers([])
-        setLocations([
-          { id: 1, name: '羽球' },
-          { id: 2, name: '桌球' },
-          { id: 3, name: '網球' },
-          { id: 4, name: '籃球' },
-          { id: 5, name: '排球' },
-          { id: 6, name: '游泳' },
-        ])
-
-        // 載入課程資料
-        setCourses(coursesData)
-        setFilteredCourses(coursesData)
-
-        // 初始顯示前6個課程
-        updateDisplayedCourses(coursesData, 1)
-        setCurrentPage(1)
       } catch (error) {
         console.error('載入資料失敗:', error)
-        // 確保課程資料還是能載入
-        setCourses(coursesData)
-        setFilteredCourses(coursesData)
-        updateDisplayedCourses(coursesData, 1)
       }
     }
     loadData()
@@ -239,46 +107,18 @@ export default function VenueListPage() {
   const handleSearch = () => {
     console.log('搜尋:', { locationId, sportId, keyword })
 
-    let filtered = coursesData
-
-    // 根據運動類型篩選
-    if (locationId) {
-      const sportMapping = {
-        1: 'badminton',
-        2: 'table-tennis',
-        3: 'tennis',
-        4: 'basketball',
-        5: 'volleyball',
-        6: 'swimming',
-      }
-
-      const targetCategory = sportMapping[locationId]
-      if (targetCategory) {
-        filtered = filtered.filter(
-          (course) => course.category === targetCategory
-        )
-      }
-    }
-
-    // 根據場館篩選
-    if (sportId) {
-      // 這裡可以根據 sportId 進一步篩選
-    }
-
-    // 根據關鍵字篩選
-    if (keyword.trim()) {
-      filtered = filtered.filter(
-        (course) =>
-          course.title.toLowerCase().includes(keyword.toLowerCase()) ||
-          course.description.toLowerCase().includes(keyword.toLowerCase()) ||
-          course.level.toLowerCase().includes(keyword.toLowerCase())
-      )
-    }
-
-    setFilteredCourses(filtered)
-    // 重置分頁並顯示篩選後的前6個課程
+    // 重置到第一頁
     setCurrentPage(1)
-    updateDisplayedCourses(filtered, 1)
+    setCourses([]) // 清空現有課程
+
+    // 更新 URL 參數，觸發 SWR 重新請求
+    const params = new URLSearchParams()
+    if (locationId) params.set('locationId', locationId)
+    if (sportId) params.set('sportId', sportId)
+    if (keyword.trim()) params.set('keyword', keyword.trim())
+    params.set('page', '1')
+
+    router.push(`/course?${params.toString()}`)
   }
 
   // ===== 重設篩選功能 =====
@@ -286,28 +126,20 @@ export default function VenueListPage() {
     setLocationId('')
     setSportId('')
     setKeyword('')
-    setDate(null)
-    setFilteredCourses(coursesData)
-    // 重置分頁
     setCurrentPage(1)
-    updateDisplayedCourses(coursesData, 1)
+    setCourses([])
+    router.push('/course')
   }
 
   // ===== 載入更多課程功能 =====
   const handleLoadMore = () => {
-    setIsLoading(true)
-
-    // 模擬載入延遲
-    setTimeout(() => {
-      const nextPage = currentPage + 1
-      setCurrentPage(nextPage)
-      updateDisplayedCourses(filteredCourses, nextPage)
-      setIsLoading(false)
-    }, 500) // 500ms 載入動畫
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1)
+    }
   }
 
   // ===== 檢查是否還有更多課程可載入 =====
-  const hasMoreCourses = displayedCourses.length < filteredCourses.length
+  const hasMoreCourses = currentPage < totalPages
 
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
@@ -401,7 +233,7 @@ export default function VenueListPage() {
           {/* 標題和篩選結果資訊 */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <p className="text-sm text-gray-600 mt-2">
+              {/* <p className="text-sm text-gray-600 mt-2">
                 {keyword.trim() && <span>關鍵字「{keyword}」</span>}
                 共找到 {filteredCourses.length} 門課程
                 {filteredCourses.length > displayedCourses.length && (
@@ -409,7 +241,7 @@ export default function VenueListPage() {
                     (顯示 {displayedCourses.length} 門)
                   </span>
                 )}
-              </p>
+              </p> */}
             </div>
 
             {/* 重設篩選按鈕 */}
@@ -425,21 +257,17 @@ export default function VenueListPage() {
 
           {/* 動態顯示課程卡片 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {displayedCourses.length > 0 ? (
-              displayedCourses.map((course) => (
+            {courses.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground py-12 text-lg">
+                <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">
+                  沒有符合資料，請重新搜尋
+                </h3>
+              </div>
+            ) : (
+              courses.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-500 text-lg">沒有找到符合條件的課程</p>
-                <Button
-                  variant="outline"
-                  onClick={handleResetFilter}
-                  className="mt-4"
-                >
-                  查看所有課程
-                </Button>
-              </div>
             )}
           </div>
 
@@ -449,10 +277,10 @@ export default function VenueListPage() {
               <Button
                 variant="outline"
                 onClick={handleLoadMore}
-                disabled={isLoading}
+                disabled={isDataLoading}
                 className="px-8 py-3"
               >
-                {isLoading ? (
+                {isDataLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                     載入中...
@@ -461,8 +289,7 @@ export default function VenueListPage() {
                   <>
                     載入更多課程
                     <span className="ml-2 text-sm text-gray-500">
-                      ({filteredCourses.length - displayedCourses.length}{' '}
-                      門課程)
+                      ({totalRows - courses.length} 門課程待載入)
                     </span>
                   </>
                 )}
@@ -471,15 +298,13 @@ export default function VenueListPage() {
           )}
 
           {/* 已載入完所有課程的提示 */}
-          {displayedCourses.length > 0 &&
-            !hasMoreCourses &&
-            filteredCourses.length > 6 && (
-              <div className="text-center mt-8">
-                <p className="text-gray-500 text-sm">
-                  已載入全部 {filteredCourses.length} 門課程
-                </p>
-              </div>
-            )}
+          {courses.length > 0 && !hasMoreCourses && totalRows > 6 && (
+            <div className="text-center mt-8">
+              <p className="text-gray-500 text-sm">
+                已載入全部 {totalRows} 門課程
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
