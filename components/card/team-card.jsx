@@ -91,13 +91,13 @@ export function TeamCard({
               <div className="self-stretch justify-start text-card-foreground text-xl font-bold leading-7 truncate">
                 {teamName || 'Team Name'}
               </div>
-              <div className="w-full justify-start text-muted-foreground text-base font-normal leading-normal truncate">
+              <div className="w-full justify-start text-muted-foreground text-sm font-normal leading-normal truncate">
                 {`${currentMembers || 0} / ${maxMembers || 0} 目前隊伍人數`}
               </div>
-              <div className="w-full justify-start text-muted-foreground text-base font-normal leading-normal truncate">
+              <div className="w-full justify-start text-muted-foreground text-sm font-normal leading-normal truncate">
                 {location || '地點'}
               </div>
-              <div className="w-full justify-start text-muted-foreground text-base font-normal leading-normal truncate">
+              <div className="w-full justify-start text-muted-foreground text-sm font-normal leading-normal truncate">
                 {time || '時間'}
               </div>
             </div>
