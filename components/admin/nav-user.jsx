@@ -76,21 +76,21 @@ export function NavUser({ user }) {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
-                Account
+                帳戶設定
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconCreditCard />
-                Billing
+                付款設定
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
-                Notifications
+                通知
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logout()}>
               <IconLogout />
-              Log out
+              登出
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

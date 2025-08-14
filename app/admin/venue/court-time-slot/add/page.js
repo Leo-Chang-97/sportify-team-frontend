@@ -246,7 +246,7 @@ export default function CourtTimeSlotPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Court Time Slot" />
+        <SiteHeader title="場地價格設定" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex justify-center gap-4 py-4 md:gap-6 md:py-6">
