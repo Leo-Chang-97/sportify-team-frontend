@@ -1,5 +1,5 @@
 // ... 您原有的 fetchMemberOptions, fetchStatusOptions 等函式
-
+import { apiClient } from '@/api/axios'
 /**
  * 取得運動選項
  * 對應後端 GET /api/team/sports
