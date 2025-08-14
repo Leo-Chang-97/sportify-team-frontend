@@ -71,6 +71,7 @@ export default function TeamPage() {
 
   // ===== 【核心修改 1】新增狀態來管理排序選項 =====
   const [sortBy, setSortBy] = useState('newest') // 預設為 "由新到舊"
+  
 
   // ===== 【核心修改 2】更新 useEffect 的依賴，當排序或頁碼改變時重新載入資料 =====
   useEffect(() => {
@@ -129,7 +130,7 @@ export default function TeamPage() {
                 <Button
                   variant="default"
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-blue-600 transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
+                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
                 >
                   創建隊伍 <ArrowRight />
                 </Button>
@@ -138,7 +139,7 @@ export default function TeamPage() {
                 <Button
                   variant="default"
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-blue-600 transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
+                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
                 >
                   我的隊伍 <ArrowRight />
                 </Button>
