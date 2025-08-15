@@ -194,7 +194,7 @@ export default function CartListPage() {
               <CardContent>
                 <Table className="w-full table-fixed">
                   <TableHeader className="border-b-2 border-card-foreground">
-                    <TableRow className="text-lg">
+                    <TableRow className="text-base font-bold">
                       <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
                         商品名稱
                       </TableHead>
