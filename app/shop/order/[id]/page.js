@@ -84,20 +84,30 @@ export default function OrderDetailPage() {
       { key: '物流方式', value: order.delivery_name || '未知' },
       { key: '付款方式', value: order.payment_name || '未知' },
       { key: '發票類型', value: order.invoice?.name || '未知' },
+    ]
+    if (order.invoice?.name === '電子載具' && order.invoice?.carrier) {
+      summaries.push({ key: '載具號碼', value: order.invoice.carrier })
+    }
+    if (order.invoice?.name === '統一編號' && order.invoice?.tax) {
+      summaries.push({ key: '統一編號', value: order.invoice.tax })
+    }
+    summaries = [
+      ...summaries,
       {
         key: '訂單狀態',
         value: (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
-            {order.status?.name === '已付款' ? (
+            {!order.status_name && <IconLoader className="mr-1" />}
+            {(order.status_name === '待出貨' ||
+              order.status_name === '已出貨' ||
+              order.status_name === '已完成') && (
               <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
-            ) : (
-              <IconLoader className="mr-1" />
             )}
-            {order.status?.name || '未知'}
+            {order.status_name || '未知'}
           </Badge>
         ),
       },
-      { key: '統一編號', value: order.invoice?.number || '' },
+      { key: '發票號碼', value: order.invoice?.number || '' },
       {
         key: '訂單金額',
         value: (

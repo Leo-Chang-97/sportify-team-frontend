@@ -305,22 +305,7 @@ export default function ProductPaymentPage() {
       const orderResult = await checkout(checkoutPayload)
 
       if (orderResult.success) {
-        // 訂單建立成功，準備成功頁面資料並存到 localStorage
-        const successData = {
-          carts: carts,
-          userInfo: formData,
-          totalPrice: totalPrice + shippingFee,
-          itemCount: itemCount,
-          shippingFee: shippingFee,
-          orderId: orderResult.data.id,
-          ...getSelectedOptions(),
-        }
-
-        // 將訂單資料存到 localStorage (給綠界付款完成後使用)
-        localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
-        // console.log('訂單資料已存入 localStorage:', successData)
-
-        // 導向 ECPay
+        // 訂單建立成功，導向 ECPay 金流頁
         router.push(
           `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
         )
@@ -485,21 +470,8 @@ export default function ProductPaymentPage() {
           const orderResult = await checkout(checkoutPayload)
 
           if (orderResult.success) {
-            // 訂單建立成功，準備成功頁面資料
-            const successData = {
-              carts: carts,
-              userInfo: formData,
-              totalPrice: totalPrice + shippingFee,
-              itemCount: itemCount,
-              shippingFee: shippingFee,
-              orderId: orderResult.data.id,
-              ...getSelectedOptions(),
-            }
-
-            // 導向成功頁面，帶上訂單資料
-            router.push(
-              `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
-            )
+            // 訂單建立成功，導向 /shop/order/success/?orderId=xxx
+            router.push(`/shop/order/success/?orderId=${orderResult.data.id}`)
           } else {
             toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
             console.error('訂單建立失敗:', orderResult)
@@ -547,24 +519,6 @@ export default function ProductPaymentPage() {
   if (isCartLoading) {
     return <LoadingState message="載入購物車資料中..." />
   }
-
-  // 暫時註解登入狀態檢查，用於測試
-  // if (!isAuthenticated) {
-  //   return (
-  //     <>
-  //       <Navbar />
-  //       <BreadcrumbAuto />
-  //       <section className="px-4 md:px-6 py-10">
-  //         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-  //           <div className="text-center py-20 text-red-500">
-  //             請先登入才能進行結帳
-  //           </div>
-  //         </div>
-  //       </section>
-  //       <Footer />
-  //     </>
-  //   )
-  // }
 
   // 錯誤狀態處理
   if (cartError) {

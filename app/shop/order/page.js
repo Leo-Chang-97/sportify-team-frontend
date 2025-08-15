@@ -34,6 +34,7 @@ import { LoadingState, ErrorState } from '@/components/loading-states'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, addProductCart, updateCarts, removeCart } from '@/api'
+import { useAuth } from '@/contexts/auth-context'
 
 const steps = [
   { id: 1, title: '確認購物車', active: true },
@@ -42,6 +43,7 @@ const steps = [
 ]
 
 export default function CartListPage() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -75,15 +77,21 @@ export default function CartListPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
+  const shouldFetch = isAuthenticated
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['carts', queryParams], async ([, params]) => {
-    const result = await getCarts(params)
-    return result
-  })
+  } = useSWR(
+    shouldFetch ? ['carts', queryParams] : null,
+    shouldFetch
+      ? async ([, params]) => {
+          const result = await getCarts(params)
+          return result
+        }
+      : null
+  )
 
   // 處理商品數量變更
   const handleQuantityChange = useCallback(
@@ -161,7 +169,7 @@ export default function CartListPage() {
   }, [data])
 
   // 載入狀態處理
-  if (isDataLoading) {
+  if (isDataLoading || authLoading) {
     return <LoadingState message="載入購物車資料中..." />
   }
 
@@ -175,6 +183,38 @@ export default function CartListPage() {
         backUrl="/shop"
         backLabel="返回商品列表"
       />
+    )
+  }
+
+  // 未登入狀態
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">請先登入</div>
+          <Link href="/login">
+            <Button variant="highlight">前往登入</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
+    )
+  }
+
+  // 購物車為空時顯示無商品與前往商城首頁按鈕
+  if (!carts || carts.length === 0) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">購物車無商品</div>
+          <Link href="/shop">
+            <Button variant="highlight">瀏覽商品</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
     )
   }
 
@@ -210,80 +250,69 @@ export default function CartListPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-card-foreground">
-                    {carts && carts.length > 0 ? (
-                      carts.map((cartItem) => {
-                        // 處理圖片路徑
-                        const product = cartItem.product
-                        const imageFileName = product.images?.[0]?.url || ''
+                    {carts.map((cartItem) => {
+                      // 處理圖片路徑
+                      const product = cartItem.product
+                      const imageFileName = product.images?.[0]?.url || ''
 
-                        return (
-                          <TableRow key={cartItem.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                                  <Image
-                                    className="object-cover w-full h-full"
-                                    src={getProductImageUrl(imageFileName)}
-                                    alt={product.name}
-                                    width={40}
-                                    height={40}
-                                  />
-                                </div>
-                                <span className="text-sm whitespace-normal text-accent-foreground">
-                                  {product.name}
-                                </span>
+                      return (
+                        <TableRow key={cartItem.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                                <Image
+                                  className="object-cover w-full h-full"
+                                  src={getProductImageUrl(imageFileName)}
+                                  alt={product.name}
+                                  width={40}
+                                  height={40}
+                                />
                               </div>
-                            </TableCell>
-                            <TableCell className="text-accent-foreground">
-                              ${formatPrice(product.price)}
-                            </TableCell>
-                            <TableCell className="text-accent-foreground">
-                              <div className="flex items-center justify-center gap-2">
-                                <span
-                                  className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
-                                  aria-label="Decrease quantity"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      cartItem.id,
-                                      cartItem.quantity - 1
-                                    )
-                                  }
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </span>
-                                <span className="w-12 text-center select-none">
-                                  {cartItem.quantity}
-                                </span>
-                                <span
-                                  className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
-                                  aria-label="Increase quantity"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      cartItem.id,
-                                      cartItem.quantity + 1
-                                    )
-                                  }
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right hidden md:table-cell text-accent-foreground">
-                              ${formatPrice(product.price * cartItem.quantity)}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="text-center py-8 text-muted-foreground"
-                        >
-                          購物車是空的
-                        </TableCell>
-                      </TableRow>
-                    )}
+                              <span className="text-sm whitespace-normal text-accent-foreground">
+                                {product.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-accent-foreground">
+                            ${formatPrice(product.price)}
+                          </TableCell>
+                          <TableCell className="text-accent-foreground">
+                            <div className="flex items-center justify-center gap-2">
+                              <span
+                                className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                                aria-label="Decrease quantity"
+                                onClick={() =>
+                                  handleQuantityChange(
+                                    cartItem.id,
+                                    cartItem.quantity - 1
+                                  )
+                                }
+                              >
+                                <Minus className="h-4 w-4" />
+                              </span>
+                              <span className="w-12 text-center select-none">
+                                {cartItem.quantity}
+                              </span>
+                              <span
+                                className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                                aria-label="Increase quantity"
+                                onClick={() =>
+                                  handleQuantityChange(
+                                    cartItem.id,
+                                    cartItem.quantity + 1
+                                  )
+                                }
+                              >
+                                <Plus className="h-4 w-4" />
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right hidden md:table-cell text-accent-foreground">
+                            ${formatPrice(product.price * cartItem.quantity)}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
