@@ -304,43 +304,38 @@ export default function PaymentPage() {
         ...getSelectedOptions(),
       })
 
-      // 先建立訂單
-      const reservationResult = await handleReservation()
+      // 準備付款參數但不立即建立訂單
+      const amount = venueData.totalPrice
+      const itemsArray = venueData.timeSlots.map(
+        (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
+      )
+      const items = itemsArray.join(',')
 
-      if (reservationResult && reservationResult.success) {
-        // 訂單建立成功，根據付款方式決定下一步
-        const reservationId = reservationResult.reservationId
-
-        // 定義 amount 和 items
-        const amount = venueData.totalPrice
-        const itemsArray = venueData.timeSlots.map(
-          (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
-        )
-        const items = itemsArray.join(',')
-
-        if (selectedPayment === '1') {
-          // 綠界
-          setPaymentParams({
-            method: 'ecpay',
-            amount,
-            items,
-            reservationId,
-          })
-          setShowPaymentDialog(true)
-        } else if (selectedPayment === '2') {
-          // Line Pay
-          setPaymentParams({
-            method: 'linepay',
-            amount,
-            items,
-            reservationId,
-          })
-          setShowPaymentDialog(true)
-        } else {
-          router.push('/venue/reservation/success')
+      if (selectedPayment === '1') {
+        // 綠界
+        setPaymentParams({
+          method: 'ecpay',
+          amount,
+          items,
+        })
+        setShowPaymentDialog(true)
+      } else if (selectedPayment === '2') {
+        // Line Pay
+        setPaymentParams({
+          method: 'linepay',
+          amount,
+          items,
+        })
+        setShowPaymentDialog(true)
+      } else {
+        // 現金付款 - 直接建立訂單並導向成功頁面
+        const reservationResult = await handleReservation()
+        if (reservationResult && reservationResult.success) {
+          router.push(
+            `/venue/reservation/success?reservationId=${reservationResult.reservationId}`
+          )
         }
       }
-      // 如果訂單建立失敗，handleReservation 內部已經處理錯誤訊息
     } else {
       // 表單驗證失敗，滾動到第一個錯誤欄位
       const errorFields = [
@@ -373,23 +368,36 @@ export default function PaymentPage() {
   }
 
   // #region 處理ECPay確認付款
-  const handlePaymentConfirm = () => {
+  const handlePaymentConfirm = async () => {
     if (!paymentParams) {
       toast.error('付款參數錯誤，請重新嘗試')
       return
     }
 
-    const { method, amount, items, reservationId } = paymentParams
+    const { method, amount, items } = paymentParams
 
-    switch (method) {
-      case 'ecpay':
-        window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
-        break
-      case 'linepay':
-        window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
-        break
-      default:
-        toast.error('不支援的付款方式')
+    // 用戶確認付款後才建立訂單
+    setIsCreatingOrder(true)
+    const reservationResult = await handleReservation()
+
+    if (reservationResult && reservationResult.success) {
+      const reservationId = reservationResult.reservationId
+
+      switch (method) {
+        case 'ecpay':
+          window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+          break
+        case 'linepay':
+          window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+          break
+        default:
+          toast.error('不支援的付款方式')
+          setIsCreatingOrder(false)
+      }
+    } else {
+      // 訂單建立失敗，不跳轉付款頁面
+      setIsCreatingOrder(false)
+      setShowPaymentDialog(false)
     }
   }
 
@@ -619,13 +627,14 @@ export default function PaymentPage() {
             <AlertDialogDescription>
               {paymentParams?.method === 'ecpay'
                 ? '確認是否導向至 ECPay(綠界金流) 進行付款？'
-                : paymentParams?.method === 'applepay'
-                  ? '確認是否使用 Apple Pay 進行付款？'
+                : paymentParams?.method === 'linepay'
+                  ? '確認是否導向至 Line Pay 進行付款？'
                   : '確認是否進行付款？'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
+              disabled={isCreatingOrder}
               onClick={() => {
                 setShowPaymentDialog(false)
                 setPaymentParams(null)
@@ -634,12 +643,12 @@ export default function PaymentPage() {
               取消
             </AlertDialogCancel>
             <AlertDialogAction
+              disabled={isCreatingOrder}
               onClick={() => {
-                setShowPaymentDialog(false)
                 handlePaymentConfirm()
               }}
             >
-              確認付款
+              {isCreatingOrder ? '建立訂單中...' : '確認付款'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
