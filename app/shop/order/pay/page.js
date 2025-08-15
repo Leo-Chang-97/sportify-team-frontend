@@ -69,11 +69,8 @@ const steps = [
 export default function ProductPaymentPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  // 暫時註解登入檢查，用於測試
-  // const { user, isAuthenticated } = useAuth()
-
-  // 測試用的會員ID - 之後要改回 useAuth
-  const TEST_USER_ID = 1
+  // 啟用會員登入狀態
+  const { user, isAuthenticated } = useAuth()
 
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
@@ -300,7 +297,7 @@ export default function ProductPaymentPage() {
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
-        memberId: TEST_USER_ID, // 使用測試用會員ID
+        memberId: user?.id, // 取用登入會員ID
         orderData: orderData,
         cartItems: cartItems,
       }
@@ -478,7 +475,7 @@ export default function ProductPaymentPage() {
 
           // 呼叫後端建立訂單
           const checkoutPayload = {
-            memberId: TEST_USER_ID, // 使用測試用會員ID
+            memberId: user?.id, // 取用登入會員ID
             orderData: orderData,
             cartItems: cartItems,
           }

@@ -47,6 +47,7 @@ import { ProductCard } from '@/components/card/product-card'
 import { PaginationBar } from '@/components/pagination-bar'
 import { LoadingState, ErrorState } from '@/components/loading-states'
 // api
+import { useAuth } from '@/contexts/auth-context'
 import {
   getProducts,
   fetchMemberOptions,
@@ -82,7 +83,7 @@ const MobileSidebar = ({
         <div className="flex-1 overflow-y-auto p-4">
           <Accordion
             type="multiple"
-            defaultValue={['sport-type','brand']}
+            defaultValue={['sport-type', 'brand']}
             className="w-full"
           >
             {/* 運動類型 */}
@@ -169,6 +170,7 @@ export default function ProductListPage() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { isAuthenticated } = useAuth()
 
   // ===== 組件狀態管理 =====
   const [members, setMembers] = useState([])
@@ -315,6 +317,15 @@ export default function ProductListPage() {
   }
 
   const handleAddToWishlist = async (productId) => {
+    if (!isAuthenticated) {
+      toast('請先登入會員才能收藏商品', {
+        action: {
+          label: '前往登入',
+          onClick: () => router.push('/login'),
+        },
+      })
+      return
+    }
     const result = await toggleFavorite(productId)
     mutate()
     if (result?.favorited) {
@@ -330,6 +341,15 @@ export default function ProductListPage() {
   }
 
   const handleAddToCart = async (productId, quantity) => {
+    if (!isAuthenticated) {
+      toast('請先登入會員才能加入購物車', {
+        action: {
+          label: '前往登入',
+          onClick: () => router.push('/login'),
+        },
+      })
+      return
+    }
     const result = await addProductCart(productId, quantity)
     mutate()
     if (result?.success) {
