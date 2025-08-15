@@ -597,7 +597,7 @@ export default function ProductPaymentPage() {
                 <CardContent>
                   <Table className="w-full table-fixed">
                     <TableHeader className="border-b-2 border-card-foreground">
-                      <TableRow className="text-lg">
+                      <TableRow className="text-base font-bold">
                         <TableHead className="font-bold w-1/2 text-accent-foreground">
                           商品名稱
                         </TableHead>
@@ -665,7 +665,43 @@ export default function ProductPaymentPage() {
                 <CardContent className="flex flex-col gap-6">
                   {/* 收件人資料 */}
                   <div className="space-y-3">
-                    <Label className="text-base font-medium">訂單人資料</Label>
+                    <div className="flex items-center mb-2 gap-4">
+                      <Label className="text-lg font-bold mb-0">
+                        收件人資料
+                      </Label>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="autoFillMember"
+                          className="mr-2"
+                          onChange={(e) => {
+                            if (e.target.checked && user) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                recipient: user.name || '',
+                                phone: user.phone || '',
+                              }))
+                              setTouchedFields((prev) => ({
+                                ...prev,
+                                recipient: true,
+                                phone: true,
+                              }))
+                              setErrors((prev) => ({
+                                ...prev,
+                                recipient: '',
+                                phone: '',
+                              }))
+                            }
+                          }}
+                        />
+                        <Label
+                          htmlFor="autoFillMember"
+                          className="cursor-pointer select-none text-sm mb-0"
+                        >
+                          同會員資料
+                        </Label>
+                      </div>
+                    </div>
                     <div className="space-y-2 grid gap-3">
                       <div className="grid w-full items-center gap-3">
                         <Label htmlFor="recipient">收件人</Label>
