@@ -165,10 +165,10 @@ const UserMenu = ({
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={() => onItemClick?.('profile')}>
-        個人檔案
+        <Link href="/member/member-data">個人檔案</Link>
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('settings')}>
-        會員中心
+      <DropdownMenuItem onClick={() => onItemClick?.('member')}>
+        <Link href="/member">會員中心</Link>
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
         購物車
@@ -220,9 +220,9 @@ export const Navbar = React.forwardRef(
         // 使用 window.location.href 強制重新載入
         window.location.href = '/admin'
       } else if (action === 'profile') {
-        router.push('/profile')
-      } else if (action === 'settings') {
-        router.push('/settings')
+        router.push('/member/member-data')
+      } else if (action === 'member') {
+        router.push('/member')
       } else if (action === 'billing') {
         router.push('/cart')
       }
