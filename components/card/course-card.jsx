@@ -81,7 +81,7 @@ const CourseCard = ({ course }) => {
 
     // 跳轉到付款頁面，並通過 URL 參數傳遞課程資料
     const queryString = encodeURIComponent(JSON.stringify(enrollmentData))
-    router.push(`/course/booking/payment?data=${queryString}`)
+    router.push(`/course/payment?data=${queryString}`)
   }
 
   return (

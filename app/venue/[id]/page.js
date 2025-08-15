@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import * as React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 
 // utils
@@ -260,12 +260,12 @@ export default function CenterDetailPage() {
   const { setVenueData } = useVenue()
 
   // #region 組件狀態管理
-  const [data, setData] = React.useState(null)
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   // #region 副作用處理
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchCenterData = async () => {
       try {
         setLoading(true)

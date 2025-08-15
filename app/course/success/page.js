@@ -32,10 +32,21 @@ const steps = [
 ]
 
 export default function CourseSuccessPage() {
+  // #region 路由和URL參數
   const searchParams = useSearchParams()
 
+  // #region 狀態管理
+  const [isSuccess, setIsSuccess] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const [lessonData, setLessonData] = useState(null)
+  const [lessonId, setLessonId] = useState('')
+  const bookingId = searchParams.get('bookingId')
+  const [bookingData, setBookingData] = useState(null)
+
   // 訂單資訊狀態
-  const [orderData, setOrderData] = useState({
+  /* const [orderData, setOrderData] = useState({
     // 課程資訊
     courseName: '桌球基礎班',
     courseType: '團體課程',
@@ -62,10 +73,10 @@ export default function CourseSuccessPage() {
     // 付款資訊
     paymentMethod: '線上付款',
     receiptType: '個人發票',
-  })
+  }) */
 
   // 從 URL 參數讀取訂單資訊
-  useEffect(() => {
+  /* useEffect(() => {
     const dataParam = searchParams.get('data')
     if (dataParam) {
       try {
@@ -158,7 +169,69 @@ export default function CourseSuccessPage() {
         </span>
       ),
     },
-  ]
+  ] */
+
+  // #region Booking 訂單資料
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      if (!bookingId) {
+        setError('未找到訂單 ID')
+        setIsSuccess(false)
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        const result = await fetchBooking(bookingId)
+
+        if (result.success && result.record) {
+          setBookingData(result.record)
+          setIsSuccess(true)
+
+          // 提取 lessonId 並取得場館資料
+          const firstSlot = result.record.courtTimeSlots?.[0]
+          if (firstSlot && firstSlot.lessonId) {
+            setLessonId(firstSlot.lessonId)
+          }
+        } else {
+          setError(result.message || '取得訂單資料失敗')
+          setIsSuccess(false)
+        }
+      } catch (err) {
+        console.error('取得訂單資料錯誤:', err)
+        setError('載入訂單資料時發生錯誤')
+        setIsSuccess(false)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrderData()
+  }, [bookingId])
+
+  // #region Lesson 中心資料
+  useEffect(() => {
+    const fetchLessonData = async () => {
+      if (!lessonId) return
+
+      try {
+        const lessonResult = await fetchLesson(lessonId)
+
+        if (lessonResult.success && lessonResult.record) {
+          setLessonData(lessonResult.record)
+        } else {
+          console.error('取得 Lesson 資料失敗:', lessonResult.message)
+        }
+      } catch (err) {
+        console.error('Error fetching lesson detail:', err)
+        console.error('載入場館資料失敗')
+      }
+    }
+
+    fetchLessonData()
+  }, [lessonId])
+
   return (
     <>
       <Navbar />
