@@ -220,9 +220,9 @@ export const Navbar = React.forwardRef(
         // 使用 window.location.href 強制重新載入
         window.location.href = '/admin'
       } else if (action === 'profile') {
-        router.push('/profile')
-      } else if (action === 'settings') {
-        router.push('/settings')
+        router.push('/member/member-data')
+      } else if (action === 'member') {
+        router.push('/member')
       } else if (action === 'billing') {
         router.push('/cart')
       }
