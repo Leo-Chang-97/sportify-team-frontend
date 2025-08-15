@@ -103,6 +103,7 @@ export default function VenueListPage() {
     loadData()
   }, [])
 
+  // #region 事件處理函數
   // ===== 搜尋和篩選功能 =====
   const handleSearch = () => {
     console.log('搜尋:', { locationId, sportId, keyword })
@@ -138,6 +139,7 @@ export default function VenueListPage() {
     }
   }
 
+  // #region 資料顯示選項
   // ===== 檢查是否還有更多課程可載入 =====
   const hasMoreCourses = currentPage < totalPages
 
@@ -204,6 +206,7 @@ export default function VenueListPage() {
     },
   ]
 
+  // #region Markup
   return (
     <>
       <Navbar />

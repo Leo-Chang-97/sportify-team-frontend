@@ -65,6 +65,7 @@ export default function PaymentPage() {
   // #region 路由和URL參數
   const router = useRouter()
   const { user } = useAuth()
+
   // #region 狀態管理
   const [centerData, setCenterData] = useState(null)
   const [isCreatingOrder, setIsCreatingOrder] = useState(false) // 建立訂單載入狀態
@@ -81,7 +82,7 @@ export default function PaymentPage() {
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    phone: '',
+    phone: user?.phone || '',
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
   })
@@ -124,6 +125,14 @@ export default function PaymentPage() {
       ...prev,
       [field]: value,
     }))
+
+    // 清除該欄位的錯誤
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: '',
+      }))
+    }
   }
 
   // 獲取選中的付款和發票選項
@@ -444,7 +453,7 @@ export default function PaymentPage() {
                         <Input
                           type="text"
                           id="name"
-                          placeholder="姓名"
+                          placeholder="請輸入姓名"
                           className={cn(
                             'w-full',
                             errors.name &&
@@ -466,7 +475,7 @@ export default function PaymentPage() {
                         <Input
                           type="text"
                           id="phone"
-                          placeholder="電話"
+                          placeholder="請填寫電話號碼(例：0912345678)"
                           className={cn(
                             'w-full',
                             errors.phone &&
