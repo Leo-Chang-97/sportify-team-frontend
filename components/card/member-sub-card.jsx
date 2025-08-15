@@ -51,48 +51,48 @@ const MemberSubCard = () => {
               退貨/退款程序說明{' '}
             </div>
           </div>
-          <div className="w-6 h-6 relative">
+          <div className="w-6 h-6 relative flex items-center justify-center">
             <ArrowRightIcon />
           </div>
         </div>
-      </div>
-      <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
-        <div className="flex-1 flex justify-start items-center gap-4">
-          <div className="w-6 h-6 relative">
-            <QuestionIcon />
+        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+          <div className="flex-1 flex justify-start items-center gap-4">
+            <div className="w-6 h-6 relative">
+              <QuestionIcon />
+            </div>
+            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+              會員常見問題{' '}
+            </div>
           </div>
-          <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
-            會員常見問題{' '}
-          </div>
-        </div>
-        <div className="w-6 h-6 relative">
-          <ArrowRightIcon />
-        </div>
-      </div>
-      <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
-        <div className="flex-1 flex justify-start items-center gap-4">
-          <div className="w-6 h-6 relative">
-            <FileDockIcon />
-          </div>
-          <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
-            客服聯絡紀錄
+          <div className="w-6 h-6 relative flex items-center justify-center">
+            <ArrowRightIcon />
           </div>
         </div>
-        <div className="w-6 h-6 relative">
-          <ArrowRightIcon />
-        </div>
-      </div>
-      <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
-        <div className="flex-1 flex justify-start items-center gap-4">
-          <div className="w-6 h-6 relative">
-            <PhoneIcon />
+        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+          <div className="flex-1 flex justify-start items-center gap-4">
+            <div className="w-6 h-6 relative">
+              <FileDockIcon />
+            </div>
+            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+              客服聯絡紀錄
+            </div>
           </div>
-          <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
-            聯繫客服
+          <div className="w-6 h-6 relative flex items-center justify-center">
+            <ArrowRightIcon />
           </div>
         </div>
-        <div className="w-6 h-6 relative">
-          <ArrowRightIcon />
+        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+          <div className="flex-1 flex justify-start items-center gap-4">
+            <div className="w-6 h-6 relative">
+              <PhoneIcon />
+            </div>
+            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+              聯繫客服
+            </div>
+          </div>
+          <div className="w-6 h-6 relative flex items-center justify-center">
+            <ArrowRightIcon />
+          </div>
         </div>
       </div>
     </div>

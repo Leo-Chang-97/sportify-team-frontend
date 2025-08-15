@@ -2,6 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Calendar } from '@/components/ui/calendar'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 
 export default function FormCard() {
   const { user, updateUserProfile } = useAuth()
@@ -17,6 +36,7 @@ export default function FormCard() {
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const [errors, setErrors] = useState({})
+  const [date, setDate] = useState(null)
 
   // 當用戶資料載入時，初始化表單資料
   useEffect(() => {
@@ -26,6 +46,7 @@ export default function FormCard() {
 
       // 處理日期格式
       let birthdayValue = ''
+      let dateValue = null
       if (user.birth) {
         // 如果後端回傳的是 ISO 日期字串，轉換為 YYYY-MM-DD 格式
         if (typeof user.birth === 'string') {
@@ -33,6 +54,7 @@ export default function FormCard() {
             const date = new Date(user.birth)
             if (!isNaN(date.getTime())) {
               birthdayValue = date.toISOString().split('T')[0]
+              dateValue = date
             }
           } catch (error) {
             console.error('日期轉換錯誤:', error)
@@ -52,6 +74,7 @@ export default function FormCard() {
         birthday: birthdayValue,
         address: user.address || '',
       })
+      setDate(dateValue)
       setIsInitialized(true)
     }
   }, [user, isInitialized])
@@ -68,6 +91,16 @@ export default function FormCard() {
         ...prev,
         [field]: '',
       }))
+    }
+  }
+
+  const handleDateSelect = (selectedDate) => {
+    setDate(selectedDate)
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split('T')[0]
+      handleInputChange('birthday', formattedDate)
+    } else {
+      handleInputChange('birthday', '')
     }
   }
 
@@ -156,12 +189,14 @@ export default function FormCard() {
 
           // 處理生日欄位
           let birthdayValue = formData.birthday
+          let dateValue = date
           if (result.user.birth) {
             if (typeof result.user.birth === 'string') {
               try {
-                const date = new Date(result.user.birth)
-                if (!isNaN(date.getTime())) {
-                  birthdayValue = date.toISOString().split('T')[0]
+                const newDate = new Date(result.user.birth)
+                if (!isNaN(newDate.getTime())) {
+                  birthdayValue = newDate.toISOString().split('T')[0]
+                  dateValue = newDate
                 }
               } catch (error) {
                 console.error('日期轉換錯誤:', error)
@@ -181,6 +216,7 @@ export default function FormCard() {
             birthday: birthdayValue,
             address: result.user.address || '',
           })
+          setDate(dateValue)
         } else {
           // 如果後端沒有回傳用戶資料，至少保持當前表單的值
           setFormData((prev) => ({
@@ -232,10 +268,10 @@ export default function FormCard() {
   }
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1200px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
-          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold leading-normal">
             帳號設定
           </div>
         </div>
@@ -249,29 +285,25 @@ export default function FormCard() {
 
         <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+            <Label className="text-slate-900 text-base sm:text-xl">
               email帳號
-            </div>
-            <input
+            </Label>
+            <Input
               type="email"
               value={formData.email}
               readOnly
               disabled
-              className="self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] outline-gray-500 text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-gray-100 text-gray-600 cursor-not-allowed text-sm sm:text-base"
+              className="bg-gray-100 text-slate-900 cursor-not-allowed"
             />
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
-              密碼
-            </div>
-            <input
+            <Label className="text-slate-900 text-base sm:text-xl">密碼</Label>
+            <Input
               type="password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               placeholder="請輸入新密碼（留空表示不修改）"
-              className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
-                errors.password ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
+              className={`text-slate-900 ${errors.password ? 'border-red-500' : ''}`}
             />
             <div className="h-4 flex items-center">
               {errors.password && (
@@ -283,23 +315,19 @@ export default function FormCard() {
           </div>
         </div>
         <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
-          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold leading-normal">
             個人檔案
           </div>
         </div>
         <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
-              姓名
-            </div>
-            <input
+            <Label className="text-slate-900 text-base sm:text-xl">姓名</Label>
+            <Input
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="請輸入姓名"
-              className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
-                errors.name ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
+              className={`text-slate-900 ${errors.name ? 'border-red-500' : ''}`}
             />
             <div className="h-4 flex items-center">
               {errors.name && (
@@ -310,17 +338,13 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
-              手機
-            </div>
-            <input
+            <Label className="text-slate-900 text-base sm:text-xl">手機</Label>
+            <Input
               type="tel"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="請輸入手機號碼"
-              className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
-                errors.phone ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
+              className={`text-slate-900 ${errors.phone ? 'border-red-500' : ''}`}
             />
             <div className="h-4 flex items-center">
               {errors.phone && (
@@ -331,35 +355,60 @@ export default function FormCard() {
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
-              性別
-            </div>
-            <select
+            <Label className="text-slate-900 text-base sm:text-xl">性別</Label>
+            <Select
               value={formData.gender}
-              onChange={(e) => handleInputChange('gender', e.target.value)}
-              className="w-full sm:w-80 px-2 py-1 bg-white rounded-md outline outline-1 outline-offset-[-1px] outline-slate-900 text-slate-900 font-normal font-['Noto_Sans_TC'] leading-normal focus:outline-orange-500 focus:outline-2 text-sm sm:text-base"
+              onValueChange={(value) => handleInputChange('gender', value)}
             >
-              <option value="">請選擇性別</option>
-              <option value="male">男性</option>
-              <option value="female">女性</option>
-              <option value="other">不公開</option>
-            </select>
+              <SelectTrigger className="w-full sm:w-80 text-slate-900">
+                <SelectValue placeholder="請選擇性別" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male" className="text-slate-900">
+                  男性
+                </SelectItem>
+                <SelectItem value="female" className="text-slate-900">
+                  女性
+                </SelectItem>
+                <SelectItem value="other" className="text-slate-900">
+                  不公開
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <div className="h-4 flex items-center">
               {/* 性別欄位目前沒有驗證，但保留空間以保持一致性 */}
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
-              生日
-            </div>
-            <input
-              type="date"
-              value={formData.birthday}
-              onChange={(e) => handleInputChange('birthday', e.target.value)}
-              className={`self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] ${
-                errors.birthday ? 'outline-red-500' : 'outline-gray-500'
-              } text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base`}
-            />
+            <Label className="text-slate-900 text-base sm:text-xl">生日</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className={`w-full justify-start text-left font-normal hover:bg-primary/10 ${
+                    errors.birthday ? 'border-red-500' : ''
+                  }`}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? (
+                    format(date, 'PPP', { locale: zhTW })
+                  ) : (
+                    <span className="text-muted-foreground">選擇日期</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={handleDateSelect}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date('1900-01-01')
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
             <div className="h-4 flex items-center">
               {errors.birthday && (
                 <div className="text-red-500 text-xs sm:text-sm">
@@ -369,15 +418,15 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-slate-900 text-base sm:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
+            <Label className="text-slate-900 text-base sm:text-xl">
               聯絡地址
-            </div>
-            <input
+            </Label>
+            <Input
               type="text"
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               placeholder="請輸入聯絡地址"
-              className="self-stretch px-2.5 py-2 rounded outline outline-1 outline-offset-[-1px] outline-gray-500 text-slate-900 font-bold font-['Noto_Sans_TC'] leading-normal bg-transparent focus:outline-orange-500 focus:outline-2 text-sm sm:text-base"
+              className="text-slate-900"
             />
             <div className="h-4 flex items-center">
               {/* 地址欄位目前沒有驗證，但保留空間以保持一致性 */}
@@ -385,19 +434,14 @@ export default function FormCard() {
           </div>
         </div>
         <div className="w-full py-4 sm:py-6 md:py-8">
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={isLoading}
-            className={`px-6 sm:px-8 md:px-12 py-3 sm:py-4 w-full rounded-lg outline outline-1 outline-orange-500 inline-flex justify-center items-center overflow-hidden transition ${
-              isLoading
-                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                : 'hover:bg-orange-500 hover:text-white'
-            }`}
+            variant="default"
+            className="w-full px-6 sm:px-8 md:px-12 py-3 sm:py-4 text-base sm:text-lg md:text-xl font-bold "
           >
-            <div className="justify-start text-slate-900 text-base sm:text-lg md:text-xl font-bold font-['Noto_Sans_TC'] leading-normal">
-              {isLoading ? '儲存中...' : '儲存'}
-            </div>
-          </button>
+            {isLoading ? '儲存中...' : '儲存'}
+          </Button>
         </div>
       </div>
     </div>

@@ -30,7 +30,7 @@ export default function ScrollAreaMember() {
       <div className="container mx-auto flex flex-col max-w-screen-xl items-center ">
         {/* <h3 className="text-lg text-white mb-8">GUEST</h3> */}
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex justify-between items-center px-4 py-10 min-w-full">
+          <div className="grid grid-cols-3 md:flex md:justify-between items-center px-4 py-10 min-w-full gap-4 md:gap-0">
             {memberItems.map((item, idx) => {
               const IconComponent = item.icon
               const isActive = pathname === item.path
