@@ -69,11 +69,8 @@ const steps = [
 export default function ProductPaymentPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  // 暫時註解登入檢查，用於測試
-  // const { user, isAuthenticated } = useAuth()
-
-  // 測試用的會員ID - 之後要改回 useAuth
-  const TEST_USER_ID = 1
+  // 啟用會員登入狀態
+  const { user, isAuthenticated } = useAuth()
 
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
@@ -300,7 +297,7 @@ export default function ProductPaymentPage() {
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
-        memberId: TEST_USER_ID, // 使用測試用會員ID
+        memberId: user?.id, // 取用登入會員ID
         orderData: orderData,
         cartItems: cartItems,
       }
@@ -478,7 +475,7 @@ export default function ProductPaymentPage() {
 
           // 呼叫後端建立訂單
           const checkoutPayload = {
-            memberId: TEST_USER_ID, // 使用測試用會員ID
+            memberId: user?.id, // 取用登入會員ID
             orderData: orderData,
             cartItems: cartItems,
           }
@@ -600,7 +597,7 @@ export default function ProductPaymentPage() {
                 <CardContent>
                   <Table className="w-full table-fixed">
                     <TableHeader className="border-b-2 border-card-foreground">
-                      <TableRow className="text-lg">
+                      <TableRow className="text-base font-bold">
                         <TableHead className="font-bold w-1/2 text-accent-foreground">
                           商品名稱
                         </TableHead>
@@ -668,7 +665,43 @@ export default function ProductPaymentPage() {
                 <CardContent className="flex flex-col gap-6">
                   {/* 收件人資料 */}
                   <div className="space-y-3">
-                    <Label className="text-base font-medium">訂單人資料</Label>
+                    <div className="flex items-center mb-2 gap-4">
+                      <Label className="text-lg font-bold mb-0">
+                        收件人資料
+                      </Label>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="autoFillMember"
+                          className="mr-2"
+                          onChange={(e) => {
+                            if (e.target.checked && user) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                recipient: user.name || '',
+                                phone: user.phone || '',
+                              }))
+                              setTouchedFields((prev) => ({
+                                ...prev,
+                                recipient: true,
+                                phone: true,
+                              }))
+                              setErrors((prev) => ({
+                                ...prev,
+                                recipient: '',
+                                phone: '',
+                              }))
+                            }
+                          }}
+                        />
+                        <Label
+                          htmlFor="autoFillMember"
+                          className="cursor-pointer select-none text-sm mb-0"
+                        >
+                          同會員資料
+                        </Label>
+                      </div>
+                    </div>
                     <div className="space-y-2 grid gap-3">
                       <div className="grid w-full items-center gap-3">
                         <Label htmlFor="recipient">收件人</Label>
