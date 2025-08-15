@@ -261,14 +261,14 @@ export default function FormCard() {
   // 如果還沒載入用戶資料，顯示載入中
   if (!user) {
     return (
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1200px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 flex items-center justify-center">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1200px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="text-lg">載入中...</div>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
           <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold leading-normal">
@@ -285,7 +285,7 @@ export default function FormCard() {
 
         <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">
+            <Label className="text-slate-900 text-base sm:text-base">
               email帳號
             </Label>
             <Input
@@ -297,7 +297,9 @@ export default function FormCard() {
             />
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">密碼</Label>
+            <Label className="text-slate-900 text-base sm:text-base">
+              密碼
+            </Label>
             <Input
               type="password"
               value={formData.password}
@@ -321,7 +323,9 @@ export default function FormCard() {
         </div>
         <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">姓名</Label>
+            <Label className="text-slate-900 text-base sm:text-base">
+              姓名
+            </Label>
             <Input
               type="text"
               value={formData.name}
@@ -338,7 +342,9 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">手機</Label>
+            <Label className="text-slate-900 text-base sm:text-base">
+              手機
+            </Label>
             <Input
               type="tel"
               value={formData.phone}
@@ -355,7 +361,9 @@ export default function FormCard() {
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">性別</Label>
+            <Label className="text-slate-900 text-base sm:text-base">
+              性別
+            </Label>
             <Select
               value={formData.gender}
               onValueChange={(value) => handleInputChange('gender', value)}
@@ -380,7 +388,9 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">生日</Label>
+            <Label className="text-slate-900 text-base sm:text-base">
+              生日
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -418,7 +428,7 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-xl">
+            <Label className="text-slate-900 text-base sm:text-base">
               聯絡地址
             </Label>
             <Input

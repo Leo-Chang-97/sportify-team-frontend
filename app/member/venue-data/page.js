@@ -1,20 +1,38 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+// hooks
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+
+// 資料請求函式庫
+import useSWR from 'swr'
+
+// Icon
+import { AlertCircle, Star, Search } from 'lucide-react'
+
+// API 請求
+import { fetchLocationOptions, fetchSportOptions } from '@/api'
+import { fetchCenters } from '@/api/venue/center'
+
+// UI 元件
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+
+// 自訂元件
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBannerMember from '@/components/hero-banner-member'
 import ScrollAreaMember from '@/components/scroll-area-member'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { PaginationBar } from '@/components/pagination-bar'
+import { CenterCard } from '@/components/card/center-card'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 
 export default function VenueDataPage() {
   const order = [
@@ -33,6 +51,46 @@ export default function VenueDataPage() {
     },
   ]
 
+  // #region 路由和URL參數
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+
+  // #region 狀態管理
+  const [locationId, setLocationId] = useState('')
+  const [sportId, setSportId] = useState('')
+  const [minRating, setMinRating] = useState('')
+  const [keyword, setKeyword] = useState('')
+  const [date, setDate] = useState(null)
+
+  const [locations, setLocations] = useState([])
+  const [sports, setSports] = useState([])
+
+  const [errors, setErrors] = useState({})
+  const [open, setOpen] = useState(false)
+
+  // #region 數據獲取
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(['centers', queryParams], async ([, params]) => {
+    // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+    return fetchCenters(params)
+  })
+  const handlePagination = (targetPage) => {
+    const perPage = data?.perPage || 8
+    const newParams = new URLSearchParams(searchParams.toString())
+    newParams.set('page', String(targetPage))
+    newParams.set('perPage', String(perPage))
+    router.push(`?${newParams.toString()}`)
+  }
+
+
   return (
     <>
       <Navbar />
@@ -43,65 +101,32 @@ export default function VenueDataPage() {
         overlayOpacity="bg-primary/50"
       ></HeroBannerMember>
       <ScrollAreaMember />
-      <section className="py-10">
-        <div className="container flex justify-center mx-auto max-w-screen-xl px-4">
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableHeader className="border-b-2 border-card-foreground">
-                <TableRow className="text-lg">
-                  <TableHead className="font-bold w-1/2 text-accent-foreground">
-                    訂單編號
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground">
-                    進度
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center">
-                    訂單金額
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center">
-                    操作
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-foreground">
-                {order.map((orderItem) => {
-                  // 只顯示與 table header 對應的欄位
-                  const filteredData = {
-                    訂單編號: orderItem.item.訂單編號,
-                    進度: '處理中', // 假設的進度狀態
-                    訂單金額: orderItem.item.訂單金額,
-                  }
-
-                  return (
-                    <TableRow
-                      key={orderItem.id}
-                      className="border-b border-card-foreground"
-                    >
-                      <TableCell className="font-bold text-base py-2 text-accent-foreground align-top">
-                        {filteredData.訂單編號}
-                      </TableCell>
-                      <TableCell className="text-base py-2 text-accent-foreground align-top">
-                        {filteredData.進度}
-                      </TableCell>
-                      <TableCell className="text-base py-2 text-accent-foreground align-top text-center">
-                        NTD${filteredData.訂單金額}
-                      </TableCell>
-                      <TableCell className="py-2 align-top justify-center text-center flex gap-2">
-                        <Button className="w-[80px] bg-transparent border border-primary text-primary hover:bg-transparent hover:text-primary">
-                          取消
-                        </Button>
-                        <Button variant="outline" className="w-[80px]">
-                          詳細
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+      <main className="px-4 md:px-6 py-10">
+        <div className="flex flex-col container mx-auto max-w-screen-xl gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {data?.rows.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground py-12 text-lg">
+                <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">
+                  沒有符合資料，請重新搜尋
+                </h3>
+              </div>
+            ) : (
+              data?.rows.map((data) => <CenterCard key={data.id} data={data} />)
+            )}
           </div>
+          {data?.rows.length > 0 && (
+            <PaginationBar
+              page={data.page}
+              totalPages={data.totalPages}
+              perPage={data.perPage}
+              onPageChange={(targetPage) => {
+                handlePagination(targetPage)
+              }}
+            />
+          )}
         </div>
-      </section>
+      </main>
       <Footer />
     </>
   )

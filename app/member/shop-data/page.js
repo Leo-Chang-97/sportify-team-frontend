@@ -7,6 +7,7 @@ import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBannerMember from '@/components/hero-banner-member'
 import ScrollAreaMember from '@/components/scroll-area-member'
+import PaginationBar from '@/components/pagination-bar'
 import {
   Table,
   TableBody,
@@ -150,6 +151,7 @@ export default function ShopDataPage() {
                       </div>
                     </div>
                   </div>
+
                 )
               })}
             </div>

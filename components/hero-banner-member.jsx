@@ -180,7 +180,7 @@ export default function HeroBanner({
               </div>
             </div>
           </div>
-          <div className="w-[1140px] max-w-[1140px] flex flex-col justify-center items-center ">
+          <div className="w-full max-w-[1140px] flex flex-col justify-center items-center ">
             <div className="relative group">
               <img
                 className="w-28 h-28 rounded-full cursor-pointer transition-opacity group-hover:opacity-80"
