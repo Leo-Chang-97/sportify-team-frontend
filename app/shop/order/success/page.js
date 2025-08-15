@@ -5,8 +5,10 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaXmark, FaCheck } from 'react-icons/fa6'
+import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
 // components/ui
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -100,30 +102,83 @@ export default function ProductSuccessPage() {
     )
   }
 
-  // 建立訂單詳情物件
-  const orderDetails = {
-    訂單編號: orderData.orderId || '尚未分配',
-    收件人: orderData.userInfo?.recipient || '',
-    手機號碼: orderData.userInfo?.phone || '',
-    // 只有當物流方式是宅配時才顯示收件地址
-    ...(orderData.deliveryMethod?.includes('宅配') && {
-      收件地址: orderData.userInfo?.address || '',
-    }),
-    ...(orderData.deliveryMethod?.includes('7-11') && {
-      取貨門市: orderData.userInfo?.storeName || '',
-    }),
-    物流方式: orderData.deliveryMethod || '',
-    付款方式: orderData.paymentMethod || '',
-    發票類型: orderData.receiptType || '',
-    統一編號: orderData.userInfo?.companyId || '',
-    載具號碼: orderData.userInfo?.carrierId || '',
-    訂單金額: orderData.totalPrice || 0,
-  }
-
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
     return Number(price).toLocaleString('zh-TW')
   }
+
+  const summaries = [
+    {
+      key: '訂單編號',
+      value: orderData.orderId || '尚未分配',
+    },
+    {
+      key: '收件人',
+      value: orderData.userInfo?.recipient || '未知',
+    },
+    {
+      key: '手機號碼',
+      value: orderData.userInfo?.phone || '未知',
+    },
+    // 物流方式相關
+    ...(orderData.deliveryMethod?.includes('宅配')
+      ? [
+          {
+            key: '收件地址',
+            value: orderData.userInfo?.address || '未知',
+          },
+        ]
+      : []),
+    ...(orderData.deliveryMethod?.includes('7-11')
+      ? [
+          {
+            key: '取貨門市',
+            value: orderData.userInfo?.storeName || '未知',
+          },
+        ]
+      : []),
+    {
+      key: '物流方式',
+      value: orderData.deliveryMethod || '未知',
+    },
+    {
+      key: '付款方式',
+      value: orderData.paymentMethod || '未知',
+    },
+    {
+      key: '發票類型',
+      value: orderData.receiptType || '未知',
+    },
+    {
+      key: '訂單狀態',
+      value: (
+        <Badge variant="outline" className="text-muted-foreground px-1.5">
+          {orderData.status?.name === '已付款' ? (
+            <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
+          ) : (
+            <IconLoader className="mr-1" />
+          )}
+          {orderData.status?.name || '未知'}
+        </Badge>
+      ),
+    },
+    {
+      key: '統一編號',
+      value: orderData.userInfo?.companyId || '',
+    },
+    {
+      key: '載具號碼',
+      value: orderData.userInfo?.carrierId || '',
+    },
+    {
+      key: '訂單金額',
+      value: (
+        <span className="text-lg font-bold text-primary">
+          NT$ {formatPrice(orderData.totalPrice || 0)}
+        </span>
+      ),
+    },
+  ]
 
   return (
     <>
@@ -163,26 +218,24 @@ export default function ProductSuccessPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <Table className="w-full table-fixed">
-                      <TableBody className="divide-y divide-foreground">
-                        {Object.entries(orderDetails)
+                      <TableBody>
+                        {summaries
                           .filter(
-                            ([key, value]) =>
-                              value !== '' &&
-                              value !== null &&
-                              value !== undefined
+                            (summary) =>
+                              summary.value !== '' &&
+                              summary.value !== null &&
+                              summary.value !== undefined
                           )
-                          .map(([key, value]) => (
+                          .map((summary) => (
                             <TableRow
-                              key={key}
+                              key={summary.key}
                               className="border-b border-muted-foreground/30"
                             >
                               <TableCell className="font-medium">
-                                {key}
+                                {summary.key}
                               </TableCell>
                               <TableCell className="text-right">
-                                {key === '訂單金額'
-                                  ? `NTD$${formatPrice(value)}`
-                                  : value}
+                                {summary.value}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -193,11 +246,14 @@ export default function ProductSuccessPage() {
               </div>
               {/* 商品明細 */}
               <div>
-                <Card>
+                <Card className="gap-0">
+                  <CardHeader>
+                    <h2 className="text-lg font-semibold">商品明細</h2>
+                  </CardHeader>
                   <CardContent>
                     <Table className="w-full table-fixed">
                       <TableHeader className="border-b-2 border-card-foreground">
-                        <TableRow className="text-lg">
+                        <TableRow className="text-base">
                           <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
                             商品名稱
                           </TableHead>
@@ -229,7 +285,7 @@ export default function ProductSuccessPage() {
                                         height={40}
                                       />
                                     </div>
-                                    <span className="text-base whitespace-normal text-accent-foreground">
+                                    <span className="text-sm whitespace-normal text-accent-foreground">
                                       {product.name}
                                     </span>
                                   </div>

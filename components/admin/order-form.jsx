@@ -467,7 +467,7 @@ export default function OrderForm({
   // ===== 主要表單渲染 =====
   return (
     <>
-      <Card>
+      <Card className="max-w-4xl mx-auto w-full">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
