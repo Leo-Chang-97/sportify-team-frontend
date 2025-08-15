@@ -110,7 +110,7 @@ export default function ProductSuccessPage() {
       收件地址: orderData.userInfo?.address || '',
     }),
     ...(orderData.deliveryMethod?.includes('7-11') && {
-      門市名稱: orderData.storeName || '',
+      取貨門市: orderData.userInfo?.storeName || '',
     }),
     物流方式: orderData.deliveryMethod || '',
     付款方式: orderData.paymentMethod || '',

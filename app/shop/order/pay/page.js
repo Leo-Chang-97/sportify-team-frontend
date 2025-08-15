@@ -89,6 +89,7 @@ export default function ProductPaymentPage() {
     recipient: '',
     phone: '',
     address: '',
+    storeName: '',
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
   })
@@ -132,6 +133,24 @@ export default function ProductPaymentPage() {
       setCarts(cartData.data.cart.cartItems)
     }
   }, [cartData])
+
+  // 接收 7-11 選擇門市後的資料
+  useEffect(() => {
+    const handleStoreMessage = (event) => {
+      if (event.data?.storename) {
+        setFormData((prev) => ({
+          ...prev,
+          storeName: event.data.storename,
+        }))
+      }
+    }
+
+    window.addEventListener('message', handleStoreMessage)
+
+    return () => {
+      window.removeEventListener('message', handleStoreMessage)
+    }
+  }, [])
 
   // ===== 事件處理函數 =====
   const handleInputChange = (field, value) => {
@@ -262,19 +281,22 @@ export default function ProductPaymentPage() {
         quantity: cartItem.quantity,
       }))
 
-      // 先建立訂單到資料庫
       const orderData = {
-        recipient: formData.recipient,
-        phone: formData.phone,
-        address: formData.address || '', // 如果不是宅配可能為空
-        deliveryId: parseInt(selectedDelivery), // 轉換為數字
-        paymentId: parseInt(selectedPayment), // 轉換為數字
+        ...formData, // formData 必須和後端欄位名稱一致
+
+        // 確保數字型欄位轉型
+        deliveryId: parseInt(selectedDelivery, 10),
+        paymentId: parseInt(selectedPayment, 10),
+
+        // 發票資料獨立處理
         invoiceData: {
-          invoiceId: parseInt(selectedReceipt), // 轉換為數字
+          invoiceId: parseInt(selectedReceipt, 10),
           carrier: formData.carrierId || null,
           tax: formData.companyId || null,
         },
       }
+      // Debug 用
+      console.log('送出前的 orderData', orderData)
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
@@ -354,35 +376,58 @@ export default function ProductPaymentPage() {
   const handlePayment = async () => {
     // 先執行驗證並獲取錯誤
     const newErrors = {}
+    // 共用必填欄位
     newErrors.recipient = validateField(
       'recipient',
       formData.recipient || '',
       true
     )
     newErrors.phone = validateField('phone', formData.phone || '', true)
-    newErrors.address = validateField(
-      'address',
-      formData.address || '',
-      true,
-      selectedDelivery
-    )
     newErrors.delivery = validateField('delivery', selectedDelivery || '', true)
     newErrors.payment = validateField('payment', selectedPayment || '', true)
     newErrors.receipt = validateField('receipt', selectedReceipt || '', true)
-    newErrors.carrierId = validateField(
-      'carrierId',
-      formData.carrierId || '',
-      true,
-      '',
-      selectedReceipt
-    )
-    newErrors.companyId = validateField(
-      'companyId',
-      formData.companyId || '',
-      true,
-      '',
-      selectedReceipt
-    )
+
+    // 宅配 → 驗證 address
+    if (selectedDelivery === '3') {
+      newErrors.address = validateField(
+        'address',
+        formData.address || '',
+        true,
+        selectedDelivery
+      )
+    }
+
+    // 7-11 取貨 → 驗證 storeName
+    if (selectedDelivery === '1') {
+      newErrors.storeName = validateField(
+        'storeName',
+        formData.storeName || '',
+        true,
+        selectedDelivery
+      )
+    }
+
+    // 電子載具 → 驗證 carrierId
+    if (selectedReceipt === '3') {
+      newErrors.carrierId = validateField(
+        'carrierId',
+        formData.carrierId || '',
+        true,
+        '',
+        selectedReceipt
+      )
+    }
+
+    // 統一編號 → 驗證 companyId
+    if (selectedReceipt === '2') {
+      newErrors.companyId = validateField(
+        'companyId',
+        formData.companyId || '',
+        true,
+        '',
+        selectedReceipt
+      )
+    }
 
     setErrors(newErrors)
 
@@ -391,6 +436,7 @@ export default function ProductPaymentPage() {
       recipient: true,
       phone: true,
       address: true,
+      storeName: true,
       delivery: true,
       payment: true,
       receipt: true,
@@ -420,6 +466,7 @@ export default function ProductPaymentPage() {
             recipient: formData.recipient,
             phone: formData.phone,
             address: formData.address || '', // 如果不是宅配可能為空
+            storeName: formData.storeName || '',
             deliveryId: parseInt(selectedDelivery), // 轉換為數字
             paymentId: parseInt(selectedPayment), // 轉換為數字
             invoiceData: {
@@ -471,6 +518,7 @@ export default function ProductPaymentPage() {
         { field: 'recipient', selector: '#recipient' },
         { field: 'phone', selector: '#phone' },
         { field: 'address', selector: '#address' },
+        { field: 'storeName', selector: '#storeName' },
         { field: 'delivery', selector: '[data-field="delivery"]' },
         { field: 'payment', selector: '[data-field="payment"]' },
         { field: 'receipt', selector: '[data-field="receipt"]' },
@@ -738,7 +786,7 @@ export default function ProductPaymentPage() {
                       </TableRow>
                     </TableBody>
                   </Table>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <Link href="/shop/order">
                       <Button variant="default" className="w-[120px]">
                         返回購物車

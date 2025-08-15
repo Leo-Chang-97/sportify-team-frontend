@@ -74,12 +74,15 @@ export default function DeliveryMethodSelector({
   useEffect(() => {
     const handleMessage = (event) => {
       setStore(event.data)
+      if (event.data && event.data.storename && onInputChange) {
+        onInputChange('storeName', event.data.storename)
+      }
     }
     window.addEventListener('message', handleMessage)
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [])
+  }, [onInputChange])
 
   return (
     <div className={`space-y-3 ${className}`}>
@@ -108,7 +111,10 @@ export default function DeliveryMethodSelector({
               </ChoiceboxItem>
               {/* 動態顯示選中選項的組件 */}
               {selectedDelivery === option.id && option.id === '1' && (
-                <div className="ml-6 mt-3 flex gap-3 items-center">
+                <div
+                  id="storeName"
+                  className="ml-6 mt-3 flex gap-3 items-center"
+                >
                   <Button variant="highlight" onClick={sevenStore}>
                     選擇門市
                   </Button>
@@ -116,6 +122,11 @@ export default function DeliveryMethodSelector({
                     <div className="text-sm">
                       {store.storename} - {store.storeaddress}
                     </div>
+                  )}
+                  {errors.storeName && (
+                    <span className="text-destructive text-sm">
+                      {errors.storeName}
+                    </span>
                   )}
                 </div>
               )}
