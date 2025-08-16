@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { FaXmark, FaCheck } from 'react-icons/fa6'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import useSWR from 'swr'
+import Image from 'next/image'
 import Link from 'next/link'
+import { Minus, Plus } from 'lucide-react'
+// components/ui
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
-import Footer from '@/components/footer'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
   Table,
   TableBody,
@@ -18,91 +18,165 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card'
+// components
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import Step from '@/components/step'
+import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
+import { getCarts, addProductCart, updateCarts, removeCart } from '@/api'
 
 const steps = [
-  { id: 1, title: '待出貨', completed: true },
-  { id: 2, title: '已出貨', completed: false },
-  { id: 3, title: '已完成', completed: false },
+  { id: 1, title: '確認購物車', active: true },
+  { id: 2, title: '填寫付款資訊', completed: false },
+  { id: 3, title: '完成訂單', completed: false },
 ]
 
-const products = [
-  {
-    id: 1,
-    name: '極限飛馳籃球鞋',
-    brand_name: 'Anta',
-    sport_name: '籃球',
-    price: 880,
-    stock: 50,
-    specs: {
-      商品名稱: '極限飛馳籃球鞋',
-      品牌: 'Anta',
-      運動種類: '籃球',
-      材質: '透氣網布與耐磨橡膠',
-      尺寸: '27',
-      重量: 380,
-      產地: '越南',
-    },
-    img: 'spec01.jpeg', // 改為檔案名稱
-  },
-  {
-    id: 2,
-    name: '標準七號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 650,
-    stock: 100,
-    specs: {
-      商品名稱: '標準七號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '高級合成皮革',
-      尺寸: '24',
-      重量: 600,
-      產地: '泰國',
-    },
-    img: 'spec02.jpeg', // 改為檔案名稱
-  },
-  {
-    id: 3,
-    name: '7號籃球',
-    brand_name: 'Spalding',
-    sport_name: '籃球',
-    price: 720,
-    stock: 14,
-    specs: {
-      商品名稱: '7號籃球',
-      品牌: 'Spalding',
-      運動種類: '籃球',
-      材質: '合成皮',
-      尺寸: '24.5',
-      重量: 600,
-      產地: '中國',
-    },
-    img: 'spec03.jpeg', // 改為檔案名稱
-  },
-]
+export default function CartListPage() {
+  // ===== 路由和搜尋參數處理 =====
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { id } = useParams()
 
-const order = [
-  {
-    id: 1,
-    item: {
-      訂單編號: 1,
-      收件人: '王淑華',
-      手機號碼: '0945678901',
-      收件地址: '台南市中西區民族路二段77號',
-      物流方式: '7-11取貨',
-      付款方式: 'Line Pay',
-      發票類型: '統一編號',
-      統一編號: '39497205',
-      發票號碼: 'WB68570834',
-      訂單金額: 4680,
-    },
-  },
-]
+  // ===== 組件狀態管理 =====
+  const [carts, setCarts] = useState([])
+  const [members, setMembers] = useState([])
 
-export default function ProductListPage() {
-  const [quantity, setQuantity] = React.useState(1)
-  const [isSuccess, setIsSuccess] = useState(true)
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
+  // 計算總價和總數量
+  const { totalPrice, itemCount } = useMemo(() => {
+    const totalPrice = carts.reduce((sum, cartItem) => {
+      return sum + cartItem.product.price * cartItem.quantity
+    }, 0)
+    const itemCount = carts.reduce(
+      (sum, cartItem) => sum + cartItem.quantity,
+      0
+    )
+    return { totalPrice, itemCount }
+  }, [carts])
+
+  // ===== URL 參數處理 =====
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+
+  // ===== 數據獲取 =====
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(['carts', queryParams], async ([, params]) => {
+    const result = await getCarts(params)
+    return result
+  })
+
+  // 處理商品數量變更
+  const handleQuantityChange = useCallback(
+    async (cartItemId, newQuantity) => {
+      // 如果新數量小於 1，就刪除該項目
+      if (newQuantity < 1) {
+        // 先從 UI 移除項目 (樂觀更新 Optimistic Update)
+        setCarts((prevCarts) =>
+          prevCarts.filter((cartItem) => cartItem.id !== cartItemId)
+        )
+
+        try {
+          // 呼叫 API 刪除項目
+          await removeCart(cartItemId)
+          // 重新獲取購物車資料確保同步
+          mutate()
+          toast('商品已從購物車移除', {
+            style: {
+              backgroundColor: '#ff671e',
+              color: '#fff',
+              border: 'none',
+            },
+          })
+        } catch (error) {
+          console.error('刪除項目失敗:', error)
+          // 如果 API 失敗，恢復項目到 UI
+          mutate() // 重新載入資料
+          toast('刪除商品失敗，請稍後再試', {
+            style: {
+              backgroundColor: '#ff671e',
+              color: '#fff',
+              border: 'none',
+            },
+          })
+        }
+        return
+      }
+
+      setCarts((prevCarts) =>
+        prevCarts.map((cartItem) =>
+          cartItem.id === cartItemId
+            ? { ...cartItem, quantity: newQuantity }
+            : cartItem
+        )
+      )
+
+      try {
+        // 呼叫 API 更新後端數量
+        await updateCarts(cartItemId, newQuantity)
+        // 重新獲取購物車資料確保同步
+        mutate()
+      } catch (error) {
+        console.error('更新數量失敗:', error)
+        // 如果 API 失敗，回滾 UI 狀態
+        setCarts((prevCarts) =>
+          prevCarts.map((cartItem) =>
+            cartItem.id === cartItemId
+              ? { ...cartItem, quantity: cartItem.quantity } // 回復原本數量
+              : cartItem
+          )
+        )
+        toast('更新數量失敗，請稍後再試', {
+          style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        })
+      }
+    },
+    [mutate]
+  )
+
+  // ===== 載入選項 =====
+  useEffect(() => {
+    if (data?.data?.cart?.cartItems) {
+      setCarts(data.data.cart.cartItems)
+    }
+  }, [data])
+
+  // 載入狀態處理
+  if (isDataLoading) {
+    return <LoadingState message="載入購物車資料中..." />
+  }
+
+  // 錯誤狀態處理
+  if (error) {
+    return (
+      <ErrorState
+        title="購物車資料載入失敗"
+        message={`載入錯誤：${error.message}` || '載入購物車資料時發生錯誤'}
+        onRetry={mutate}
+        backUrl="/shop"
+        backLabel="返回商品列表"
+      />
+    )
+  }
 
   return (
     <>
@@ -115,92 +189,143 @@ export default function ProductListPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableBody className="divide-y divide-foreground">
-                {Object.entries(order[0].item).map(([key, value]) => (
-                  <TableRow
-                    key={key}
-                    className="border-b border-card-foreground"
-                  >
-                    <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                      {key}
-                    </TableCell>
-                    <TableCell
-                      className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                      style={{ width: '100%' }}
-                    >
-                      {key === '訂單金額' ? `NTD$${value}` : value}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="bg-card rounded-lg p-6">
-            <Table className="w-full table-fixed">
-              <TableHeader className="border-b-2 border-card-foreground">
-                <TableRow className="text-lg">
-                  <TableHead className="font-bold w-1/2 text-accent-foreground">
-                    商品名稱
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground">
-                    單價
-                  </TableHead>
-                  <TableHead className="font-bold w-1/4 text-accent-foreground text-center">
-                    數量
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-card-foreground">
-                {products.map((product) => {
-                  // 處理圖片路徑：如果 img 是物件，取出 url 屬性；如果是字串，直接使用
-                  const image = product.img
-                  const imageFileName =
-                    typeof image === 'object' && image !== null
-                      ? image.url
-                      : image
-
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                            <img
-                              className="object-cover w-full h-full"
-                              src={getProductImageUrl(imageFileName)}
-                              alt={product.name}
-                              width={40}
-                              height={40}
-                            />
-                          </div>
-                          <span className="text-base whitespace-normal text-accent-foreground">
-                            {product.name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        ${product.price}
-                      </TableCell>
-                      <TableCell className="text-accent-foreground">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="w-12 text-center select-none">
-                            {quantity}
-                          </span>
-                        </div>
-                      </TableCell>
+          <div className="flex flex-col md:flex-row justify-between gap-5">
+            <Card className="flex-3 self-start">
+              <CardContent>
+                <Table className="w-full table-fixed">
+                  <TableHeader className="border-b-2 border-card-foreground">
+                    <TableRow className="text-base font-bold">
+                      <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
+                        商品名稱
+                      </TableHead>
+                      <TableHead className="font-bold w-1/4 text-accent-foreground p-2">
+                        單價
+                      </TableHead>
+                      <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
+                        數量
+                      </TableHead>
+                      <TableHead className="font-bold w-1/4 text-right hidden md:table-cell text-accent-foreground p-2">
+                        總計
+                      </TableHead>
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="flex justify-center">
-            <Link href="/shop/order">
-              <Button variant="highlight" className="w-[120px]">
-                返回我的訂單
-              </Button>
-            </Link>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-card-foreground">
+                    {carts && carts.length > 0 ? (
+                      carts.map((cartItem) => {
+                        // 處理圖片路徑
+                        const product = cartItem.product
+                        const imageFileName = product.images?.[0]?.url || ''
+
+                        return (
+                          <TableRow key={cartItem.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                                  <Image
+                                    className="object-cover w-full h-full"
+                                    src={getProductImageUrl(imageFileName)}
+                                    alt={product.name}
+                                    width={40}
+                                    height={40}
+                                  />
+                                </div>
+                                <span className="text-sm whitespace-normal text-accent-foreground">
+                                  {product.name}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-accent-foreground">
+                              ${formatPrice(product.price)}
+                            </TableCell>
+                            <TableCell className="text-accent-foreground">
+                              <div className="flex items-center justify-center gap-2">
+                                <span
+                                  className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                                  aria-label="Decrease quantity"
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      cartItem.id,
+                                      cartItem.quantity - 1
+                                    )
+                                  }
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </span>
+                                <span className="w-12 text-center select-none">
+                                  {cartItem.quantity}
+                                </span>
+                                <span
+                                  className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                                  aria-label="Increase quantity"
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      cartItem.id,
+                                      cartItem.quantity + 1
+                                    )
+                                  }
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right hidden md:table-cell text-accent-foreground">
+                              ${formatPrice(product.price * cartItem.quantity)}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          購物車是空的
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+            <Card className="flex-1 h-70 text-accent-foreground sticky top-32 max-h-[calc(100vh-104px)] self-start">
+              <CardContent className="flex flex-col justify-between h-full">
+                <Table className="w-full table-fixed text-base">
+                  <TableBody>
+                    <TableRow className="flex justify-end">
+                      <TableCell></TableCell>
+                      <TableCell>共有{itemCount}件商品</TableCell>
+                    </TableRow>
+                    <TableRow className="flex justify-between">
+                      <TableCell>商品金額</TableCell>
+                      <TableCell>${formatPrice(totalPrice)}</TableCell>
+                    </TableRow>
+                    <TableRow className="flex justify-between border-b border-card-foreground">
+                      <TableCell>運費</TableCell>
+                      <TableCell>未選擇</TableCell>
+                    </TableRow>
+                    <TableRow className="flex justify-between">
+                      <TableCell>商品小計</TableCell>
+                      <TableCell>${formatPrice(totalPrice)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+                <div className="flex justify-between">
+                  <Link href="/shop">
+                    <Button variant="default" className="w-[120px]">
+                      繼續購物
+                    </Button>
+                  </Link>
+                  <Link
+                    href={`/shop/order/pay?totalPrice=${totalPrice}&itemCount=${itemCount}`}
+                  >
+                    <Button variant="highlight" className="w-[120px]">
+                      填寫付款資訊
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

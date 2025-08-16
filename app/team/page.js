@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import { fetchSportOptions } from '@/api'
 import HeroBanner from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
@@ -50,6 +51,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 export default function TeamPage() {
   const [expandedCardIndex, setExpandedCardIndex] = useState(null)
   const [teams, setTeams] = useState([])
+  const [sports, setSports] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
@@ -60,6 +62,18 @@ export default function TeamPage() {
   const [expandedTeamDetails, setExpandedTeamDetails] = useState(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const sportData = await fetchSportOptions()
+        setSports(sportData.rows || [])
+      } catch (error) {
+        console.error('載入選項失敗:', error)
+        toast.error('載入選項失敗')
+      }
+    }
+    loadData()
+  }, [])
   useEffect(() => {
     const loadTeams = async () => {
       setIsLoading(true)
@@ -129,7 +143,7 @@ export default function TeamPage() {
         title="馬上加入團隊"
         overlayOpacity="bg-primary/10"
       />
-      <ScrollAreaSport />
+      <ScrollAreaSport sportItems={sports} />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <div className="self-stretch text-center justify-start text-white text-xl font-normal leading-loose tracking-[24px]">

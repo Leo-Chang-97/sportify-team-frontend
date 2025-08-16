@@ -1,36 +1,21 @@
 'use client'
+// hooks
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import {
-  createReservation,
-  fetchReservation,
-  updateReservation,
-  fetchMemberOptions,
-  fetchLocationOptions,
-  fetchTimePeriodOptions,
-  fetchCenterOptions,
-  fetchSportOptions,
-  fetchCourtOptions,
-  fetchTimeSlotOptions,
-  fetchCourtTimeSlotOptions,
-  fetchStatusOptions,
-} from '@/api'
+// 資料請求函式庫
+import useSWR from 'swr'
+
+// API 請求
+import { fetchLocationOptions, fetchSportOptions } from '@/api'
+import { fetchLessons } from '@/api/course/lesson'
+
+// Icon
+import { AlertCircle } from 'lucide-react'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
-import { Navbar } from '@/components/navbar'
-import Footer from '@/components/footer'
-import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import HeroBanner, { SearchField } from '@/components/hero-banner'
-import ScrollAreaSport from '@/components/scroll-area-sport'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -38,70 +23,125 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+// 自訂元件
+import { Navbar } from '@/components/navbar'
+import Footer from '@/components/footer'
+import BreadcrumbAuto from '@/components/breadcrumb-auto'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
+import ScrollAreaSport from '@/components/scroll-area-sport'
 import CourseCard from '@/components/card/course-card'
-import { ChevronDownIcon } from 'lucide-react'
 
 export default function VenueListPage() {
-  // ===== 組件狀態管理 =====
+  // #region 路由和URL參數
+  const searchParams = useSearchParams()
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
+  const router = useRouter()
+
+  // #region 狀態管理
   const [isLoading, setIsLoading] = useState(false)
-  // const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
-  const [isInitialDataSet, setIsInitialDataSet] = useState(false)
-
-  const [memberId, setMemberId] = useState('')
   const [locationId, setLocationId] = useState('')
-  const [centerId, setCenterId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [courtId, setCourtIds] = useState('')
-  const [timePeriodId, setTimePeriodId] = useState('')
-  const [timeSlotId, setTimeSlotIds] = useState('')
-  const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
-  const [statusId, setStatusId] = useState('')
-  const [date, setDate] = useState(null)
-  const [price, setPrice] = useState('')
-
-  const [members, setMembers] = useState([])
   const [locations, setLocations] = useState([])
-  const [centers, setCenters] = useState([])
   const [sports, setSports] = useState([])
-  const [courts, setCourts] = useState([])
-  const [timePeriods, setTimePeriods] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
-  const [courtTimeSlots, setCourtTimeSlots] = useState([])
-  const [status, setStatus] = useState([])
 
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
+  // ===== 新增：關鍵字搜尋狀態 =====
+  const [keyword, setKeyword] = useState('')
 
-  // ===== 載入下拉選單選項 =====
+  // ===== 課程資料狀態 =====
+  const [courses, setCourses] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalRows, setTotalRows] = useState(0)
+
+  // #region 數據獲取
+  const {
+    data,
+    isLoading: isDataLoading,
+    error,
+    mutate,
+  } = useSWR(
+    ['lessons', { ...queryParams, page: currentPage }],
+    async ([, params]) => {
+      // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+      return fetchLessons(params)
+    }
+  )
+
+  // 當數據更新時，處理分頁邏輯
+  useEffect(() => {
+    if (data) {
+      if (currentPage === 1) {
+        // 第一頁：直接設置課程
+        setCourses(data.rows || [])
+      } else {
+        // 其他頁：追加到現有課程
+        setCourses((prev) => [...prev, ...(data.rows || [])])
+      }
+      setTotalPages(data.totalPages || 1)
+      setTotalRows(data.totalRows || 0)
+    }
+  }, [data, currentPage])
+
+  // #region 副作用處理
+  // ===== 載入資料 =====
   useEffect(() => {
     const loadData = async () => {
       try {
-        const memberData = await fetchMemberOptions()
-        setMembers(memberData.rows || [])
-
         const locationData = await fetchLocationOptions()
         setLocations(locationData.rows || [])
 
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
-
-        const timePeriodData = await fetchTimePeriodOptions()
-        setTimePeriods(timePeriodData.rows || [])
-
-        const statusData = await fetchStatusOptions()
-        setStatus(statusData.rows || [])
       } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
+        console.error('載入資料失敗:', error)
       }
     }
     loadData()
   }, [])
 
+  // #region 事件處理函數
+  // ===== 搜尋和篩選功能 =====
   const handleSearch = () => {
-    // 搜尋邏輯
-    console.log('搜尋:', { locationId, sportId, date })
+    console.log('搜尋:', { locationId, sportId, keyword })
+
+    // 重置到第一頁
+    setCurrentPage(1)
+    setCourses([]) // 清空現有課程
+
+    // 更新 URL 參數，觸發 SWR 重新請求
+    const params = new URLSearchParams()
+    if (locationId) params.set('locationId', locationId)
+    if (sportId) params.set('sportId', sportId)
+    if (keyword.trim()) params.set('keyword', keyword.trim())
+    params.set('page', '1')
+
+    router.push(`/course?${params.toString()}`)
   }
+
+  // ===== 重設篩選功能 =====
+  const handleResetFilter = () => {
+    setLocationId('')
+    setSportId('')
+    setKeyword('')
+    setCurrentPage(1)
+    setCourses([])
+    router.push('/course')
+  }
+
+  // ===== 載入更多課程功能 =====
+  const handleLoadMore = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1)
+    }
+  }
+
+  // #region 資料顯示選項
+  // ===== 檢查是否還有更多課程可載入 =====
+  const hasMoreCourses = currentPage < totalPages
 
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
@@ -109,7 +149,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-white !h-10 text-black ">
             <SelectValue placeholder="請選運動" />
           </SelectTrigger>
           <SelectContent>
@@ -130,7 +170,7 @@ export default function VenueListPage() {
       label: '場館',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10">
+          <SelectTrigger className="w-full bg-white !h-10 text-black ">
             <SelectValue placeholder="請選擇場館" />
           </SelectTrigger>
           <SelectContent>
@@ -150,39 +190,23 @@ export default function VenueListPage() {
     {
       label: '快速查詢',
       component: (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className={`w-full h-10 bg-white justify-between font-normal${
-                !date ? ' text-gray-500' : ' text-primary'
-              }`}
-            >
-              {date ? date.toLocaleDateString() : '請選擇預訂日期'}
-              <ChevronDownIcon />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              captionLayout="dropdown"
-              onSelect={(date) => {
-                setDate(date)
-                setOpen(false)
-              }}
-              className={errors.date ? 'border border-red-500 rounded-md' : ''}
-            />
-          </PopoverContent>
-          {errors.date && (
-            <p className="text-sm text-red-500 mt-1">{errors.date}</p>
-          )}
-        </Popover>
+        <Input
+          type="text"
+          placeholder="請輸入課程名稱或關鍵字"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          className="w-full h-10 bg-white text-black"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch()
+            }
+          }}
+        />
       ),
     },
   ]
 
+  // #region Markup
   return (
     <>
       <Navbar />
@@ -198,18 +222,95 @@ export default function VenueListPage() {
           searchButtonText="搜尋"
         />
       </HeroBanner>
-      <ScrollAreaSport />
+
+      <ScrollAreaSport
+        sportItems={sports}
+        onSportSelect={(id) => {
+          setSportId(id)
+          handleSearch(keyword, id)
+        }}
+      />
+
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          <h3 className="text-lg text-primary">精選課程</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <CourseCard />
-            <CourseCard />  
-            <CourseCard />
-            <CourseCard />
+          {/* 標題和篩選結果資訊 */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              {/* <p className="text-sm text-gray-600 mt-2">
+                {keyword.trim() && <span>關鍵字「{keyword}」</span>}
+                共找到 {filteredCourses.length} 門課程
+                {filteredCourses.length > displayedCourses.length && (
+                  <span className="ml-2 text-blue-600">
+                    (顯示 {displayedCourses.length} 門)
+                  </span>
+                )}
+              </p> */}
+            </div>
+
+            {/* 重設篩選按鈕 */}
+            <Button
+              variant="outline"
+              onClick={handleResetFilter}
+              className="text-sm"
+              disabled={!locationId && !sportId && !keyword.trim()}
+            >
+              清除篩選
+            </Button>
           </div>
+
+          {/* 動態顯示課程卡片 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            {courses.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground py-12 text-lg">
+                <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">
+                  沒有符合資料，請重新搜尋
+                </h3>
+              </div>
+            ) : (
+              courses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))
+            )}
+          </div>
+
+          {/* 載入更多按鈕 */}
+          {hasMoreCourses && (
+            <div className="text-center mt-8">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={isDataLoading}
+                className="px-8 py-3"
+              >
+                {isDataLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    載入中...
+                  </>
+                ) : (
+                  <>
+                    載入更多課程
+                    <span className="ml-2 text-sm text-gray-500">
+                      ({totalRows - courses.length} 門課程待載入)
+                    </span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* 已載入完所有課程的提示 */}
+          {courses.length > 0 && !hasMoreCourses && totalRows > 6 && (
+            <div className="text-center mt-8">
+              <p className="text-gray-500 text-sm">
+                已載入全部 {totalRows} 門課程
+              </p>
+            </div>
+          )}
         </div>
       </section>
+
       <Footer />
     </>
   )
