@@ -282,7 +282,7 @@ export default function CoursePaymentPage() {
         // 現金付款 - 直接建立訂單並導向成功頁面
         const bookingResult = await handleBooking()
         if (bookingResult && bookingResult.success) {
-          router.push(`/venue/success?bookingId=${bookingResult.bookingId}`)
+          router.push(`/course/success?bookingId=${bookingResult.bookingId}`)
         }
       }
     } catch (error) {

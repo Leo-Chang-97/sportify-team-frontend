@@ -2,12 +2,13 @@
 // hooks
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useCourse } from '@/contexts/course-context'
 
 // 資料請求函式庫
 import useSWR from 'swr'
 
 // API 請求
-import { fetchLocationOptions, fetchSportOptions } from '@/api'
+import { fetchCoachOptions, fetchSportOptions } from '@/api'
 import { fetchLessons } from '@/api/course/lesson'
 
 // Icon
@@ -31,6 +32,7 @@ import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import CourseCard from '@/components/card/course-card'
+import { LoadingState, ErrorState } from '@/components/loading-states'
 
 export default function VenueListPage() {
   // #region 路由和URL參數
@@ -40,12 +42,12 @@ export default function VenueListPage() {
     return entries
   }, [searchParams])
   const router = useRouter()
+  const { setCourseData } = useCourse()
 
   // #region 狀態管理
-  const [isLoading, setIsLoading] = useState(false)
-  const [locationId, setLocationId] = useState('')
+  const [coachId, setCoachId] = useState('')
   const [sportId, setSportId] = useState('')
-  const [locations, setLocations] = useState([])
+  const [coaches, setCoaches] = useState([])
   const [sports, setSports] = useState([])
 
   // ===== 新增：關鍵字搜尋狀態 =====
@@ -91,8 +93,8 @@ export default function VenueListPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const locationData = await fetchLocationOptions()
-        setLocations(locationData.rows || [])
+        const coachData = await fetchCoachOptions()
+        setCoaches(coachData.rows || [])
 
         const sportData = await fetchSportOptions()
         setSports(sportData.rows || [])
@@ -105,8 +107,8 @@ export default function VenueListPage() {
 
   // #region 事件處理函數
   // ===== 搜尋和篩選功能 =====
-  const handleSearch = () => {
-    console.log('搜尋:', { locationId, sportId, keyword })
+  const handleSearch = (keyword, customSportId) => {
+    console.log('搜尋:', { coachId, sportId, keyword })
 
     // 重置到第一頁
     setCurrentPage(1)
@@ -114,7 +116,7 @@ export default function VenueListPage() {
 
     // 更新 URL 參數，觸發 SWR 重新請求
     const params = new URLSearchParams()
-    if (locationId) params.set('locationId', locationId)
+    if (coachId) params.set('coachId', coachId)
     if (sportId) params.set('sportId', sportId)
     if (keyword.trim()) params.set('keyword', keyword.trim())
     params.set('page', '1')
@@ -124,12 +126,21 @@ export default function VenueListPage() {
 
   // ===== 重設篩選功能 =====
   const handleResetFilter = () => {
-    setLocationId('')
     setSportId('')
     setKeyword('')
     setCurrentPage(1)
     setCourses([])
     router.push('/course')
+  }
+
+  const handleBooking = (e) => {
+    e.preventDefault()
+    setCourseData((prev) => ({
+      ...prev,
+      lessonId: id,
+    }))
+    // 跳轉到預約頁面
+    router.push('/course/payment')
   }
 
   // ===== 載入更多課程功能 =====
@@ -139,6 +150,19 @@ export default function VenueListPage() {
     }
   }
 
+  //  #region 載入和錯誤狀態處理
+  if (isDataLoading) return <LoadingState message="載入課程資料中..." />
+  if (error)
+    return (
+      <ErrorState
+        title="課程資料載入失敗"
+        message={`載入錯誤：${error.message}` || '找不到您要查看的課程資料'}
+        onRetry={mutate}
+        backUrl="/"
+        backLabel="返回首頁"
+      />
+    )
+
   // #region 資料顯示選項
   // ===== 檢查是否還有更多課程可載入 =====
   const hasMoreCourses = currentPage < totalPages
@@ -146,19 +170,19 @@ export default function VenueListPage() {
   // 定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
-      label: '運動',
+      label: '教練',
       component: (
-        <Select value={locationId} onValueChange={setLocationId}>
+        <Select value={coachId} onValueChange={setCoachId}>
           <SelectTrigger className="w-full bg-white !h-10 text-black ">
-            <SelectValue placeholder="請選運動" />
+            <SelectValue placeholder="請選擇教練" />
           </SelectTrigger>
           <SelectContent>
-            {locations.length === 0 ? (
+            {coaches.length === 0 ? (
               <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
             ) : (
-              locations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id.toString()}>
-                  {loc.name}
+              coaches.map((coa) => (
+                <SelectItem key={coa.id} value={coa.id.toString()}>
+                  {coa.member.name}
                 </SelectItem>
               ))
             )}
@@ -167,11 +191,11 @@ export default function VenueListPage() {
       ),
     },
     {
-      label: '場館',
+      label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
           <SelectTrigger className="w-full bg-white !h-10 text-black ">
-            <SelectValue placeholder="請選擇場館" />
+            <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
             {sports?.length === 0 ? (
@@ -233,18 +257,18 @@ export default function VenueListPage() {
 
       <section className="py-10">
         <div className="container mx-auto max-w-screen-xl px-4">
-          {/* 標題和篩選結果資訊 */}
           <div className="flex justify-between items-center mb-6">
+            {/* 篩選結果資訊 */}
             <div>
-              {/* <p className="text-sm text-gray-600 mt-2">
-                {keyword.trim() && <span>關鍵字「{keyword}」</span>}
-                共找到 {filteredCourses.length} 門課程
-                {filteredCourses.length > displayedCourses.length && (
-                  <span className="ml-2 text-blue-600">
-                    (顯示 {displayedCourses.length} 門)
-                  </span>
+              <p className="text-sm mt-2">
+                {keyword.trim() && (
+                  <>
+                    <span>關鍵字</span>
+                    <span className="text-highlight">「{keyword}」</span>
+                  </>
                 )}
-              </p> */}
+                共 {courses.length} 門課程
+              </p>
             </div>
 
             {/* 重設篩選按鈕 */}
@@ -252,7 +276,7 @@ export default function VenueListPage() {
               variant="outline"
               onClick={handleResetFilter}
               className="text-sm"
-              disabled={!locationId && !sportId && !keyword.trim()}
+              disabled={!coachId && !sportId && !keyword.trim()}
             >
               清除篩選
             </Button>

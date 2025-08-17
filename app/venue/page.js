@@ -15,6 +15,7 @@ import { fetchLocationOptions, fetchSportOptions } from '@/api'
 import { fetchCenters } from '@/api/venue/center'
 
 // UI 元件
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -48,13 +49,9 @@ export default function VenueListPage() {
   const [sportId, setSportId] = useState('')
   const [minRating, setMinRating] = useState('')
   const [keyword, setKeyword] = useState('')
-  const [date, setDate] = useState(null)
 
   const [locations, setLocations] = useState([])
   const [sports, setSports] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
 
   // #region 數據獲取
   const {
@@ -125,6 +122,16 @@ export default function VenueListPage() {
     router.push(`?${newParams.toString()}`)
   }
 
+  // 重設篩選功能
+  const handleResetFilter = () => {
+    setLocationId('')
+    setSportId('')
+    setMinRating('')
+    setKeyword('')
+    // setCurrentPage(1)
+    // setCourses([])
+    router.push('/venue')
+  }
   //  #region 載入和錯誤狀態處理
   if (isDataLoading) return <LoadingState message="載入場館資料中..." />
   if (error)
@@ -272,9 +279,37 @@ export default function VenueListPage() {
       />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl gap-6">
-          <h3 className="text-center text-lg font-normal tracking-[24px]">
-            精·選·場·館
-          </h3>
+          <div className="flex justify-between items-center">
+            {/* 篩選結果資訊 */}
+            <div>
+              <p className="text-sm mt-2">
+                {keyword.trim() && (
+                  <>
+                    <span>關鍵字</span>
+                    <span className="font-bold text-highlight">
+                      「{keyword}」
+                    </span>
+                  </>
+                )}
+                共 {data?.totalRows} 筆資料
+              </p>
+            </div>
+            <h3 className="text-center text-lg font-normal tracking-[24px]">
+              精·選·場·館
+            </h3>
+            {/* 重設篩選按鈕 */}
+            <Button
+              variant="outline"
+              onClick={handleResetFilter}
+              className="text-sm"
+              disabled={
+                !locationId && !sportId && !minRating && !keyword.trim()
+              }
+            >
+              清除篩選
+            </Button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {data?.rows.length === 0 ? (
               <div className="col-span-full text-center text-muted-foreground py-12 text-lg">

@@ -43,6 +43,7 @@ import {
   fetchLocationOptions,
   fetchSportOptions,
   fetchBrandOptions,
+  fetchCoachOptions,
 } from '@/api'
 import { fetchCenters } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
@@ -101,10 +102,12 @@ export default function HomePage() {
   const [sportId, setSportId] = useState('')
   const [minRating, setMinRating] = useState('')
   const [keyword, setKeyword] = useState('')
+  const [coachId, setCoachId] = useState('')
 
   const [locations, setLocations] = useState([])
   const [sports, setSports] = useState([])
   const [brandIdMap, setBrandIdMap] = useState({})
+  const [coaches, setCoaches] = useState([])
 
   // #region 數據獲取
   const {
@@ -134,6 +137,9 @@ export default function HomePage() {
           map[brand.name.toLowerCase()] = brand.id
         })
         setBrandIdMap(map)
+
+        const coachData = await fetchCoachOptions()
+        setCoaches(coachData.rows || [])
       } catch (error) {
         console.error('載入選項失敗:', error)
         toast.error('載入選項失敗')
@@ -171,7 +177,7 @@ export default function HomePage() {
       newParams.delete('keyword')
     }
     newParams.set('page', '1') // 搜尋時重設分頁
-    router.push(`?${newParams.toString()}`)
+    router.push(`/venue?${newParams.toString()}`)
   }
 
   // #region 資料顯示選項
@@ -435,42 +441,47 @@ export default function HomePage() {
                         key={center.id || index}
                         className="flex justify-center"
                       >
-                        <div className="relative w-full h-[300px] md:h-[532px] rounded-lg overflow-hidden">
-                          {center.images && center.images.length > 0 ? (
-                            <Image
-                              alt={center.name || `場館 ${index + 1}`}
-                              className={cn(
-                                'object-cover transition-transform duration-300 ease-in-out hover:scale-105'
-                              )}
-                              fill
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              src={getCenterImageUrl(center.images[0])}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400">
-                              <div className="text-center">
-                                <div className="text-lg font-medium">
-                                  {center.name || `場館 ${index + 1}`}
+                        <Link
+                          href={`/venue/${center.id}`}
+                          className="w-full h-full block"
+                        >
+                          <div className="relative w-full h-[300px] md:h-[532px] rounded-lg overflow-hidden">
+                            {center.images && center.images.length > 0 ? (
+                              <Image
+                                alt={center.name || `場館 ${index + 1}`}
+                                className={cn(
+                                  'object-cover transition-transform duration-300 ease-in-out hover:scale-105'
+                                )}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                src={getCenterImageUrl(center.images[0])}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400">
+                                <div className="text-center">
+                                  <div className="text-lg font-medium">
+                                    {center.name || `場館 ${index + 1}`}
+                                  </div>
+                                  <div className="text-sm mt-2">暫無圖片</div>
                                 </div>
-                                <div className="text-sm mt-2">暫無圖片</div>
                               </div>
+                            )}
+                            {/* 場館名稱疊加層 */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                              <h3 className="text-white font-semibold text-lg">
+                                {center.name || `場館 ${index + 1}`}
+                              </h3>
+                              {center.location && (
+                                <p className="text-white/80 text-sm">
+                                  {center.location.name || center.location}
+                                </p>
+                              )}
+                              {center.averageRating && (
+                                <div>{renderStars(center)}</div>
+                              )}
                             </div>
-                          )}
-                          {/* 場館名稱疊加層 */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                            <h3 className="text-white font-semibold text-lg">
-                              {center.name || `場館 ${index + 1}`}
-                            </h3>
-                            {center.location && (
-                              <p className="text-white/80 text-sm">
-                                {center.location.name || center.location}
-                              </p>
-                            )}
-                            {center.averageRating && (
-                              <div>{renderStars(center)}</div>
-                            )}
                           </div>
-                        </div>
+                        </Link>
                       </CarouselItem>
                     ))
                   ) : (
@@ -602,10 +613,20 @@ export default function HomePage() {
                   </form>
                 </CardContent>
                 <CardFooter className="flex-col gap-4">
-                  <Button variant="highlight" type="submit" className="w-full">
+                  <Button
+                    variant="highlight"
+                    type="submit"
+                    className="w-full"
+                    onClick={() => handleSearch(keyword)}
+                  >
                     搜尋
                   </Button>
-                  <Button variant="secondary" type="submit" className="w-full">
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    className="w-full"
+                    onClick={() => router.push(`/venue`)}
+                  >
                     查看更多
                   </Button>
                 </CardFooter>
@@ -739,7 +760,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 比賽卡片 */}
+          {/* 程度卡片 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { title: '新手', icon: <FaBaby /> },
@@ -815,8 +836,8 @@ export default function HomePage() {
             </motion.div>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {coachs?.length &&
-              coachs?.map((coach) => (
+            {coaches?.length &&
+              coaches?.slice(0, 4).map((coach) => (
                 <motion.div
                   variants={fadeUpVariants}
                   initial="hidden"
@@ -832,7 +853,9 @@ export default function HomePage() {
           <div className="flex flex-col items-center">
             <Button
               variant="highlight"
-              className="h-8 sm:h-10 w-full md:w-auto"
+              size="lg"
+              className="w-full md:w-auto"
+              onClick={() => router.push(`/course`)}
             >
               查看更多
             </Button>

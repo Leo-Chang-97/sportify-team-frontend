@@ -84,7 +84,7 @@ export default function CourseDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto courseName={data?.title} />
 
       {/* 課程資訊區域 */}
       <section className=" text-white py-16">
@@ -146,10 +146,7 @@ export default function CourseDetailPage() {
                     {data.price}
                   </span>
                 </div>
-                <Link
-                  href={`/course/payment`}
-                  className="w-full sm:w-auto"
-                >
+                <Link href={`/course/payment`} className="w-full sm:w-auto">
                   <Button
                     onClick={handleBooking}
                     variant="highlight"

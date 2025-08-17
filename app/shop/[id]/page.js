@@ -200,7 +200,7 @@ export default function ProductDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto shopName={product?.name} />
       <section className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-5xl gap-8 mb-10">
           <div className="flex flex-col lg:flex-row gap-6">

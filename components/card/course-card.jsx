@@ -1,4 +1,5 @@
-// components/card/course-card.jsx - 簡化版本
+// components/card/course-card.jsx
+import { useCourse } from '@/contexts/course-context'
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button'
 
 const CourseCard = ({ course }) => {
   const router = useRouter()
+  const { setCourseData } = useCourse()
 
   // 預設資料
   const defaultCourse = {
@@ -32,8 +34,18 @@ const CourseCard = ({ course }) => {
   const isLowAvailability =
     courseData.maxCapacity - courseData.currentCount <= 10 &&
     courseData.maxCapacity - courseData.currentCount > 0
-  // console.log(isFullyBooked)
-  console.log(courseData.maxCapacity - courseData.currentCount)
+
+  // #region 事件處理函數
+  const handleBooking = (e) => {
+    e.preventDefault()
+    setCourseData((prev) => ({
+      ...prev,
+      lessonId: courseData.id,
+    }))
+    // 跳轉到預約頁面
+    router.push('/course/payment')
+  }
+
   // 處理點擊圖片跳轉到詳細頁面
   const handleImageClick = (e) => {
     e.stopPropagation()
@@ -166,7 +178,7 @@ const CourseCard = ({ course }) => {
             <div className="space-y-2">
               <Button
                 variant="secondary"
-                onClick={handleEnrollment}
+                onClick={handleBooking}
                 className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
                   isFullyBooked
                     ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80'
