@@ -395,7 +395,7 @@ export default function FavoriteDataPage() {
                             </TableCell>
                             <TableCell className="text-base py-4 text-accent-foreground">
                               <span className="font-semibold text-primary">
-                                NTD ${product?.price || 0}
+                                NTD ${(product?.price || 0).toLocaleString()}
                               </span>
                             </TableCell>
                             <TableCell className="py-4 text-center">

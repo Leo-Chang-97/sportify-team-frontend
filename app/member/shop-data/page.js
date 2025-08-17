@@ -28,7 +28,7 @@ export default function ShopDataPage() {
   const [orderDetails, setOrderDetails] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
- // 分頁相關狀態
+  // 分頁相關狀態
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [perPage, setPerPage] = useState(10) // 預設桌面版 10 筆
@@ -152,8 +152,6 @@ export default function ShopDataPage() {
     }
   }, [])
 
-
-
   // 當 user 改變時重新獲取訂單資料
   useEffect(() => {
     if (user) {
@@ -161,43 +159,43 @@ export default function ShopDataPage() {
     }
   }, [user])
 
-    // 當 URL 參數改變時更新當前頁面
-    useEffect(() => {
-      const page = parseInt(queryParams.page) || 1
-      setCurrentPage(page)
-    }, [queryParams.page])
-  
-    // 當當前頁面改變時重新計算分頁資料
-    useEffect(() => {
-        if (allOrders.length > 0 && currentPage) {
+  // 當 URL 參數改變時更新當前頁面
+  useEffect(() => {
+    const page = parseInt(queryParams.page) || 1
+    setCurrentPage(page)
+  }, [queryParams.page])
+
+  // 當當前頁面改變時重新計算分頁資料
+  useEffect(() => {
+    if (allOrders.length > 0 && currentPage) {
+      // 重新計算當前頁的資料
+      const startIndex = (currentPage - 1) * perPage
+      const endIndex = startIndex + perPage
+      const currentPageData = allOrders.slice(startIndex, endIndex)
+      setOrders(currentPageData)
+    }
+  }, [currentPage, allOrders, perPage])
+
+  // 當 perPage 改變時重新計算分頁
+  useEffect(() => {
+    if (allOrders.length > 0 && perPage) {
+      // 重新計算總頁數
+      const totalItems = allOrders.length
+      const newTotalPages = Math.ceil(totalItems / perPage)
+      setTotalPages(newTotalPages)
+
+      // 重新計算當前頁面，確保不會超出範圍
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages)
+      } else {
         // 重新計算當前頁的資料
         const startIndex = (currentPage - 1) * perPage
         const endIndex = startIndex + perPage
         const currentPageData = allOrders.slice(startIndex, endIndex)
         setOrders(currentPageData)
       }
-    }, [currentPage, allOrders, perPage])
-  
-    // 當 perPage 改變時重新計算分頁
-    useEffect(() => {
-      if (allOrders.length > 0 && perPage) {
-        // 重新計算總頁數
-        const totalItems = allOrders.length
-        const newTotalPages = Math.ceil(totalItems / perPage)
-        setTotalPages(newTotalPages)
-  
-        // 重新計算當前頁面，確保不會超出範圍
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-          setCurrentPage(newTotalPages)
-        } else {
-          // 重新計算當前頁的資料
-          const startIndex = (currentPage - 1) * perPage
-          const endIndex = startIndex + perPage
-          const currentPageData = allOrders.slice(startIndex, endIndex)
-          setOrders(currentPageData)
-        }
-      }
-    }, [perPage, allOrders])
+    }
+  }, [perPage, allOrders])
 
   return (
     <>
@@ -381,7 +379,7 @@ export default function ShopDataPage() {
                             </TableCell>
                             <TableCell className="text-base py-4 text-accent-foreground text-center">
                               <span className="font-semibold text-primary">
-                                NTD ${order?.total || 0}
+                                NTD ${(order?.total || 0).toLocaleString()}
                               </span>
                             </TableCell>
                             <TableCell className="py-4 text-center">
