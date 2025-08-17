@@ -1,8 +1,9 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import {
   Choicebox,
   ChoiceboxItem,
@@ -58,6 +59,31 @@ export default function DeliveryMethodSelector({
   onInputChange,
   onInputBlur,
 }) {
+  const [store, setStore] = useState(null)
+
+  const sevenStore = () => {
+    window.open(
+      'https://emap.presco.com.tw/c2cemap.ashx?eshopid=870&&servicetype=1&url=' +
+        encodeURIComponent('http://localhost:3005/api/shop/shipment'),
+      '',
+      'width=900,height=600'
+    )
+  }
+
+  // 接收後端傳回的門市資料
+  useEffect(() => {
+    const handleMessage = (event) => {
+      setStore(event.data)
+      if (event.data && event.data.storename && onInputChange) {
+        onInputChange('storeName', event.data.storename)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [onInputChange])
+
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center gap-2">
@@ -84,6 +110,26 @@ export default function DeliveryMethodSelector({
                 </ChoiceboxItemContent>
               </ChoiceboxItem>
               {/* 動態顯示選中選項的組件 */}
+              {selectedDelivery === option.id && option.id === '1' && (
+                <div
+                  id="storeName"
+                  className="ml-6 mt-3 flex gap-3 items-center"
+                >
+                  <Button variant="highlight" onClick={sevenStore}>
+                    選擇門市
+                  </Button>
+                  {store && (
+                    <div className="text-sm">
+                      {store.storename} - {store.storeaddress}
+                    </div>
+                  )}
+                  {errors.storeName && (
+                    <span className="text-destructive text-sm">
+                      {errors.storeName}
+                    </span>
+                  )}
+                </div>
+              )}
               {selectedDelivery === option.id && option.id === '3' && (
                 <div className="ml-6 mt-3 space-y-2">
                   <Label htmlFor="address">收件地址</Label>

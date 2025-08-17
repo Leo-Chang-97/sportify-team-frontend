@@ -31,6 +31,7 @@ import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import { LoadingState, ErrorState } from '@/components/loading-states'
 // api
+import { useAuth } from '@/contexts/auth-context'
 import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
@@ -44,6 +45,7 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
 })
 
 export default function ProductDetailPage() {
+  const { isAuthenticated } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const router = useRouter()
   const { id } = useParams()
@@ -125,6 +127,15 @@ export default function ProductDetailPage() {
   }, [])
 
   const handleAddToWishlist = async (productId) => {
+    if (!isAuthenticated) {
+      toast('請先登入會員才能收藏商品', {
+        action: {
+          label: '前往登入',
+          onClick: () => router.push('/login'),
+        },
+      })
+      return
+    }
     const result = await toggleFavorite(productId)
     mutate()
     if (result?.favorited) {
@@ -142,6 +153,15 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = async (productId, quantity) => {
+    if (!isAuthenticated) {
+      toast('請先登入會員才能加入購物車', {
+        action: {
+          label: '前往登入',
+          onClick: () => router.push('/login'),
+        },
+      })
+      return
+    }
     const result = await addProductCart(productId, quantity)
     mutate()
     if (result?.success) {
@@ -180,7 +200,7 @@ export default function ProductDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto shopName={product?.name} />
       <section className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-5xl gap-8 mb-10">
           <div className="flex flex-col lg:flex-row gap-6">

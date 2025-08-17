@@ -1,4 +1,3 @@
-// pages/team/create.js
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -18,21 +17,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ChevronLeftIcon, AlertCircle } from 'lucide-react'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-
-async function fetchAPI(url, options = {}) {
-  if (!API_BASE_URL) {
-    throw new Error('前端環境變數 NEXT_PUBLIC_API_BASE_URL 未設定！')
-  }
-  const fullUrl = `${API_BASE_URL}${url}`
-  const res = await fetch(fullUrl, options)
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}))
-    throw new Error(errorData.error || `請求 ${fullUrl} 失敗`)
-  }
-  return res.json()
-}
+import { teamService } from '@/api/team/team'
+import {
+  fetchTeamSportOptions,
+  fetchTeamLevelOptions,
+  fetchTeamCenterOptions,
+} from '@/api/team/common'
 
 export default function CreateTeamPage() {
   const router = useRouter()
@@ -42,72 +32,66 @@ export default function CreateTeamPage() {
   const [sportId, setSportId] = useState('')
   const [levelId, setLevelId] = useState('')
   const [practiceTime, setPracticeTime] = useState('')
-  const [centerId, setCenterId] = useState('') // 修改：使用 centerId 來儲存選擇的場館ID
+  const [centerId, setCenterId] = useState('')
 
-  // 選項狀態
+  // 選項列表狀態
   const [sports, setSports] = useState([])
   const [levels, setLevels] = useState([])
-  const [centers, setCenters] = useState([]) // 修改：用來儲存場館列表
+  const [centers, setCenters] = useState([])
 
   // UI 狀態
   const [isLoading, setIsLoading] = useState(true)
-  const [isCenterLoading, setIsCenterLoading] = useState(false) // 修改：場館載入狀態
+  const [isCenterLoading, setIsCenterLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
   // 載入運動類別和等級的下拉選單
   useEffect(() => {
-    let active = true
-    ;(async () => {
+    const loadInitialOptions = async () => {
       try {
         const [sportData, levelData] = await Promise.all([
-          fetchAPI('/api/team/sports'),
-          fetchAPI('/api/team/levels'),
+          fetchTeamSportOptions(),
+          fetchTeamLevelOptions(),
         ])
-        if (!active) return
+
+        // **關鍵修正點 1**: 確保 setSports 和 setLevels 的是陣列
         setSports(sportData.rows || [])
         setLevels(levelData.rows || [])
       } catch (err) {
-        if (active) setError(err?.message || '載入選項失敗')
+        setError(err.message || '載入選項失敗')
+        setSports([]) // 錯誤時也確保是空陣列
+        setLevels([])
       } finally {
-        if (active) setIsLoading(false)
+        setIsLoading(false)
       }
-    })()
-    return () => {
-      active = false
     }
-  }, [])
+
+    // **關鍵修正點 2**: 非同步操作在 useEffect 內部執行
+    loadInitialOptions()
+  }, []) // 空依賴陣列確保只在元件掛載後執行一次
 
   // 當 sportId 改變時，動態載入場館列表
   useEffect(() => {
     if (!sportId) {
       setCenters([])
-      setCenterId('') // 清空已選的場館
+      setCenterId('')
       return
     }
-    let active = true
+
     const loadCenters = async () => {
       setIsCenterLoading(true)
       setFormError('')
       try {
-        // 修改：呼叫新的 API 來取得場館列表
-        const centerData = await fetchAPI(
-          `/api/team/centers?sportId=${sportId}`
-        )
-        if (active) {
-          setCenters(centerData.rows || [])
-        }
+        const centerData = await fetchTeamCenterOptions({ sportId: sportId })
+        setCenters(centerData.rows || [])
       } catch (err) {
-        if (active) setFormError('無法載入場館列表，請稍後再試。')
+        setFormError('無法載入場館列表，請稍後再試。')
       } finally {
-        if (active) setIsCenterLoading(false)
+        setIsCenterLoading(false)
       }
     }
     loadCenters()
-    return () => {
-      active = false
-    }
   }, [sportId])
 
   // 儲存隊伍資料
@@ -122,17 +106,19 @@ export default function CreateTeamPage() {
       sportId: Number(sportId),
       levelId: Number(levelId),
       practiceTime: practiceTime,
-      centerId: Number(centerId), // 修改：將 centerId 送到後端
+      centerId: Number(centerId),
     }
+
     setIsSubmitting(true)
     try {
-      const response = await fetchAPI('/api/team', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      alert('隊伍建立成功！')
-      router.push('/team')
+      const response = await teamService.create(payload)
+
+      if (response.success) {
+        alert('隊伍建立成功！')
+        router.push('/team')
+      } else {
+        throw new Error(response.error || '建立隊伍失敗')
+      }
     } catch (err) {
       setFormError(err.message || '發生未知錯誤，請稍後再試')
     } finally {
@@ -188,7 +174,7 @@ export default function CreateTeamPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {/* 出沒場地 (改回下拉選單) */}
+              {/* 出沒場地 */}
               <div>
                 <h2 className="text-sm font-semibold mb-2">{'出沒場地'}</h2>
                 <Select
@@ -256,7 +242,11 @@ export default function CreateTeamPage() {
               </div>
             )}
             <div className="flex justify-between items-center mt-8">
-              <Button variant="ghost" asChild>
+              <Button
+                variant="outline"
+                asChild
+                className="border-gray-300 text-gray-500 bg-gray-100 hover:bg-gray-500 hover:text-gray-900"
+              >
                 <Link href="/team" aria-label="返回上一頁">
                   <ChevronLeftIcon className="h-4 w-4" />
                   <span className="ml-2">{'返回上一頁'}</span>

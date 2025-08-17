@@ -92,3 +92,9 @@ export const fetchInvoiceOptions = async () => {
   const res = await apiClient.get('/common/invoice')
   return res.data
 }
+
+// 獲取教練選項
+export const fetchCoachOptions = async () => {
+  const res = await apiClient.get('/common/coach')
+  return res.data
+}

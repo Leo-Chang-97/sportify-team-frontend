@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import * as React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 
 // utils
@@ -38,10 +38,21 @@ import {
   BaseballBatIcon,
   BilliardBallIcon,
 } from '@/components/icons/sport-icons'
+import {
+  FacebookShareButton,
+  LineShareButton,
+  TwitterShareButton,
+  ThreadsShareButton,
+  LineIcon,
+  XIcon,
+  ThreadsIcon,
+} from 'react-share'
+import { FaFacebook } from 'react-icons/fa6'
 
 // API 請求
 import { fetchCenter } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
+import { addRating } from '@/api/venue/rating'
 
 // next 元件
 import Link from 'next/link'
@@ -53,18 +64,194 @@ import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Footer from '@/components/footer'
 import { LoadingState, ErrorState } from '@/components/loading-states'
+import { CardFooter } from '@/components/card/card'
 
 // 使用 Map 提供互動式地圖功能
 const Map = dynamic(() => import('@/components/map'), {
   ssr: false,
 })
+
+const range = (length) => Array.from({ length }, (_, i) => i)
+
+// #region 評論區元件
+function RatingSection({ centerId, ratings }) {
+  const [userRating, setUserRating] = React.useState(0)
+  const [hoverRating, setHoverRating] = React.useState(0)
+  const [comment, setComment] = React.useState('')
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSubmitRating = async () => {
+    if (userRating === 0) {
+      toast.error('請選擇評分')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await addRating(centerId, {
+        rating: userRating,
+        comment: comment || null,
+      })
+      toast.success('評分提交成功')
+      setUserRating(0)
+      setComment('')
+    } catch (error) {
+      console.error('評分提交失敗:', error)
+      toast.error('評分提交失敗')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('zh-TW', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  }
+
+  return (
+    <section>
+      <h2 className="mb-6 text-xl font-bold">評價與評論</h2>
+
+      {/* 評分輸入區 */}
+      <Card className="mb-6">
+        {/* <CardHeader>
+          <h3 className="text-lg font-semibold">留下您的評價</h3>
+        </CardHeader> */}
+        <CardContent className="space-y-4">
+          {/* 星星評分 */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">評分</label>
+            <div className="flex items-center gap-1">
+              {range(5).map((i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="focus:outline-none focus:ring-2 focus:ring-yellow-200 rounded"
+                  onMouseEnter={() => setHoverRating(i + 1)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  onClick={() => setUserRating(i + 1)}
+                >
+                  <Star
+                    className={cn(
+                      'w-6 h-6 transition-colors',
+                      (hoverRating || userRating) > i
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-muted-foreground/50 hover:text-yellow-400'
+                    )}
+                  />
+                </button>
+              ))}
+              <span className="ml-2 text-sm text-muted-foreground">
+                {userRating > 0 && `${userRating} 星`}
+              </span>
+            </div>
+          </div>
+
+          {/* 評論輸入 */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">評論 (選填)</label>
+            <Textarea
+              placeholder="分享您的使用體驗..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <Button
+            onClick={handleSubmitRating}
+            disabled={isSubmitting || userRating === 0}
+            className="w-full sm:w-auto"
+          >
+            {isSubmitting ? '提交中...' : '提交評價'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* 其他人的評論 */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">
+          其他評價 ({ratings?.length || 0})
+        </h3>
+
+        {ratings && ratings.length > 0 ? (
+          <div className="space-y-4">
+            {ratings.map((rating, index) => (
+              <Card key={index} className="gap-2">
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarImage src={rating.member?.avatar} />
+                      <AvatarFallback>
+                        {rating.member?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm md:text-base">
+                            {rating.member?.name || '匿名用戶'}
+                          </span>
+                          <div className="flex items-center">
+                            {range(5).map((i) => (
+                              <Star
+                                key={i}
+                                className={cn(
+                                  'h-4 w-4',
+                                  i < rating.rating
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-muted-foreground/50'
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-xs md:text-sm text-muted-foreground ">
+                          {formatDate(rating.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+                {rating.comment && (
+                  <CardFooter>
+                    <p className="pl-12 text-sm text-muted-foreground leading-relaxed">
+                      {rating.comment}
+                    </p>
+                  </CardFooter>
+                )}
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <Star className="mx-auto mb-2 text-muted-foreground/50" />
+            <p>尚無評價，成為第一個評價的人吧！</p>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
 
 export default function CenterDetailPage() {
   // #region 路由和URL參數
@@ -73,12 +260,12 @@ export default function CenterDetailPage() {
   const { setVenueData } = useVenue()
 
   // #region 組件狀態管理
-  const [data, setData] = React.useState(null)
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   // #region 副作用處理
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchCenterData = async () => {
       try {
         setLoading(true)
@@ -108,6 +295,20 @@ export default function CenterDetailPage() {
       location: data.location.name,
       centerId: data.id,
       locationId: data.location.id,
+    }))
+    // 跳轉到預約頁面
+    router.push('/venue/reservation')
+  }
+
+  const handleSportButton = (item) => {
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      centerId: data.id,
+      location: data.location.name,
+      locationId: data.location.id,
+      sport: item.name,
+      sportId: item.id,
     }))
     // 跳轉到預約頁面
     router.push('/venue/reservation')
@@ -149,7 +350,6 @@ export default function CenterDetailPage() {
   }
 
   // #region 資料顯示選項
-  const range = (length) => Array.from({ length }, (_, i) => i)
   const sportIconMap = {
     basketball: BasketballIcon,
     badminton: BadmintonIcon,
@@ -192,7 +392,7 @@ export default function CenterDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto venueName={data?.name} />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen">
           {/* 標題與按鈕 */}
@@ -242,12 +442,31 @@ export default function CenterDetailPage() {
                 </Button>
               </Link>
               <div className="flex flex-row gap-2 w-full sm:w-auto">
-                <Link href={`/venue/center/1`} className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full">
-                    分享
-                    <Share />
-                  </Button>
-                </Link>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="lg">
+                      分享
+                      <Share />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-fit px-2 py-2">
+                    <div className="flex flex-row gap-2 w-full sm:w-auto">
+                      <FacebookShareButton url={window.location.href}>
+                        <FaFacebook size={30} color="#1f7bf2" />
+                      </FacebookShareButton>
+                      <LineShareButton url={window.location.href}>
+                        <LineIcon size={32} round />
+                      </LineShareButton>
+                      <TwitterShareButton url={window.location.href}>
+                        <XIcon size={32} round />
+                      </TwitterShareButton>
+                      <ThreadsShareButton url={window.location.href}>
+                        <ThreadsIcon size={32} round />
+                      </ThreadsShareButton>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
                 <Link href="#" className="w-full sm:w-auto">
                   <Button variant="outline" size="lg" className="w-full">
                     收藏
@@ -263,7 +482,7 @@ export default function CenterDetailPage() {
           {/* 圖片 */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {/* Main image */}
-            <div className="overflow-hidden rounded-lg bg-muted">
+            <div className="overflow-hidden rounded-lg">
               <AspectRatio ratio={4 / 3} className="bg-muted">
                 <Image
                   alt={data.name || '場館圖片'}
@@ -277,7 +496,7 @@ export default function CenterDetailPage() {
             </div>
             {/* 2x2 grid image */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 1`}
@@ -289,7 +508,7 @@ export default function CenterDetailPage() {
                   />
                 </AspectRatio>
               </div>
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 2`}
@@ -300,7 +519,7 @@ export default function CenterDetailPage() {
                   />
                 </AspectRatio>
               </div>
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 3`}
@@ -311,7 +530,7 @@ export default function CenterDetailPage() {
                   />
                 </AspectRatio>
               </div>
-              <div className="overflow-hidden rounded-lg bg-muted">
+              <div className="overflow-hidden rounded-lg">
                 <AspectRatio ratio={4 / 3} className="bg-muted">
                   <Image
                     alt={`${data.name} - 圖片 4`}
@@ -344,15 +563,20 @@ export default function CenterDetailPage() {
                   {data.sports.map((item, idx) => {
                     const IconComponent = sportIconMap[item.iconKey]
                     return (
-                      <Link href="#" key={idx}>
-                        <Button variant="outline" size="sm">
-                          {IconComponent && (
-                            <IconComponent className="!w-6 !h-6" />
-                          )}
-                          {item.name}
-                          <span className="text-muted-foreground">4個場地</span>
-                        </Button>
-                      </Link>
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          handleSportButton(item)
+                        }}
+                      >
+                        {IconComponent && (
+                          <IconComponent className="!w-6 !h-6" />
+                        )}
+                        {item.name}
+                        <span className="text-muted-foreground">4個場地</span>
+                      </Button>
                     )
                   })}
                 </div>
@@ -452,6 +676,11 @@ export default function CenterDetailPage() {
               <Map position={position} dataName={data.name || '場館位置'} />
             </div>
           </section>
+
+          <Separator className="my-8" />
+
+          {/* 評論區 */}
+          <RatingSection centerId={data.id} ratings={data.ratings} />
         </div>
       </main>
       <Footer />

@@ -5,8 +5,10 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaXmark, FaCheck } from 'react-icons/fa6'
+import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
 // components/ui
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -100,27 +102,83 @@ export default function ProductSuccessPage() {
     )
   }
 
-  // 建立訂單詳情物件
-  const orderDetails = {
-    訂單編號: orderData.orderId || '尚未分配',
-    收件人: orderData.userInfo?.recipient || '',
-    手機號碼: orderData.userInfo?.phone || '',
-    // 只有當物流方式是宅配時才顯示收件地址
-    ...(orderData.deliveryMethod?.includes('宅配') && {
-      收件地址: orderData.userInfo?.address || '',
-    }),
-    物流方式: orderData.deliveryMethod || '',
-    付款方式: orderData.paymentMethod || '',
-    發票類型: orderData.receiptType || '',
-    統一編號: orderData.userInfo?.companyId || '',
-    載具號碼: orderData.userInfo?.carrierId || '',
-    訂單金額: orderData.totalPrice || 0,
-  }
-
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
     return Number(price).toLocaleString('zh-TW')
   }
+
+  const summaries = [
+    {
+      key: '訂單編號',
+      value: orderData.orderId || '尚未分配',
+    },
+    {
+      key: '收件人',
+      value: orderData.userInfo?.recipient || '未知',
+    },
+    {
+      key: '手機號碼',
+      value: orderData.userInfo?.phone || '未知',
+    },
+    // 物流方式相關
+    ...(orderData.deliveryMethod?.includes('宅配')
+      ? [
+          {
+            key: '收件地址',
+            value: orderData.userInfo?.address || '未知',
+          },
+        ]
+      : []),
+    ...(orderData.deliveryMethod?.includes('7-11')
+      ? [
+          {
+            key: '取貨門市',
+            value: orderData.userInfo?.storeName || '未知',
+          },
+        ]
+      : []),
+    {
+      key: '物流方式',
+      value: orderData.deliveryMethod || '未知',
+    },
+    {
+      key: '付款方式',
+      value: orderData.paymentMethod || '未知',
+    },
+    {
+      key: '發票類型',
+      value: orderData.receiptType || '未知',
+    },
+    {
+      key: '訂單狀態',
+      value: (
+        <Badge variant="outline" className="text-muted-foreground px-1.5">
+          {orderData.status?.name === '已付款' ? (
+            <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
+          ) : (
+            <IconLoader className="mr-1" />
+          )}
+          {orderData.status?.name || '未知'}
+        </Badge>
+      ),
+    },
+    {
+      key: '統一編號',
+      value: orderData.userInfo?.companyId || '',
+    },
+    {
+      key: '載具號碼',
+      value: orderData.userInfo?.carrierId || '',
+    },
+    {
+      key: '訂單金額',
+      value: (
+        <span className="text-lg font-bold text-primary">
+          NT$ {formatPrice(orderData.totalPrice || 0)}
+        </span>
+      ),
+    },
+  ]
 
   return (
     <>
@@ -150,127 +208,125 @@ export default function ProductSuccessPage() {
               </>
             )}
           </div>
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* 左側卡片 - 訂單詳情 */}
-            <div className="flex-1">
-              <Card>
-                <CardContent>
-                  <Table className="w-full table-fixed">
-                    <TableBody className="divide-y divide-foreground">
-                      {Object.entries(orderDetails)
-                        .filter(
-                          ([key, value]) =>
-                            value !== '' &&
-                            value !== null &&
-                            value !== undefined
-                        )
-                        .map(([key, value]) => (
-                          <TableRow
-                            key={key}
-                            className="border-b border-card-foreground"
-                          >
-                            <TableCell className="font-bold text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                              {key}
-                            </TableCell>
-                            <TableCell
-                              className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                              style={{ width: '100%' }}
+          <div className="mx-auto md:max-w-2xl gap-6">
+            <div className="flex flex-col gap-6">
+              {/* 訂單詳情 */}
+              <div>
+                <Card className="gap-0">
+                  <CardHeader>
+                    <h2 className="text-lg font-semibold">訂單詳情</h2>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Table className="w-full table-fixed">
+                      <TableBody>
+                        {summaries
+                          .filter(
+                            (summary) =>
+                              summary.value !== '' &&
+                              summary.value !== null &&
+                              summary.value !== undefined
+                          )
+                          .map((summary) => (
+                            <TableRow
+                              key={summary.key}
+                              className="border-b border-muted-foreground/30"
                             >
-                              {key === '訂單金額'
-                                ? `NTD$${formatPrice(value)}`
-                                : value}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-            {/* 右側卡片 - 商品明細 */}
-            <div className="flex-1">
-              <Card>
-                <CardContent>
-                  <Table className="w-full table-fixed">
-                    <TableHeader className="border-b-2 border-card-foreground">
-                      <TableRow className="text-lg">
-                        <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
-                          商品名稱
-                        </TableHead>
-                        <TableHead className="font-bold w-1/4 text-accent-foreground p-2">
-                          單價
-                        </TableHead>
-                        <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
-                          數量
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody className="divide-y divide-card-foreground">
-                      {orderData.carts && orderData.carts.length > 0 ? (
-                        orderData.carts.map((cartItem) => {
-                          // 處理圖片路徑
-                          const product = cartItem.product
-                          const imageFileName = product.images?.[0]?.url || ''
-
-                          return (
-                            <TableRow key={cartItem.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                                    <Image
-                                      className="object-cover w-full h-full"
-                                      src={getProductImageUrl(imageFileName)}
-                                      alt={product.name}
-                                      width={40}
-                                      height={40}
-                                    />
-                                  </div>
-                                  <span className="text-base whitespace-normal text-accent-foreground">
-                                    {product.name}
-                                  </span>
-                                </div>
+                              <TableCell className="font-medium">
+                                {summary.key}
                               </TableCell>
-                              <TableCell className="text-accent-foreground">
-                                ${formatPrice(product.price)}
-                              </TableCell>
-                              <TableCell className="text-accent-foreground">
-                                <div className="flex items-center justify-center gap-2">
-                                  <span className="w-12 text-center select-none">
-                                    {cartItem.quantity}
-                                  </span>
-                                </div>
+                              <TableCell className="text-right">
+                                {summary.value}
                               </TableCell>
                             </TableRow>
-                          )
-                        })
-                      ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={3}
-                            className="text-center py-8 text-muted-foreground"
-                          >
-                            沒有商品資料
-                          </TableCell>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+              {/* 商品明細 */}
+              <div>
+                <Card className="gap-0">
+                  <CardHeader>
+                    <h2 className="text-lg font-semibold">商品明細</h2>
+                  </CardHeader>
+                  <CardContent>
+                    <Table className="w-full table-fixed">
+                      <TableHeader className="border-b-2 border-card-foreground">
+                        <TableRow className="text-base">
+                          <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
+                            商品名稱
+                          </TableHead>
+                          <TableHead className="font-bold w-1/4 text-accent-foreground p-2">
+                            單價
+                          </TableHead>
+                          <TableHead className="font-bold w-1/4 text-accent-foreground text-center p-2">
+                            數量
+                          </TableHead>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-card-foreground">
+                        {orderData.carts && orderData.carts.length > 0 ? (
+                          orderData.carts.map((cartItem) => {
+                            // 處理圖片路徑
+                            const product = cartItem.product
+                            const imageFileName = product.images?.[0]?.url || ''
 
-          <div className="flex justify-between">
-            <Link href={`/shop/order/${orderData.orderId || '1'}`}>
-              <Button variant="default" className="w-[120px]">
-                查看訂單
-              </Button>
-            </Link>
-            <Link href="/shop">
-              <Button variant="highlight" className="w-[120px]">
-                瀏覽新商品
-              </Button>
-            </Link>
+                            return (
+                              <TableRow key={cartItem.id}>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                                      <Image
+                                        className="object-cover w-full h-full"
+                                        src={getProductImageUrl(imageFileName)}
+                                        alt={product.name}
+                                        width={40}
+                                        height={40}
+                                      />
+                                    </div>
+                                    <span className="text-sm whitespace-normal text-accent-foreground">
+                                      {product.name}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-accent-foreground">
+                                  ${formatPrice(product.price)}
+                                </TableCell>
+                                <TableCell className="text-accent-foreground">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <span className="w-12 text-center select-none">
+                                      {cartItem.quantity}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )
+                          })
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-center py-8 text-muted-foreground"
+                            >
+                              沒有商品資料
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+            <div className="flex justify-between mt-6">
+              <Link href={`/shop/order/${orderData.orderId || '1'}`}>
+                <Button variant="outline">查看訂單</Button>
+              </Link>
+              <Link href="/shop">
+                <Button variant="highlight">瀏覽新商品</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

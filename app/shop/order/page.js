@@ -189,12 +189,12 @@ export default function CartListPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="flex flex-col md:flex-row justify-between gap-5 min-h-screen">
+          <div className="flex flex-col md:flex-row justify-between gap-5">
             <Card className="flex-3 self-start">
               <CardContent>
                 <Table className="w-full table-fixed">
                   <TableHeader className="border-b-2 border-card-foreground">
-                    <TableRow className="text-lg">
+                    <TableRow className="text-base font-bold">
                       <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
                         商品名稱
                       </TableHead>

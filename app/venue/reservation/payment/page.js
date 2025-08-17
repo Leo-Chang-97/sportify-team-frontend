@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Card,
   CardContent,
@@ -65,6 +66,7 @@ export default function PaymentPage() {
   // #region 路由和URL參數
   const router = useRouter()
   const { user } = useAuth()
+
   // #region 狀態管理
   const [centerData, setCenterData] = useState(null)
   const [isCreatingOrder, setIsCreatingOrder] = useState(false) // 建立訂單載入狀態
@@ -81,7 +83,7 @@ export default function PaymentPage() {
   // 用戶輸入資料狀態
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    phone: '',
+    phone: user?.phone || '',
     carrierId: '', // 載具號碼
     companyId: '', // 統一編號
   })
@@ -124,6 +126,14 @@ export default function PaymentPage() {
       ...prev,
       [field]: value,
     }))
+
+    // 清除該欄位的錯誤
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: '',
+      }))
+    }
   }
 
   // 獲取選中的付款和發票選項
@@ -304,43 +314,38 @@ export default function PaymentPage() {
         ...getSelectedOptions(),
       })
 
-      // 先建立訂單
-      const reservationResult = await handleReservation()
+      // 準備付款參數但不立即建立訂單
+      const amount = venueData.totalPrice
+      const itemsArray = venueData.timeSlots.map(
+        (slot) => `${slot.courtName} - ${slot.timeRange}`
+      )
+      const items = itemsArray.join(',')
 
-      if (reservationResult && reservationResult.success) {
-        // 訂單建立成功，根據付款方式決定下一步
-        const reservationId = reservationResult.reservationId
-
-        // 定義 amount 和 items
-        const amount = venueData.totalPrice
-        const itemsArray = venueData.timeSlots.map(
-          (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
-        )
-        const items = itemsArray.join(',')
-
-        if (selectedPayment === '1') {
-          // 綠界
-          setPaymentParams({
-            method: 'ecpay',
-            amount,
-            items,
-            reservationId,
-          })
-          setShowPaymentDialog(true)
-        } else if (selectedPayment === '2') {
-          // Line Pay
-          setPaymentParams({
-            method: 'linepay',
-            amount,
-            items,
-            reservationId,
-          })
-          setShowPaymentDialog(true)
-        } else {
-          router.push('/venue/reservation/success')
+      if (selectedPayment === '1') {
+        // 綠界
+        setPaymentParams({
+          method: 'ecpay',
+          amount,
+          items,
+        })
+        setShowPaymentDialog(true)
+      } else if (selectedPayment === '2') {
+        // Line Pay
+        setPaymentParams({
+          method: 'linepay',
+          amount,
+          items,
+        })
+        setShowPaymentDialog(true)
+      } else {
+        // 現金付款 - 直接建立訂單並導向成功頁面
+        const reservationResult = await handleReservation()
+        if (reservationResult && reservationResult.success) {
+          router.push(
+            `/venue/reservation/success?reservationId=${reservationResult.reservationId}`
+          )
         }
       }
-      // 如果訂單建立失敗，handleReservation 內部已經處理錯誤訊息
     } else {
       // 表單驗證失敗，滾動到第一個錯誤欄位
       const errorFields = [
@@ -373,23 +378,36 @@ export default function PaymentPage() {
   }
 
   // #region 處理ECPay確認付款
-  const handlePaymentConfirm = () => {
+  const handlePaymentConfirm = async () => {
     if (!paymentParams) {
       toast.error('付款參數錯誤，請重新嘗試')
       return
     }
 
-    const { method, amount, items, reservationId } = paymentParams
+    const { method, amount, items } = paymentParams
 
-    switch (method) {
-      case 'ecpay':
-        window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
-        break
-      case 'linepay':
-        window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
-        break
-      default:
-        toast.error('不支援的付款方式')
+    // 用戶確認付款後才建立訂單
+    setIsCreatingOrder(true)
+    const reservationResult = await handleReservation()
+
+    if (reservationResult && reservationResult.success) {
+      const reservationId = reservationResult.reservationId
+
+      switch (method) {
+        case 'ecpay':
+          window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+          break
+        case 'linepay':
+          window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=venue&reservationId=${reservationId}`
+          break
+        default:
+          toast.error('不支援的付款方式')
+          setIsCreatingOrder(false)
+      }
+    } else {
+      // 訂單建立失敗，不跳轉付款頁面
+      setIsCreatingOrder(false)
+      setShowPaymentDialog(false)
     }
   }
 
@@ -436,7 +454,7 @@ export default function PaymentPage() {
                         <Input
                           type="text"
                           id="name"
-                          placeholder="姓名"
+                          placeholder="請輸入姓名"
                           className={cn(
                             'w-full',
                             errors.name &&
@@ -458,7 +476,7 @@ export default function PaymentPage() {
                         <Input
                           type="text"
                           id="phone"
-                          placeholder="電話"
+                          placeholder="請填寫電話號碼(例：0912345678)"
                           className={cn(
                             'w-full',
                             errors.phone &&
@@ -535,7 +553,9 @@ export default function PaymentPage() {
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
                       {/* <div>地區: {venueData.location || '未選擇'}</div> */}
-                      <div>中心: {venueData.center || '未選擇'}</div>
+                      <div className="text-sm text-primary">
+                        {venueData.center || '未選擇'}
+                      </div>
                       <div>運動: {venueData.sport || '未選擇'}</div>
                     </div>
                   </div>
@@ -545,7 +565,7 @@ export default function PaymentPage() {
                     <h4 className="font-medium text-accent-foreground">
                       預約日期
                     </h4>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-primary">
                       {venueData.selectedDate
                         ? venueData.selectedDate.toLocaleDateString('zh-TW', {
                             year: 'numeric',
@@ -565,16 +585,20 @@ export default function PaymentPage() {
                     {venueData.timeSlots?.length > 0 ? (
                       <div className="space-y-2">
                         {venueData.timeSlots.map((slot, index) => (
-                          <div
+                          <Alert
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
                           >
-                            <div className="font-medium">{slot.courtName}</div>
-                            <div className="flex justify-between">
+                            <AlertTitle className="text-base font-medium text-blue-500">
+                              {slot.courtName}
+                            </AlertTitle>
+                            <AlertDescription className="flex justify-between">
                               <span>{slot.timeRange}</span>
-                              <span>NT$ {slot.price}</span>
-                            </div>
-                          </div>
+                              <span className="text-primary">
+                                NT$ {slot.price}
+                              </span>
+                            </AlertDescription>
+                          </Alert>
                         ))}
                       </div>
                     ) : (
@@ -619,13 +643,14 @@ export default function PaymentPage() {
             <AlertDialogDescription>
               {paymentParams?.method === 'ecpay'
                 ? '確認是否導向至 ECPay(綠界金流) 進行付款？'
-                : paymentParams?.method === 'applepay'
-                  ? '確認是否使用 Apple Pay 進行付款？'
+                : paymentParams?.method === 'linepay'
+                  ? '確認是否導向至 Line Pay 進行付款？'
                   : '確認是否進行付款？'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
+              disabled={isCreatingOrder}
               onClick={() => {
                 setShowPaymentDialog(false)
                 setPaymentParams(null)
@@ -634,12 +659,12 @@ export default function PaymentPage() {
               取消
             </AlertDialogCancel>
             <AlertDialogAction
+              disabled={isCreatingOrder}
               onClick={() => {
-                setShowPaymentDialog(false)
                 handlePaymentConfirm()
               }}
             >
-              確認付款
+              {isCreatingOrder ? '建立訂單中...' : '確認付款'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -3,21 +3,10 @@
 import * as React from 'react'
 import Image from 'next/image'
 import {
-  IconCamera,
-  IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
+  IconCheckupList,
+  IconShoppingCart,
   IconUsers,
+  IconChalkboardTeacher,
 } from '@tabler/icons-react'
 
 import { NavDocuments } from '@/components/admin/nav-documents'
@@ -43,69 +32,59 @@ const data = {
   },
   navMain: [
     {
-      title: 'Venue',
+      title: '場地預訂',
       url: '/admin/venue',
-      icon: IconDashboard,
+      icon: IconCheckupList,
       items: [
         {
-          title: 'Center',
+          title: '場館管理',
           url: '/admin/venue/center',
         },
         {
-          title: 'Time Slot',
+          title: '開放時間管理',
           url: '/admin/venue/time-slot',
         },
         {
-          title: 'Court',
+          title: '場地管理',
           url: '/admin/venue/court',
         },
         {
-          title: 'Court Price',
+          title: '場地價格設定',
           url: '/admin/venue/court-time-slot',
         },
         {
-          title: 'Reservation',
+          title: '訂單管理',
           url: '/admin/venue/reservation',
         },
       ],
     },
     {
-      title: 'Shop',
+      title: '購物商城',
       url: '/admin/shop',
-      icon: IconInnerShadowTop,
+      icon: IconShoppingCart,
       items: [
         {
-          title: 'Product',
+          title: '商品管理',
           url: '/admin/shop/product',
         },
         {
-          title: 'Order',
+          title: '訂單管理',
           url: '/admin/shop/order',
         },
       ],
     },
     {
-      title: 'Lifecycle',
-      url: '#',
-      icon: IconListDetails,
-    },
-    {
-      title: 'Analytics',
-      url: '#',
-      icon: IconChartBar,
-    },
-    {
-      title: 'Projects',
-      url: '#',
-      icon: IconFolder,
-    },
-    {
-      title: 'Team',
+      title: '揪團組隊',
       url: '#',
       icon: IconUsers,
     },
+    {
+      title: '課程報名',
+      url: '#',
+      icon: IconChalkboardTeacher,
+    },
   ],
-  navClouds: [
+  /* navClouds: [
     {
       title: 'Capture',
       icon: IconCamera,
@@ -186,7 +165,7 @@ const data = {
       url: '#',
       icon: IconFileWord,
     },
-  ],
+  ], */
 }
 
 export function AppSidebar({ ...props }) {
@@ -234,8 +213,8 @@ export function AppSidebar({ ...props }) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavDocuments items={data.documents} /> */}
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user || ''} />

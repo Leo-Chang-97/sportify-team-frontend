@@ -18,21 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-
-async function fetchAPI(url) {
-  if (!API_BASE_URL) {
-    throw new Error('前端環境變數 NEXT_PUBLIC_API_BASE_URL 未設定！')
-  }
-  const fullUrl = `${API_BASE_URL}${url}`
-  const res = await fetch(fullUrl)
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}))
-    throw new Error(errorData.error || `請求 ${fullUrl} 失敗`)
-  }
-  return res.json()
-}
+import { teamService } from '@/api/team/team'
 
 // 分頁選單元件 (維持不變)
 function Pagination({ currentPage, totalPages, onPageChange }) {
@@ -70,11 +56,12 @@ export default function TeamPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sortBy, setSortBy] = useState('newest')
 
-  // ===== 【核心修改 1】新增狀態來管理排序選項 =====
-  const [sortBy, setSortBy] = useState('newest') // 預設為 "由新到舊"
+  // ===== 【新增】用於儲存展開卡片的詳細資訊 =====
+  const [expandedTeamDetails, setExpandedTeamDetails] = useState(null)
+  const [isDetailLoading, setIsDetailLoading] = useState(false)
 
-  // ===== 【核心修改 2】更新 useEffect 的依賴，當排序或頁碼改變時重新載入資料 =====
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -92,31 +79,59 @@ export default function TeamPage() {
       setIsLoading(true)
       setError(null)
       try {
-        // 將 sortBy 參數加入 API 請求中
-        const data = await fetchAPI(
-          `/api/team/teams?page=${currentPage}&limit=12&sortBy=${sortBy}`
-        )
+        // ===== 【修改 2】使用 teamService.fetchAll 來獲取隊伍列表 =====
+        const data = await teamService.fetchAll({
+          page: currentPage,
+          limit: 12,
+          sortBy: sortBy,
+        })
         setTeams(data.teams || [])
         setTotalPages(data.totalPages || 1)
       } catch (err) {
-        setError(err.message)
+        setError(err.message || '載入隊伍列表失敗')
         console.error('載入隊伍列表失敗:', err)
       } finally {
         setIsLoading(false)
-        setExpandedCardIndex(null)
+        setExpandedCardIndex(null) // 每次重新載入列表時，收合所有卡片
       }
     }
     loadTeams()
-  }, [currentPage, sortBy]) // 當 currentPage 或 sortBy 改變時，重新執行
+  }, [currentPage, sortBy])
 
-  // 當排序選項改變時，將頁碼重設回第一頁
   const handleSortChange = (value) => {
     setSortBy(value)
     setCurrentPage(1)
   }
 
-  const handleToggleExpand = (index) => {
-    setExpandedCardIndex((prevIndex) => (prevIndex === index ? null : index))
+  // ===== 【修改 3】重構 handleToggleExpand，使其在展開時獲取詳細資料 =====
+  const handleToggleExpand = async (index, teamId) => {
+    // 如果是關閉當前已展開的卡片
+    if (expandedCardIndex === index) {
+      setExpandedCardIndex(null)
+      setExpandedTeamDetails(null)
+      return
+    }
+
+    // 如果是打開新的卡片
+    setExpandedCardIndex(index)
+    setExpandedTeamDetails(null) // 先清除舊資料
+    setIsDetailLoading(true)
+
+    try {
+      // 使用 teamService.fetchById 來獲取單一隊伍的詳細資料
+      const result = await teamService.fetchById(teamId)
+      if (result.success) {
+        setExpandedTeamDetails(result.team) // 後端回傳的資料在 result.team 中
+      } else {
+        throw new Error(result.error || '無法載入隊伍詳情')
+      }
+    } catch (err) {
+      console.error(`獲取隊伍 ${teamId} 詳細資料失敗:`, err)
+      // 可選擇性地在 UI 上顯示錯誤
+      setError(`無法載入隊伍詳情: ${err.message}`)
+    } finally {
+      setIsDetailLoading(false)
+    }
   }
 
   return (
@@ -135,15 +150,13 @@ export default function TeamPage() {
             推·薦·隊·伍
           </div>
 
-          {/* ===== 【核心修改 3】調整版面佈局 ===== */}
           <div className="self-stretch flex justify-between items-center gap-4">
-            {/* 左側按鈕群組 */}
             <div className="flex items-center gap-2">
               <Link href="/team/create" passHref>
                 <Button
                   variant="default"
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-blue-600 transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
+                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
                 >
                   創建隊伍 <ArrowRight />
                 </Button>
@@ -152,13 +165,12 @@ export default function TeamPage() {
                 <Button
                   variant="default"
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-blue-600 transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
+                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
                 >
                   我的隊伍 <ArrowRight />
                 </Button>
               </Link>
             </div>
-            {/* 右側排序選單 */}
             <div className="w-48">
               <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-full bg-card text-card-foreground">
@@ -195,16 +207,24 @@ export default function TeamPage() {
                   <TeamCard
                     key={team.id}
                     isExpanded={expandedCardIndex === index}
-                    onToggleExpand={() => handleToggleExpand(index)}
+                    // ===== 【修改 4】將 team.id 傳入 onToggleExpand =====
+                    onToggleExpand={() => handleToggleExpand(index, team.id)}
                     teamName={team.name}
                     sportType={team.court?.sport?.name || '未知運動'}
-                    currentMembers={team.memberCount}
+                    currentMembers={team._count?.TeamMember || 0}
                     maxMembers={team.capacity || 12}
                     location={team.court?.center?.name || '未知地點'}
                     time={team.practiceTime}
                     skillLevel={team.level?.name || '未知等級'}
                     isNews={team.isFeatured}
                     imageUrl={team.coverImageUrl}
+                    // ===== 【修改 5】將詳細資料和載入狀態傳遞給卡片 =====
+                    details={
+                      expandedCardIndex === index ? expandedTeamDetails : null
+                    }
+                    isDetailLoading={
+                      expandedCardIndex === index && isDetailLoading
+                    }
                   />
                 ))}
               </div>

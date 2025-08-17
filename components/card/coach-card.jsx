@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import * as React from 'react'
+import React, { useState } from 'react'
 
 // utils
 import { cn } from '@/lib/utils'
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 // next 元件
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 // UI 元件
 import { Badge } from '@/components/ui/badge'
@@ -24,40 +24,49 @@ import { Card, CardContent, CardFooter } from '@/components/card/card'
 
 export function CoachCard({ className, data, ...props }) {
   // #region 路由和URL參數
+  const searchParams = useSearchParams()
   const router = useRouter()
 
   // #region 組件狀態管理
+  const [coachId, setCoachId] = useState('')
   const [isHovered, setIsHovered] = React.useState(false)
 
   // #region 事件處理函數
-
+  const handleCoachSearch = (coachId) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+    // 地區
+    if (coachId && coachId !== 'all') {
+      newParams.set('coachId', coachId)
+    } else {
+      newParams.delete('coachId')
+    }
+    newParams.set('page', '1') // 搜尋時重設分頁
+    router.push(`/course?${newParams.toString()}`)
+  }
   // #region 資料顯示選項
 
   return (
     <div className={cn('group', className)} {...props}>
       <Card
         className={cn(
-          `
-      relative h-full overflow-hidden py-0 transition-all
-      duration-200 ease-in-out
-      hover:shadow-md gap-0 border-none bg-background
-    `,
+          'relative h-full overflow-hidden py-0 transition-all duration-200 ease-in-out hover:shadow-md gap-0 border-none bg-background cursor-pointer',
           isHovered && 'ring-1 ring-accent'
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={() => handleCoachSearch(data?.id)}
       >
         <div className="relative aspect-3/4 w-full h-full overflow-hidden rounded-lg">
-          {data.avatar && (
+          {data?.avatar && (
             <Image
-              alt={data.name}
+              alt={data?.member?.name}
               className={cn(
                 'object-cover transition-transform duration-300 ease-in-out rounded-lg',
                 isHovered && 'scale-105'
               )}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              src={data.avatar}
+              src={data?.avatar}
             />
           )}
         </div>
@@ -70,9 +79,9 @@ export function CoachCard({ className, data, ...props }) {
                 group-hover:text-highlight
               `}
           >
-            {data.name}
+            {data?.member?.name}
           </h3>
-          <span className="text-base text-gray-400">{data.sport}</span>
+          <span className="text-base text-gray-400">{data?.sport?.name}</span>
         </CardContent>
       </Card>
     </div>
