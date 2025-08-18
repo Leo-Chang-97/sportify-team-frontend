@@ -38,3 +38,9 @@ export const deleteMultipleReservations = async (checkedItems) => {
   })
   return res.data
 }
+
+// 取得某會員所有 Reservation 資料
+export const getUserReservations = async (params = {}) => {
+  const res = await apiClient.get('/venue/reservation/member', { params })
+  return res.data
+}
