@@ -272,7 +272,7 @@ export default function CourseSuccessPage() {
               <div className="rounded-full bg-highlight p-4">
                 <FaCheck className="text-4xl text-accent" />
               </div>
-              <h2 className="text-2xl font-bold text-accent">已完成預訂</h2>
+              <h2 className="text-2xl font-bold text-foreground">已完成預訂</h2>
             </div>
           </section>
 

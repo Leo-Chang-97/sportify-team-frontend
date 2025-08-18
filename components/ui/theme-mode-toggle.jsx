@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-
+import { Toggle } from '@/components/ui/toggle'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,28 +13,44 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export function ModeToggle() {
-  const { setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // 在未 mount 時避免使用 client-only 值，防止 hydration mismatch
+  const isDark = mounted ? resolvedTheme === 'dark' : false
+  const handleToggle = () => {
+    if (!mounted) return
+    setTheme(isDark ? 'light' : 'dark')
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button variant="secondary" asChild>
+      <Toggle
+        aria-label={isDark ? '切換為亮色模式' : '切換為暗色模式'}
+        title={isDark ? '切換為亮色模式' : '切換為暗色模式'}
+        onClick={handleToggle}
+        className="relative inline-flex items-center justify-center w-9 h-9 p-0"
+      >
+        <Sun
+          className={`h-[1.1rem] w-[1.1rem] transition-transform ${
+            isDark
+              ? 'scale-0 -rotate-90 opacity-0'
+              : 'scale-100 rotate-0 opacity-100'
+          }`}
+        />
+        <Moon
+          className={`absolute h-[1.1rem] w-[1.1rem] transition-transform ${
+            isDark
+              ? 'scale-100 rotate-0 opacity-100'
+              : 'scale-0 rotate-90 opacity-0'
+          }`}
+        />
+        <span className="sr-only">Toggle theme</span>
+      </Toggle>
+    </Button>
   )
 }

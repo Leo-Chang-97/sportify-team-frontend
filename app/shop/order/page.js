@@ -335,7 +335,7 @@ export default function CartListPage() {
                     </Button>
                   </Link>
                   <Link
-                    href={`/shop/order/pay?totalPrice=${totalPrice}&itemCount=${itemCount}`}
+                    href={`/shop/order/payment?totalPrice=${totalPrice}&itemCount=${itemCount}`}
                   >
                     <Button variant="highlight" className="w-[120px]">
                       填寫付款資訊

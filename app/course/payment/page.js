@@ -95,6 +95,9 @@ export default function CoursePaymentPage() {
   // ECPay 確認對話框狀態
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [paymentParams, setPaymentParams] = useState(null)
+  // 錯誤對話框狀態（建立訂單失敗時使用）
+  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [errorDialogMessage, setErrorDialogMessage] = useState('')
 
   // #region Lesson 資料
   useEffect(() => {
@@ -199,20 +202,13 @@ export default function CoursePaymentPage() {
     setIsCreatingOrder(true)
 
     if (!lessonData) {
-      toast.error('課程資料載入中，請稍後再試')
-      return
+      setErrorDialogMessage('課程資料載入中，請稍後再試')
+      setShowErrorDialog(true)
+      setIsCreatingOrder(false)
+      return { success: false }
     }
 
     setIsCreatingOrder(true)
-
-    // // 生成發票號碼 (可以根據您的業務邏輯調整)
-    // const generateInvoiceNumber = () => {
-    //   const timestamp = Date.now().toString().slice(-8)
-    //   const random = Math.floor(Math.random() * 1000)
-    //     .toString()
-    //     .padStart(3, '0')
-    //   return `INV${timestamp}${random}`
-    // }
 
     const bookingData = {
       memberId: user?.id || 102,
@@ -221,7 +217,6 @@ export default function CoursePaymentPage() {
       statusId: 1,
       paymentId: parseInt(selectedPayment), // 轉換為數字
       invoiceId: parseInt(selectedReceipt), // 轉換為數字
-      // invoiceNumber: generateInvoiceNumber(), // 添加必填的發票號碼
       carrier: formData.carrierId || '', // 空字串而非 null
       tax: formData.companyId || '', // 空字串而非 null
     }
@@ -235,77 +230,77 @@ export default function CoursePaymentPage() {
         console.log('Booking created successfully:', result)
         return { success: true, bookingId: result.insertId }
         // 根據付款方式處理後續流程
-      } else {
-        throw new Error(result.message || '建立預約失敗')
       }
+
+      const message = result?.message || '建立預約失敗'
+
+      // 顯示後端錯誤訊息或 zod issues 在 AlertDialog
+      if (result?.issues && Array.isArray(result.issues)) {
+        const issueMsg = result.issues.map((i) => i.message).join('，')
+        setErrorDialogMessage(issueMsg || message)
+      } else {
+        setErrorDialogMessage(message)
+      }
+      setShowErrorDialog(true)
+
+      return { success: false }
     } catch (error) {
       console.error('Booking error:', error)
-      toast.error(error.message || '預約失敗，請稍後再試')
+      setErrorDialogMessage(error?.message || '預約失敗，請稍後再試')
+      setShowErrorDialog(true)
+      return { success: false }
     } finally {
       setIsCreatingOrder(false)
     }
   }
 
-  // 處理付款流程
-  const handlePayment = async (bookingId) => {
+  // 點擊「確認預約」：先建立訂單，建立成功才顯示付款確認對話框
+  const handlePayment = async () => {
     try {
-      /* const paymentData = {
-        bookingId,
-        amount: lessonData.price,
-        paymentMethod: selectedPayment,
-        orderInfo: {
-          lessonName: lessonData.title,
-          customerName: formData.name,
-          customerPhone: formData.phone,
-        },
-      } */
+      setIsCreatingOrder(true)
+      const bookingResult = await handleBooking()
+      if (!bookingResult || !bookingResult.success) {
+        // handleBooking 已設定錯誤訊息並開啟錯誤對話框
+        setIsCreatingOrder(false)
+        return
+      }
+
+      const bookingId = bookingResult.bookingId
       const amount = lessonData.price
       const items = lessonData.title
-      // 根據付款方式跳轉
+
       if (selectedPayment === '1') {
-        // 綠界
-        setPaymentParams({
-          method: 'ecpay',
-          amount,
-          items,
-        })
+        setPaymentParams({ method: 'ecpay', amount, items, bookingId })
         setShowPaymentDialog(true)
       } else if (selectedPayment === '2') {
-        // Line Pay
-        setPaymentParams({
-          method: 'linepay',
-          amount,
-          items,
-        })
+        setPaymentParams({ method: 'linepay', amount, items, bookingId })
         setShowPaymentDialog(true)
       } else {
-        // 現金付款 - 直接建立訂單並導向成功頁面
-        const bookingResult = await handleBooking()
-        if (bookingResult && bookingResult.success) {
-          router.push(`/venue/success?bookingId=${bookingResult.bookingId}`)
-        }
+        // 現金或其他：已建立訂單，直接導向成功頁
+        router.push(`/course/success?bookingId=${bookingId}`)
       }
     } catch (error) {
       console.error('Payment error:', error)
-      toast.error('付款處理失敗')
+      setErrorDialogMessage('付款處理失敗，請稍後再試')
+      setShowErrorDialog(true)
+    } finally {
+      setIsCreatingOrder(false)
     }
   }
   // #region 處理ECPay確認付款
+  // 確認付款（此時訂單已建立，只負責跳轉第三方）
   const handlePaymentConfirm = async () => {
     if (!paymentParams) {
-      toast.error('付款參數錯誤，請重新嘗試')
+      setErrorDialogMessage('付款參數錯誤，請重新嘗試')
+      setShowErrorDialog(true)
       return
     }
 
-    const { method, amount, items } = paymentParams
-
-    // 用戶確認付款後才建立訂單
+    const { method, amount, items, bookingId } = paymentParams
+    setShowPaymentDialog(false)
     setIsCreatingOrder(true)
-    const bookingResult = await handleBooking()
 
-    if (bookingResult && bookingResult.success) {
-      const bookingId = bookingResult.bookingId
-
+    try {
       switch (method) {
         case 'ecpay':
           window.location.href = `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=course&bookingId=${bookingId}`
@@ -314,13 +309,15 @@ export default function CoursePaymentPage() {
           window.location.href = `${API_SERVER}/payment/line-pay-test/reserve?amount=${amount}&items=${encodeURIComponent(items)}&type=course&bookingId=${bookingId}`
           break
         default:
-          toast.error('不支援的付款方式')
+          setErrorDialogMessage('不支援的付款方式')
+          setShowErrorDialog(true)
           setIsCreatingOrder(false)
       }
-    } else {
-      // 訂單建立失敗，不跳轉付款頁面
+    } catch (err) {
+      console.error(err)
+      setErrorDialogMessage('付款跳轉失敗，請稍後重試')
+      setShowErrorDialog(true)
       setIsCreatingOrder(false)
-      setShowPaymentDialog(false)
     }
   }
 
@@ -646,27 +643,30 @@ export default function CoursePaymentPage() {
                 </CardContent>
 
                 <CardFooter className="flex gap-3">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        size="lg"
-                        className="w-full"
-                        onClick={handlePayment}
-                        disabled={isCreatingOrder}
-                      >
-                        {isCreatingOrder ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                            處理中...
-                          </>
-                        ) : (
-                          <>
-                            確認預約
-                            <CreditCard />
-                          </>
-                        )}
-                      </Button>
-                    </AlertDialogTrigger>
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handlePayment}
+                    disabled={isCreatingOrder}
+                  >
+                    {isCreatingOrder ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        處理中...
+                      </>
+                    ) : (
+                      <>
+                        確認預約
+                        <CreditCard />
+                      </>
+                    )}
+                  </Button>
+
+                  {/* 付款確認對話框（受控） */}
+                  <AlertDialog
+                    open={showPaymentDialog}
+                    onOpenChange={setShowPaymentDialog}
+                  >
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>確認課程預約</AlertDialogTitle>
@@ -679,7 +679,11 @@ export default function CoursePaymentPage() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogCancel
+                          onClick={() => setShowPaymentDialog(false)}
+                        >
+                          取消
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           disabled={isCreatingOrder}
                           onClick={() => {
@@ -687,6 +691,38 @@ export default function CoursePaymentPage() {
                           }}
                         >
                           確認預約
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  {/* 錯誤對話框：建立訂單失敗時顯示 */}
+                  <AlertDialog
+                    open={showErrorDialog}
+                    onOpenChange={setShowErrorDialog}
+                  >
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-destructive">
+                          訂單建立失敗
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {errorDialogMessage}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          onClick={() => setShowErrorDialog(false)}
+                        >
+                          關閉
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            setShowErrorDialog(false)
+                            router.push(`/course/${lessonId}`)
+                          }}
+                        >
+                          返回課程頁
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

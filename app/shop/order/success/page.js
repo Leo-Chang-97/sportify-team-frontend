@@ -1,7 +1,7 @@
 'use client'
 
 // react
-import React  from 'react'
+import React from 'react'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
@@ -127,7 +127,9 @@ export default function ProductSuccessPage() {
                 <div className="rounded-full bg-highlight p-4">
                   <FaCheck className="text-4xl text-accent" />
                 </div>
-                <h2 className="text-2xl font-bold text-accent">已完成訂購</h2>
+                <h2 className="text-2xl font-bold text-foreground">
+                  已完成訂購
+                </h2>
               </>
             ) : (
               <>
