@@ -229,7 +229,7 @@ export const Navbar = React.forwardRef(
       } else if (action === 'member') {
         router.push('/member')
       } else if (action === 'billing') {
-        router.push('/cart')
+        router.push('/shop/order')
       }
     }
 

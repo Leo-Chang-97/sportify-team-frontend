@@ -1,7 +1,9 @@
-// order/columns.js
+// react
 import React from 'react'
-import { Button } from '@/components/ui/button'
+// icons
 import { IconTrash, IconEdit } from '@tabler/icons-react'
+// ui components
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 
 export const orderColumns = [

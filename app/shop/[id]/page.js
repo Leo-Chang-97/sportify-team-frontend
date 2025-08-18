@@ -1,12 +1,13 @@
 'use client'
 
+// react
 import React, { useState, useEffect, useMemo } from 'react'
-import { Minus, Plus, Heart } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
-// components/ui
-import { toast } from 'sonner'
+// icons
+import { Minus, Plus, Heart } from 'lucide-react'
+// ui components 
 import { Button } from '@/components/ui/button'
 import {
   Carousel,
@@ -19,19 +20,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from '@/components/ui/table'
-// components
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import { LoadingState, ErrorState } from '@/components/loading-states'
-// api
+// hooks
 import { useAuth } from '@/contexts/auth-context'
+// api
 import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
@@ -39,10 +38,9 @@ import {
   fetchSportOptions,
   fetchBrandOptions,
 } from '@/api/common'
+// others
+import { toast } from 'sonner'
 
-const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
-  currency: 'TWD',
-})
 
 export default function ProductDetailPage() {
   const { isAuthenticated } = useAuth()
