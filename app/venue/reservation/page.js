@@ -34,6 +34,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Card,
   CardContent,
@@ -73,7 +74,7 @@ export default function ReservationPage() {
     venueData.locationId?.toString() || ''
   )
   const [centerId, setCenterId] = useState(venueData.centerId?.toString() || '')
-  const [sportId, setSportId] = useState('')
+  const [sportId, setSportId] = useState(venueData.sportId?.toString() || '')
 
   const [locations, setLocations] = useState([])
   const [centers, setCenters] = useState([])
@@ -201,7 +202,6 @@ export default function ReservationPage() {
           )
           // 從 API 回應中取得 rows，這些資料包含預約狀態
           setCourtTimeSlots(courtTimeSlotData.rows || [])
-          console.log('載入的場地時段資料:', courtTimeSlotData)
         } else {
           setCourtTimeSlots([])
         }
@@ -229,7 +229,6 @@ export default function ReservationPage() {
             30 // 查詢 30 天
           )
           setMonthlyAvailability(rangeData.rows || [])
-          console.log('載入的 30 天可預約資料:', rangeData)
         } else {
           setMonthlyAvailability([])
         }
@@ -348,7 +347,7 @@ export default function ReservationPage() {
                   <div className="space-y-2 flex-1">
                     <Label>地區</Label>
                     <Select value={locationId} onValueChange={setLocationId}>
-                      <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                      <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
                         <SelectValue placeholder="全部地區" />
                       </SelectTrigger>
                       <SelectContent>
@@ -371,7 +370,7 @@ export default function ReservationPage() {
                     <Select value={centerId} onValueChange={setCenterId}>
                       <SelectTrigger
                         className={cn(
-                          'w-full bg-accent text-accent-foreground !h-10',
+                          'w-full !bg-card text-accent-foreground !h-10',
                           errors.center &&
                             'border-destructive focus:border-destructive focus:ring-destructive'
                         )}
@@ -408,21 +407,35 @@ export default function ReservationPage() {
                   </div>
                   <div className="space-y-2 flex-1">
                     <Label>運動</Label>
-                    <Select value={sportId} onValueChange={setSportId}>
+                    <Select
+                      value={sportId}
+                      onValueChange={setSportId}
+                      disabled={!centerId}
+                    >
                       <SelectTrigger
                         className={cn(
-                          'w-full bg-accent text-accent-foreground !h-10',
+                          'w-full !bg-card text-accent-foreground !h-10',
                           errors.sport &&
-                            'border-destructive focus:border-destructive focus:ring-destructive'
+                            'border-destructive focus:border-destructive focus:ring-destructive',
+                          !centerId && 'cursor-not-allowed'
                         )}
                         data-testid="sport-select"
+                        style={!centerId ? { opacity: 0.9 } : undefined}
                       >
-                        <SelectValue placeholder="請選擇運動" />
+                        <SelectValue
+                          placeholder={
+                            !centerId ? '請先選擇中心' : '請選擇運動'
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {centerData &&
-                        centerData.centerSports &&
-                        centerData.centerSports.length === 0 ? (
+                        {!centerId ? (
+                          <div className="px-3 py-2 text-gray-400">
+                            請先選擇中心
+                          </div>
+                        ) : centerData &&
+                          centerData.centerSports &&
+                          centerData.centerSports.length === 0 ? (
                           <div className="px-3 py-2 text-gray-400">
                             沒有符合資料
                           </div>
@@ -472,7 +485,6 @@ export default function ReservationPage() {
                         ...prev,
                         selectedDate: selectedDate,
                       }))
-                      console.log(selectedDate)
                     }}
                     disabled={(date) => {
                       // 禁用今天之前的日期
@@ -497,11 +509,11 @@ export default function ReservationPage() {
                             className={cn(
                               'aspect-[3/2] flex flex-col md:gap-1 items-center justify-center w-full h-full p-1 text-base rounded-md transition-colors',
                               modifiers.selected
-                                ? 'bg-blue-100 text-primary'
+                                ? 'bg-primary text-primary-foreground'
                                 : modifiers.today
-                                  ? 'bg-orange-100 text-highlight'
+                                  ? 'bg-muted'
                                   : '',
-                              !modifiers.selected && 'hover:bg-background/10',
+                              !modifiers.selected && 'hover:bg-muted',
                               modifiers.disabled
                                 ? 'opacity-50 cursor-not-allowed'
                                 : 'cursor-pointer'
@@ -519,28 +531,37 @@ export default function ReservationPage() {
                                     'text-primary-foreground',
                                   !modifiers.selected &&
                                     availableCount === 0 &&
-                                    'text-red-700',
+                                    'text-red',
                                   !modifiers.selected &&
                                     availableCount > 0 &&
-                                    'text-green-700'
+                                    'text-green'
                                 )}
                               >
                                 {modifiers.selected ? (
-                                  <Status status="maintenance">
+                                  <Status
+                                    status="maintenance"
+                                    className="bg-background"
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel className="hidden sm:inline">
                                       已選擇
                                     </StatusLabel>
                                   </Status>
                                 ) : availableCount === 0 ? (
-                                  <Status status="offline">
+                                  <Status
+                                    status="offline"
+                                    className="bg-background"
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel className="hidden sm:inline">
                                       已額滿
                                     </StatusLabel>
                                   </Status>
                                 ) : (
-                                  <Status status="online">
+                                  <Status
+                                    status="online"
+                                    className="bg-background"
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel className="hidden sm:inline">
                                       {availableCount}
@@ -638,7 +659,9 @@ export default function ReservationPage() {
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
                       {/* <div>地區: {venueData.location || '未選擇'}</div> */}
-                      <div>中心: {venueData.center || '未選擇'}</div>
+                      <div className="text-primary">
+                        {venueData.center || '未選擇'}
+                      </div>
                       <div>運動: {venueData.sport || '未選擇'}</div>
                     </div>
                   </div>
@@ -648,7 +671,7 @@ export default function ReservationPage() {
                     <h4 className="font-medium text-accent-foreground">
                       預約日期
                     </h4>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-primary">
                       {venueData.selectedDate
                         ? venueData.selectedDate.toLocaleDateString('zh-TW', {
                             year: 'numeric',
@@ -668,16 +691,20 @@ export default function ReservationPage() {
                     {venueData.timeSlots?.length > 0 ? (
                       <div className="space-y-2">
                         {venueData.timeSlots.map((slot, index) => (
-                          <div
+                          <Alert
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
                           >
-                            <div className="font-medium">{slot.courtName}</div>
-                            <div className="flex justify-between">
+                            <AlertTitle className="font-medium text-blue-500">
+                              {slot.courtName}
+                            </AlertTitle>
+                            <AlertDescription className="flex justify-between">
                               <span>{slot.timeRange}</span>
-                              <span>NT$ {slot.price}</span>
-                            </div>
-                          </div>
+                              <span className="text-primary">
+                                NT$ {slot.price}
+                              </span>
+                            </AlertDescription>
+                          </Alert>
                         ))}
                       </div>
                     ) : (

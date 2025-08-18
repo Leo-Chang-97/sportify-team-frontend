@@ -1,26 +1,19 @@
 'use client'
 
+// react
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Link from 'next/link'
 import Image from 'next/image'
-// components/ui
-import { toast } from 'sonner'
+// ui components
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -37,7 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-// components
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
@@ -52,13 +45,15 @@ import DeliveryMethodSelector, {
   DeliveryOptions,
 } from '@/components/delivery-method-selector'
 import { LoadingState, ErrorState } from '@/components/loading-states'
+// hooks
+import { useAuth } from '@/contexts/auth-context'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, getCheckoutData, checkout } from '@/api'
-// 其他
+// others
+import { toast } from 'sonner'
 import { validateField } from '@/lib/utils'
 import { API_SERVER } from '@/lib/api-path'
-import { useAuth } from '@/contexts/auth-context'
 
 const steps = [
   { id: 1, title: '確認購物車', completed: true },
@@ -67,10 +62,9 @@ const steps = [
 ]
 
 export default function ProductPaymentPage() {
-  const searchParams = useSearchParams()
+  // ===== 路由和搜尋參數處理 =====
   const router = useRouter()
-  // 啟用會員登入狀態
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
 
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
@@ -124,7 +118,7 @@ export default function ProductPaymentPage() {
     return { totalPrice, itemCount, shippingFee }
   }, [carts, selectedDelivery])
 
-  // ===== 載入選項 =====
+  // ===== 副作用處理 =====
   useEffect(() => {
     if (cartData?.data?.cart?.cartItems) {
       setCarts(cartData.data.cart.cartItems)
@@ -243,25 +237,6 @@ export default function ProductPaymentPage() {
     }
   }
 
-  // 獲取選中的付款和發票選項
-  const getSelectedOptions = () => {
-    const selectedPaymentOption = paymentOptions.find(
-      (opt) => opt.id === selectedPayment
-    )
-    const selectedReceiptOption = receiptOptions.find(
-      (opt) => opt.id === selectedReceipt
-    )
-    const selectedDeliveryOption = DeliveryOptions.find(
-      (opt) => opt.id === selectedDelivery
-    )
-
-    return {
-      paymentMethod: selectedPaymentOption?.label || '',
-      receiptType: selectedReceiptOption?.label || '',
-      deliveryMethod: selectedDeliveryOption?.label || '',
-    }
-  }
-
   // 處理ECPay付款確認
   const handleEcpayConfirm = async () => {
     try {
@@ -293,7 +268,7 @@ export default function ProductPaymentPage() {
         },
       }
       // Debug 用
-      console.log('送出前的 orderData', orderData)
+      // console.log('送出前的 orderData', orderData)
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
@@ -305,22 +280,7 @@ export default function ProductPaymentPage() {
       const orderResult = await checkout(checkoutPayload)
 
       if (orderResult.success) {
-        // 訂單建立成功，準備成功頁面資料並存到 localStorage
-        const successData = {
-          carts: carts,
-          userInfo: formData,
-          totalPrice: totalPrice + shippingFee,
-          itemCount: itemCount,
-          shippingFee: shippingFee,
-          orderId: orderResult.data.id,
-          ...getSelectedOptions(),
-        }
-
-        // 將訂單資料存到 localStorage (給綠界付款完成後使用)
-        localStorage.setItem('ecpay_order_data', JSON.stringify(successData))
-        // console.log('訂單資料已存入 localStorage:', successData)
-
-        // 導向 ECPay
+        // 訂單建立成功，導向 ECPay 金流頁
         router.push(
           `${API_SERVER}/payment/ecpay-test?amount=${amount}&items=${encodeURIComponent(items)}&type=shop&orderId=${orderResult.data.id || ''}`
         )
@@ -485,21 +445,8 @@ export default function ProductPaymentPage() {
           const orderResult = await checkout(checkoutPayload)
 
           if (orderResult.success) {
-            // 訂單建立成功，準備成功頁面資料
-            const successData = {
-              carts: carts,
-              userInfo: formData,
-              totalPrice: totalPrice + shippingFee,
-              itemCount: itemCount,
-              shippingFee: shippingFee,
-              orderId: orderResult.data.id,
-              ...getSelectedOptions(),
-            }
-
-            // 導向成功頁面，帶上訂單資料
-            router.push(
-              `/shop/order/success?data=${encodeURIComponent(JSON.stringify(successData))}`
-            )
+            // 訂單建立成功，導向 /shop/order/success/?orderId=xxx
+            router.push(`/shop/order/success/?orderId=${orderResult.data.id}`)
           } else {
             toast.error('建立訂單失敗: ' + (orderResult.message || '未知錯誤'))
             console.error('訂單建立失敗:', orderResult)
@@ -543,30 +490,10 @@ export default function ProductPaymentPage() {
     }
   }
 
-  // 載入狀態處理
+  // ===== 載入和錯誤狀態處理 =====
   if (isCartLoading) {
     return <LoadingState message="載入購物車資料中..." />
   }
-
-  // 暫時註解登入狀態檢查，用於測試
-  // if (!isAuthenticated) {
-  //   return (
-  //     <>
-  //       <Navbar />
-  //       <BreadcrumbAuto />
-  //       <section className="px-4 md:px-6 py-10">
-  //         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-  //           <div className="text-center py-20 text-red-500">
-  //             請先登入才能進行結帳
-  //           </div>
-  //         </div>
-  //       </section>
-  //       <Footer />
-  //     </>
-  //   )
-  // }
-
-  // 錯誤狀態處理
   if (cartError) {
     return (
       <ErrorState

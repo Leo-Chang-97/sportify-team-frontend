@@ -1,6 +1,8 @@
 'use client'
 
+// react
 import React, { useState, useEffect } from 'react'
+// ui components
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -38,18 +40,6 @@ const DeliveryOptions = [
   },
 ]
 
-/**
- * 物流方式選擇元件
- * @param {Object} props
- * @param {string} props.selectedDelivery - 當前選中的物流方式ID
- * @param {function} props.onDeliveryChange - 物流方式變更回調函數
- * @param {Object} props.errors - 驗證錯誤物件
- * @param {string} props.className - 自定義樣式類名
- * @param {Object} props.formData - 表單資料
- * @param {function} props.onInputChange - 輸入變更回調函數
- * @param {function} props.onInputBlur - 輸入失焦回調函數
- * @returns {JSX.Element}
- */
 export default function DeliveryMethodSelector({
   selectedDelivery,
   onDeliveryChange,
@@ -59,6 +49,7 @@ export default function DeliveryMethodSelector({
   onInputChange,
   onInputBlur,
 }) {
+  // ===== 組件狀態管理 =====
   const [store, setStore] = useState(null)
 
   const sevenStore = () => {
