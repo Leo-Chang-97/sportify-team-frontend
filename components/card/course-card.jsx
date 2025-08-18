@@ -1,4 +1,5 @@
-// components/card/course-card.jsx - 簡化版本
+// components/card/course-card.jsx
+import { useCourse } from '@/contexts/course-context'
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button'
 
 const CourseCard = ({ course }) => {
   const router = useRouter()
+  const { setCourseData } = useCourse()
 
   // 預設資料
   const defaultCourse = {
@@ -32,8 +34,18 @@ const CourseCard = ({ course }) => {
   const isLowAvailability =
     courseData.maxCapacity - courseData.currentCount <= 10 &&
     courseData.maxCapacity - courseData.currentCount > 0
-  // console.log(isFullyBooked)
-  console.log(courseData.maxCapacity - courseData.currentCount)
+
+  // #region 事件處理函數
+  const handleBooking = (e) => {
+    e.preventDefault()
+    setCourseData((prev) => ({
+      ...prev,
+      lessonId: courseData.id,
+    }))
+    // 跳轉到預約頁面
+    router.push('/course/payment')
+  }
+
   // 處理點擊圖片跳轉到詳細頁面
   const handleImageClick = (e) => {
     e.stopPropagation()
@@ -103,11 +115,11 @@ const CourseCard = ({ course }) => {
         {/* 狀態標籤 */}
         <div className="absolute top-3 right-3 z-10 flex justify-center">
           {isFullyBooked ? (
-            <span className="bg-red-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
+            <span className="bg-destructive backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
               額滿
             </span>
           ) : isLowAvailability ? (
-            <span className="bg-orange-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
+            <span className="bg-highlight backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
               僅剩 {`${courseData.maxCapacity - courseData.currentCount}`} 名額
             </span>
           ) : (
@@ -129,26 +141,26 @@ const CourseCard = ({ course }) => {
       {/* 課程基本資訊 - 錯位玻璃模糊效果 */}
       <div className="relative -mt-16 mx-4 z-20">
         {/* 模糊背景卡片 */}
-        <div className="bg-primary/20 backdrop-blur-lg rounded-xl shadow-xl ">
+        <div className="bg-foreground/70 backdrop-blur-lg rounded-xl shadow-xl ">
           {/* 內容區域 */}
           <div className="p-4">
             {/* 課程標題和運動類型 */}
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-bold text-white hover:text-blue-600 transition-colors line-clamp-1">
+              <h3 className="text-lg font-bold text-background-dark hover:text-blue-600 transition-colors line-clamp-1">
                 {courseData.title}
               </h3>
-              <span className="text-xs bg-background/80 backdrop-blur-sm text-white px-2 py-1 rounded-full shrink-0 ml-2 shadow-sm">
+              <span className="text-xs bg-background/80 backdrop-blur-sm text-foreground px-2 py-1 rounded-full shrink-0 ml-2 shadow-sm">
                 {courseData.sport_name}
               </span>
             </div>
 
             {/* 基本資訊 */}
             <div className="space-y-2 mb-4">
-              <div className="flex items-center text-white text-sm">
+              <div className="flex items-center text-background-dark text-sm">
                 <User className="w-4 h-4 mr-2 text-highlight shrink-0" />
                 <span className="truncate">教練：{courseData.coach_name}</span>
               </div>
-              <div className="flex items-center text-white text-sm">
+              <div className="flex items-center text-background-dark text-sm">
                 <Users className="w-4 h-4 mr-2 text-highlight shrink-0" />
                 <span className="truncate">
                   報名人數：
@@ -158,7 +170,7 @@ const CourseCard = ({ course }) => {
             </div>
             {/* 課程描述（簡短版） */}
             <div className="mb-4">
-              <p className="text-white text-sm leading-relaxed line-clamp-2">
+              <p className="text-background-dark text-sm leading-relaxed line-clamp-2">
                 {courseData.description}
               </p>
             </div>
@@ -166,7 +178,7 @@ const CourseCard = ({ course }) => {
             <div className="space-y-2">
               <Button
                 variant="secondary"
-                onClick={handleEnrollment}
+                onClick={handleBooking}
                 className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
                   isFullyBooked
                     ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80'

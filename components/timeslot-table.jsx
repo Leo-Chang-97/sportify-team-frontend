@@ -239,9 +239,9 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                 toggleTimeSlot(court.id, timeSlot.id)
                               }
                               className={cn(
-                                'w-full hover:bg-background/10',
+                                'w-full hover:bg-muted-foreground',
                                 selected &&
-                                  'bg-blue-100 text-primary hover:bg-blue-200'
+                                  'bg-primary text-primary-foreground hover:bg-primary/90'
                               )}
                             >
                               <div className="flex gap-2">
@@ -252,9 +252,9 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                   style={{ width: 20, display: 'inline-block' }}
                                 >
                                   {selected ? (
-                                    <FaCircleCheck className="text-blue-500" />
+                                    <FaCircleCheck className="text-chart-2" />
                                   ) : (
-                                    <span className="text-green-700">
+                                    <span className="text-chart-2">
                                       <FaRegCircleCheck />
                                     </span>
                                   )}
@@ -263,12 +263,12 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                             </Button>
                           ) : (
                             // 已被預約的時段
-                            <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs bg-red-100 text-muted-foreground bg-muted rounded-md">
+                            <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
                               {/* <span>NT$ {slotInfo.price}</span> */}
-                              <span className="text-red-500">
+                              <span className="text-destructive">
                                 {slotInfo.status}
                               </span>
-                              <span className="text-red-500 text-base">
+                              <span className="text-destructive text-base">
                                 <FaCircleXmark />
                               </span>
                             </div>

@@ -14,14 +14,30 @@ import { cn } from '@/lib/utils'
 
 const pageNameMap = {
   venue: '場地預訂',
+  reservation: '選擇場地與時間',
+  payment: '填寫付款資訊',
+  success: '完成訂單',
   shop: '購物商城',
+  order: '確認購物車',
   team: '揪團組隊',
   course: '課程報名',
 }
 
-export default function BreadcrumbAuto() {
+export default function BreadcrumbAuto({
+  venueName,
+  shopName,
+  teamName,
+  courseName,
+}) {
   const pathname = usePathname()
   const parts = pathname.split('/').filter(Boolean)
+
+  const dynamicNameMap = {
+    venue: venueName,
+    shop: shopName,
+    team: teamName,
+    course: courseName,
+  }
 
   return (
     <div
@@ -42,11 +58,17 @@ export default function BreadcrumbAuto() {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {idx === parts.length - 1 ? (
-                    <BreadcrumbPage>{pageNameMap[part] || part}</BreadcrumbPage>
+                    <BreadcrumbPage>
+                      {dynamicNameMap[parts[0]] && idx === 1
+                        ? dynamicNameMap[parts[0]]
+                        : pageNameMap[part] || part}
+                    </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
                       <Link href={`/${parts.slice(0, idx + 1).join('/')}`}>
-                        {pageNameMap[part] || part}
+                        {dynamicNameMap[parts[0]] && idx === 1
+                          ? dynamicNameMap[parts[0]]
+                          : pageNameMap[part] || part}
                       </Link>
                     </BreadcrumbLink>
                   )}

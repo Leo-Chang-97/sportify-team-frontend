@@ -21,13 +21,13 @@ export const ChoiceboxItem = ({ className, children, ...props }) => (
     className={cn(
       'text-left',
       '[&[data-state="checked"]]:border-primary',
-      '[&[data-state="checked"]]:bg-primary-foreground'
+      '[&[data-state="checked"]]:bg-accent'
     )}
     {...props}
   >
     <Card
       className={cn(
-        'flex cursor-pointer flex-row items-start justify-between rounded-md p-4 shadow-none transition-all hover:bg-accent',
+        'flex cursor-pointer flex-row items-start justify-between rounded-md p-4 shadow-none transition-all hover:bg-accent/50',
         className
       )}
     >

@@ -21,6 +21,7 @@ import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Card,
   CardContent,
@@ -303,11 +304,10 @@ export default function SuccessPage() {
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">場館資訊</h3>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <div>
-                          地區: {centerData?.location?.name || '載入中...'}
+                        <div className="text-base text-primary">
+                          {centerData?.name || '載入中...'}
                         </div>
-                        <div>地址: {centerData?.address || '載入中...'}</div>
-                        <div>中心: {centerData?.name || '載入中...'}</div>
+                        <div>{centerData?.address || '載入中...'}</div>
                         <div>
                           運動:{' '}
                           {reservationData?.courtTimeSlots[0]?.sportName ||
@@ -347,7 +347,7 @@ export default function SuccessPage() {
                     {/* 預約日期 */}
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">預約日期</h3>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-base text-primary">
                         {reservationData?.date || '未知日期'}
                       </div>
                     </div>
@@ -358,18 +358,20 @@ export default function SuccessPage() {
                       {reservationData?.courtTimeSlots?.length > 0 ? (
                         <div className="space-y-2">
                           {reservationData.courtTimeSlots.map((slot, index) => (
-                            <div
+                            <Alert
                               key={index}
                               className="text-sm text-muted-foreground bg-muted p-2 rounded"
                             >
-                              <div className="font-medium">
+                              <AlertTitle className="font-medium text-blue-500">
                                 {slot.courtName}
-                              </div>
-                              <div className="flex justify-between">
+                              </AlertTitle>
+                              <AlertDescription className="flex justify-between">
                                 <span>{slot.timeLabel}</span>
-                                <span>{slot.date}</span>
-                              </div>
-                            </div>
+                                <span className="text-primary">
+                                  NT$ {slot.price}
+                                </span>
+                              </AlertDescription>
+                            </Alert>
                           ))}
                         </div>
                       ) : (

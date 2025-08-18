@@ -144,7 +144,6 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     if (hasInitialized) {
-      console.log('已經初始化過，跳過 checkAuth')
       return
     }
 
@@ -165,7 +164,6 @@ export function AuthProvider({ children }) {
       const result = await res.json()
       if (res.ok && result.success) {
         setUser(result.user)
-        console.log('checkAuth 成功，設置用戶資料:', result.user)
       } else {
         setUser(null)
         localStorage.removeItem(storageKey)

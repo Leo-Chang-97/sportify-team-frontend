@@ -300,6 +300,20 @@ export default function CenterDetailPage() {
     router.push('/venue/reservation')
   }
 
+  const handleSportButton = (item) => {
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      centerId: data.id,
+      location: data.location.name,
+      locationId: data.location.id,
+      sport: item.name,
+      sportId: item.id,
+    }))
+    // 跳轉到預約頁面
+    router.push('/venue/reservation')
+  }
+
   //  #region 載入和錯誤狀態處理
   if (loading) {
     return <LoadingState message="載入場館資料中..." />
@@ -378,7 +392,7 @@ export default function CenterDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto venueName={data?.name} />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen">
           {/* 標題與按鈕 */}
@@ -549,15 +563,20 @@ export default function CenterDetailPage() {
                   {data.sports.map((item, idx) => {
                     const IconComponent = sportIconMap[item.iconKey]
                     return (
-                      <Link href="#" key={idx}>
-                        <Button variant="outline" size="sm">
-                          {IconComponent && (
-                            <IconComponent className="!w-6 !h-6" />
-                          )}
-                          {item.name}
-                          <span className="text-muted-foreground">4個場地</span>
-                        </Button>
-                      </Link>
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          handleSportButton(item)
+                        }}
+                      >
+                        {IconComponent && (
+                          <IconComponent className="!w-6 !h-6" />
+                        )}
+                        {item.name}
+                        <span className="text-muted-foreground">4個場地</span>
+                      </Button>
                     )
                   })}
                 </div>
