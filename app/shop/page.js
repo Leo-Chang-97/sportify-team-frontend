@@ -362,8 +362,9 @@ export default function ProductListPage() {
           onClick: () => router.push('/shop/order'),
         },
         actionButtonStyle: {
-          background: '#000',
+          background: 'transparent',
           color: '#fff',
+          border: '1px solid #fff',
           borderRadius: 4,
           fontWeight: 500,
         },

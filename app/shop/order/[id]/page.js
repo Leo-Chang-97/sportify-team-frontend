@@ -19,21 +19,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 // 自定義 components
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Footer from '@/components/footer'
 import { LoadingState, ErrorState } from '@/components/loading-states'
+// hooks
+import { useAuth } from '@/contexts/auth-context'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getOrderDetail } from '@/api'
 
 export default function OrderDetailPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const { id } = useParams()
 
@@ -41,12 +40,16 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState(null)
 
   // ===== 數據獲取 =====
+  const shouldFetch = isAuthenticated && !!id
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(id ? ['order', id] : null, () => getOrderDetail(id))
+  } = useSWR(
+    shouldFetch ? ['order', id] : null,
+    shouldFetch ? () => getOrderDetail(id) : null
+  )
 
   // ===== 副作用處理 =====
   useEffect(() => {
@@ -129,6 +132,22 @@ export default function OrderDetailPage() {
         backUrl="/shop/order"
         backLabel="返回訂單列表"
       />
+    )
+  }
+
+  // 未登入狀態
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">請先登入</div>
+          <Link href="/login">
+            <Button variant="highlight">前往登入</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
     )
   }
 
