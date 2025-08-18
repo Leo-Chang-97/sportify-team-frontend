@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import { User, Calendar, MapPin, Users, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+// api 請求
+import { getLessonImageUrl } from '@/api/course/image'
+
 const CourseCard = ({ course }) => {
   const router = useRouter()
   const { setCourseData } = useCourse()
@@ -104,12 +107,12 @@ const CourseCard = ({ course }) => {
         onClick={handleImageClick}
       >
         <img
-          src={courseData.image}
+          src={getLessonImageUrl(courseData.images[0])}
           alt={courseData.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            e.target.src = '/course-pic/default-course.png'
-          }}
+          // onError={(e) => {
+          //   e.target.src = '/course-pic/default-course.png'
+          // }}
         />
 
         {/* 狀態標籤 */}
