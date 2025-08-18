@@ -732,7 +732,7 @@ export default function HomePage() {
                 viewport={{ once: true, amount: 0.3 }}
                 custom={1}
               >
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                <h2 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold">
                   組隊找人打球
                 </h2>
               </motion.div>
@@ -743,7 +743,7 @@ export default function HomePage() {
                 viewport={{ once: true, amount: 0.3 }}
                 custom={2}
               >
-                <p className="text-base max-w-md mb-4">
+                <p className="text-white text-base max-w-md mb-4">
                   快速配對有相同興趣與水平的球友，不管是臨時湊人還是長期戰隊，都能輕鬆組成團隊，一起享受運動的樂趣。
                 </p>
               </motion.div>
@@ -776,12 +776,12 @@ export default function HomePage() {
                 viewport={{ once: true, amount: 0.3 }}
                 custom={index + 4}
               >
-                <Card className="bg-white text-gray-900 h-full p-0 md:p-2">
+                <Card className="bg-background text-gray-900 h-full p-0 md:p-2">
                   <CardContent className="flex flex-col items-center justify-center p-8 h-full">
-                    <div className="text-6xl mb-4 text-background">
+                    <div className="text-primary text-6xl mb-4 text-background">
                       {level.icon}
                     </div>
-                    <h3 className="text-xl font-bold mb-4 text-center">
+                    <h3 className="text-accent-foreground text-xl font-bold mb-4 text-center">
                       {level.title}
                     </h3>
                     <Button
@@ -919,7 +919,7 @@ export default function HomePage() {
               >
                 <Link href="/register">
                   <div className="p-[1px] sm:p-[2px] bg-gradient-to-r from-orange-600 to-purple-600 rounded-full">
-                    <div className="bg-background transition-colors hover:bg-background/50 px-3 sm:px-8 py-1 sm:py-4 h-8 sm:h-12 rounded-full text-primary-foreground text-xs sm:text-sm flex items-center justify-center whitespace-nowrap">
+                    <div className="bg-background transition-colors hover:bg-background/50 px-3 sm:px-8 py-1 sm:py-4 h-8 sm:h-12 rounded-full text-foreground text-xs sm:text-sm flex items-center justify-center whitespace-nowrap">
                       註冊會員
                     </div>
                   </div>

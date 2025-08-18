@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 
 // Icon
-import { AlertCircle, Star, Search } from 'lucide-react'
+import { AlertCircle, Star, Search, BrushCleaning } from 'lucide-react'
 
 // API 請求
 import { fetchLocationOptions, fetchSportOptions } from '@/api'
@@ -170,7 +170,7 @@ export default function VenueListPage() {
       label: '地區',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-foreground !h-10">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -194,7 +194,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -218,7 +218,7 @@ export default function VenueListPage() {
       label: '評分',
       component: (
         <Select value={minRating} onValueChange={setMinRating}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇評分星等" />
           </SelectTrigger>
           <SelectContent>
@@ -241,7 +241,7 @@ export default function VenueListPage() {
           />
           <Input
             type="search"
-            className="w-full bg-accent text-accent-foreground !h-10 pl-10"
+            className="w-full !bg-card text-accent-foreground !h-10 pl-10"
             placeholder="請輸入關鍵字"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -263,7 +263,6 @@ export default function VenueListPage() {
       <HeroBanner
         backgroundImage="/banner/venue-banner.jpg"
         title="馬上預訂動起來"
-        overlayOpacity="bg-primary/50"
       >
         <SearchField
           fields={searchFields}
@@ -282,20 +281,18 @@ export default function VenueListPage() {
         <div className="flex flex-col container mx-auto max-w-screen-xl gap-6">
           <div className="flex justify-between items-center">
             {/* 篩選結果資訊 */}
-            <div>
-              <p className="text-sm mt-2">
-                {safeKeyword && (
-                  <>
-                    <span>關鍵字</span>
-                    <span className="font-bold text-highlight">
-                      「{safeKeyword}」
-                    </span>
-                  </>
-                )}
-                共 {data?.totalRows} 筆資料
-              </p>
-            </div>
-            <h3 className="text-center text-lg font-normal tracking-[24px]">
+            <p className="text-sm mt-2 hidden lg:inline">
+              {safeKeyword && (
+                <>
+                  <span>關鍵字</span>
+                  <span className="font-bold text-highlight">
+                    「{safeKeyword}」
+                  </span>
+                </>
+              )}
+              共 {data?.totalRows} 筆資料
+            </p>
+            <h3 className="text-center text-base md:text-lg font-normal md:tracking-[24px]">
               精·選·場·館
             </h3>
             {/* 重設篩選按鈕 */}
@@ -305,7 +302,8 @@ export default function VenueListPage() {
               className="text-sm"
               disabled={!locationId && !sportId && !minRating && !safeKeyword}
             >
-              清除篩選
+              <BrushCleaning />
+              <span className="hidden lg:inline">清除篩選</span>
             </Button>
           </div>
 

@@ -180,7 +180,7 @@ export default function VenueListPage() {
       label: '教練',
       component: (
         <Select value={coachId} onValueChange={setCoachId}>
-          <SelectTrigger className="w-full bg-white !h-10 text-black ">
+          <SelectTrigger className="w-full !bg-card !h-10 text-black ">
             <SelectValue placeholder="請選擇教練" />
           </SelectTrigger>
           <SelectContent>
@@ -201,7 +201,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10 text-black ">
+          <SelectTrigger className="w-full !bg-card !h-10 text-black ">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -226,7 +226,7 @@ export default function VenueListPage() {
           placeholder="請輸入課程名稱或關鍵字"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="w-full h-10 bg-white text-black"
+          className="w-full h-10 !bg-card text-black"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               handleSearch()
@@ -245,7 +245,6 @@ export default function VenueListPage() {
       <HeroBanner
         backgroundImage="/banner/class-banner.jpg"
         title="您的完美課程，就在這裡"
-        overlayOpacity="bg-primary/50"
       >
         <SearchField
           fields={searchFields}

@@ -75,13 +75,15 @@ export function CoachCard({ className, data, ...props }) {
           {/* data name with line clamp */}
           <h3
             className={`
-                line-clamp-2 text-lg font-bold transition-colors
+                line-clamp-2 text-lg text-foreground font-bold transition-colors
                 group-hover:text-highlight
               `}
           >
             {data?.member?.name}
           </h3>
-          <span className="text-base text-gray-400">{data?.sport?.name}</span>
+          <span className="text-base text-muted-foreground">
+            {data?.sport?.name}
+          </span>
         </CardContent>
       </Card>
     </div>
