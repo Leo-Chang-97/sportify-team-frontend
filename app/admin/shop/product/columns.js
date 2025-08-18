@@ -1,7 +1,8 @@
-// product/columns.js
-import { Button } from '@/components/ui/button'
+// icons
 import { IconTrash, IconEdit } from '@tabler/icons-react'
 import { Checkbox } from '@/components/ui/checkbox'
+// ui components
+import { Button } from '@/components/ui/button'
 
 export const productColumns = [
   {

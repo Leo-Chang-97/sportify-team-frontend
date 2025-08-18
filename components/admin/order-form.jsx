@@ -1,7 +1,8 @@
 'use client'
 
-// ===== 依賴項匯入 =====
+// react
 import { useState, useEffect } from 'react'
+// ui components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
+// api
 import {
   getOrderById,
   createAdminOrder,
@@ -42,6 +43,8 @@ import {
   fetchStatusOptions,
 } from '@/api/common'
 import { fetchAllProductsOrder } from '@/api/admin/shop/product'
+// others
+import { toast } from 'sonner'
 import { API_SERVER } from '@/lib/api-path'
 
 export default function OrderForm({
@@ -65,8 +68,6 @@ export default function OrderForm({
   const [orderStatus, setOrderStatus] = useState([])
   const [products, setProducts] = useState([])
   const [showEcpayDialog, setShowEcpayDialog] = useState(false)
-  const [store, setStore] = useState(null)
-
   const [formData, setFormData] = useState({
     memberId: '',
     total: '',
@@ -85,7 +86,7 @@ export default function OrderForm({
     items: [], // [{ productId, name, price, quantity, ... }]
   })
 
-  // ===== 載入下拉選單選項 =====
+  // ===== 副作用處理 =====
   useEffect(() => {
     const loadOptions = async () => {
       try {
@@ -102,7 +103,6 @@ export default function OrderForm({
           fetchStatusOptions(),
           fetchAllProductsOrder(),
         ])
-
         setDelivery(deliveryData.rows || [])
         setPayment(paymentData.rows || [])
         setInvoice(invoiceData.rows || [])
@@ -116,7 +116,6 @@ export default function OrderForm({
     loadOptions()
   }, [])
 
-  // ===== 載入現有訂單資料（僅編輯模式）=====
   useEffect(() => {
     if (
       mode !== 'edit' ||
@@ -246,8 +245,6 @@ export default function OrderForm({
       'width=900,height=600'
     )
   }
-
-  // ===== 商品明細操作函數 =====
   const handleItemChange = (idx, key, value) => {
     setFormData((prev) => {
       const items = [...prev.items]
@@ -368,7 +365,6 @@ export default function OrderForm({
     try {
       const submitData = buildSubmitPayload()
 
-      // 編輯模式：單純更新，不處理金流
       if (mode === 'edit' && orderId) {
         const result = await updateOrder(orderId, submitData)
         if (result.success || result.code === 200) {
@@ -387,12 +383,10 @@ export default function OrderForm({
         return
       }
 
-      // 新增模式：依付款方式處理
       // ECPay（假設付款方式 id = '1'）
       if (submitData.paymentId === '1') {
         // 先跳出確認視窗
         setShowEcpayDialog(true)
-        // 暫時先把資料存起來到閉包（不額外加 state 以免你嫌複雜）
         handleSubmit._pendingData = submitData
         return
       }
@@ -453,7 +447,7 @@ export default function OrderForm({
     }
   }
 
-  // ===== 載入中狀態 =====
+  // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) {
     return (
       <Card>
@@ -464,7 +458,6 @@ export default function OrderForm({
     )
   }
 
-  // ===== 主要表單渲染 =====
   return (
     <>
       <Card className="max-w-4xl mx-auto w-full">

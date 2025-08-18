@@ -1,16 +1,22 @@
 'use client'
 
+// react
 import { useRouter } from 'next/navigation'
-import { AppSidebar } from '@/components/admin/app-sidebar'
-import { SiteHeader } from '@/components/admin/site-header'
+// icons
+import { ArrowLeft } from 'lucide-react'
+// ui components
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+// 自定義 components
+import { AppSidebar } from '@/components/admin/app-sidebar'
+import { SiteHeader } from '@/components/admin/site-header'
 import OrderForm from '@/components/admin/order-form'
 
 export default function AddOrderPage() {
+  // ===== 路由和搜尋參數處理 =====
   const router = useRouter()
 
+  // ===== 事件處理函數 =====
   const handleCancel = () => {
     router.push('/admin/shop/order')
   }

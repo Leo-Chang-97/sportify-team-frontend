@@ -1,18 +1,19 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+// react
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
 import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
-// components/ui
+// icons
+import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
+// ui components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -22,13 +23,10 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-  CardFooter,
 } from '@/components/ui/card'
-// components
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
-import Step from '@/components/step'
 import Footer from '@/components/footer'
 import { LoadingState, ErrorState } from '@/components/loading-states'
 // api
@@ -37,13 +35,10 @@ import { getOrderDetail } from '@/api'
 
 export default function OrderDetailPage() {
   // ===== 路由和搜尋參數處理 =====
-  const router = useRouter()
   const { id } = useParams()
 
   // ===== 組件狀態管理 =====
-  const [isSuccess, setIsSuccess] = useState(true)
   const [order, setOrder] = useState(null)
-  const [members, setMembers] = useState([])
 
   // ===== 數據獲取 =====
   const {
@@ -53,11 +48,11 @@ export default function OrderDetailPage() {
     mutate,
   } = useSWR(id ? ['order', id] : null, () => getOrderDetail(id))
 
-  // ===== 載入選項 =====
+  // ===== 副作用處理 =====
   useEffect(() => {
     if (data && data.data) {
       setOrder(data.data)
-      console.log('Order loaded:', data.data) // Debug用
+      // console.log('Order loaded:', data.data) // Debug用
     }
   }, [data])
 
@@ -84,20 +79,30 @@ export default function OrderDetailPage() {
       { key: '物流方式', value: order.delivery_name || '未知' },
       { key: '付款方式', value: order.payment_name || '未知' },
       { key: '發票類型', value: order.invoice?.name || '未知' },
+    ]
+    if (order.invoice?.name === '電子載具' && order.invoice?.carrier) {
+      summaries.push({ key: '載具號碼', value: order.invoice.carrier })
+    }
+    if (order.invoice?.name === '統一編號' && order.invoice?.tax) {
+      summaries.push({ key: '統一編號', value: order.invoice.tax })
+    }
+    summaries = [
+      ...summaries,
       {
         key: '訂單狀態',
         value: (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
-            {order.status?.name === '已付款' ? (
+            {!order.status_name && <IconLoader className="mr-1" />}
+            {(order.status_name === '待出貨' ||
+              order.status_name === '已出貨' ||
+              order.status_name === '已完成') && (
               <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
-            ) : (
-              <IconLoader className="mr-1" />
             )}
-            {order.status?.name || '未知'}
+            {order.status_name || '未知'}
           </Badge>
         ),
       },
-      { key: '統一編號', value: order.invoice?.number || '' },
+      { key: '發票號碼', value: order.invoice?.number || '' },
       {
         key: '訂單金額',
         value: (
@@ -111,12 +116,10 @@ export default function OrderDetailPage() {
 
   const products = order?.items || []
 
-  // 如果正在載入，顯示載入狀態
+  // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) {
     return <LoadingState message="載入訂單資料中..." />
   }
-
-  // 如果發生錯誤
   if (error) {
     return (
       <ErrorState
