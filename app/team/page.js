@@ -17,36 +17,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { teamService } from '@/api/team/team'
+import { PaginationBar } from '@/components/pagination-bar'
 
-// 分頁選單元件 (維持不變)
-function Pagination({ currentPage, totalPages, onPageChange }) {
-  if (totalPages <= 1) return null
-  return (
-    <div className="flex items-center justify-center gap-4 mt-8">
-      <Button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        variant="outline"
-        size="icon"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-      <span className="text-white font-semibold">
-        第 {currentPage} 頁 / 共 {totalPages} 頁
-      </span>
-      <Button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        variant="outline"
-        size="icon"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-    </div>
-  )
+// --- 修改開始 (1/2): 新增格式化函式 ---
+/**
+ * 格式化練習時程陣列為可讀字串
+ * @param {Array} schedules - 包含練習時程物件的陣列
+ * @returns {string} - 格式化後的字串
+ */
+const formatSchedules = (schedules) => {
+  // 如果沒有時程資料或陣列是空的，回傳預設文字
+  if (!schedules || schedules.length === 0) {
+    return '練習時間未定'
+  }
+
+  // 建立星期的對照表
+  const dayMap = {
+    1: '一',
+    2: '二',
+    3: '三',
+    4: '四',
+    5: '五',
+    6: '六',
+    7: '日',
+  }
+
+  // 格式化單筆時程的時間部分
+  const timeFormatter = new Intl.DateTimeFormat('zh-TW', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Taipei', // 確保時區一致
+  })
+
+  // 將所有時程轉換為 "週X HH:mm" 的格式
+  const formattedStrings = schedules.map((s) => {
+    const day = dayMap[s.dayOfWeek] || '？'
+    const startTime = timeFormatter.format(new Date(s.startTime))
+    return `週${day} ${startTime}`
+  })
+
+  // 將所有格式化後的字串用「、」連接起來
+  return formattedStrings.join('、')
 }
+// --- 修改結束 (1/2) ---
 
 export default function TeamPage() {
   const [expandedCardIndex, setExpandedCardIndex] = useState(null)
@@ -57,8 +73,6 @@ export default function TeamPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [sortBy, setSortBy] = useState('newest')
-
-  // ===== 【新增】用於儲存展開卡片的詳細資訊 =====
   const [expandedTeamDetails, setExpandedTeamDetails] = useState(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
 
@@ -69,17 +83,16 @@ export default function TeamPage() {
         setSports(sportData.rows || [])
       } catch (error) {
         console.error('載入選項失敗:', error)
-        toast.error('載入選項失敗')
       }
     }
     loadData()
   }, [])
+
   useEffect(() => {
     const loadTeams = async () => {
       setIsLoading(true)
       setError(null)
       try {
-        // ===== 【修改 2】使用 teamService.fetchAll 來獲取隊伍列表 =====
         const data = await teamService.fetchAll({
           page: currentPage,
           limit: 12,
@@ -92,7 +105,7 @@ export default function TeamPage() {
         console.error('載入隊伍列表失敗:', err)
       } finally {
         setIsLoading(false)
-        setExpandedCardIndex(null) // 每次重新載入列表時，收合所有卡片
+        setExpandedCardIndex(null)
       }
     }
     loadTeams()
@@ -103,31 +116,26 @@ export default function TeamPage() {
     setCurrentPage(1)
   }
 
-  // ===== 【修改 3】重構 handleToggleExpand，使其在展開時獲取詳細資料 =====
   const handleToggleExpand = async (index, teamId) => {
-    // 如果是關閉當前已展開的卡片
     if (expandedCardIndex === index) {
       setExpandedCardIndex(null)
       setExpandedTeamDetails(null)
       return
     }
 
-    // 如果是打開新的卡片
     setExpandedCardIndex(index)
-    setExpandedTeamDetails(null) // 先清除舊資料
+    setExpandedTeamDetails(null)
     setIsDetailLoading(true)
 
     try {
-      // 使用 teamService.fetchById 來獲取單一隊伍的詳細資料
       const result = await teamService.fetchById(teamId)
       if (result.success) {
-        setExpandedTeamDetails(result.team) // 後端回傳的資料在 result.team 中
+        setExpandedTeamDetails(result.team)
       } else {
         throw new Error(result.error || '無法載入隊伍詳情')
       }
     } catch (err) {
       console.error(`獲取隊伍 ${teamId} 詳細資料失敗:`, err)
-      // 可選擇性地在 UI 上顯示錯誤
       setError(`無法載入隊伍詳情: ${err.message}`)
     } finally {
       setIsDetailLoading(false)
@@ -207,18 +215,18 @@ export default function TeamPage() {
                   <TeamCard
                     key={team.id}
                     isExpanded={expandedCardIndex === index}
-                    // ===== 【修改 4】將 team.id 傳入 onToggleExpand =====
                     onToggleExpand={() => handleToggleExpand(index, team.id)}
                     teamName={team.name}
                     sportType={team.court?.sport?.name || '未知運動'}
                     currentMembers={team._count?.TeamMember || 0}
                     maxMembers={team.capacity || 12}
                     location={team.court?.center?.name || '未知地點'}
-                    time={team.practiceTime}
+                    time={formatSchedules(team.schedules)}
                     skillLevel={team.level?.name || '未知等級'}
                     isNews={team.isFeatured}
                     imageUrl={team.coverImageUrl}
-                    // ===== 【修改 5】將詳細資料和載入狀態傳遞給卡片 =====
+                    // --- 修改開始: 傳遞 description 和詳細資料 ---
+                    description={team.description} // 將隊伍描述傳入
                     details={
                       expandedCardIndex === index ? expandedTeamDetails : null
                     }
@@ -228,11 +236,13 @@ export default function TeamPage() {
                   />
                 ))}
               </div>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+              <div className="pt-5 mt-auto">
+                <PaginationBar
+                  page={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
             </>
           )}
         </div>

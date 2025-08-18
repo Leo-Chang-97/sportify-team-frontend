@@ -16,7 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronLeftIcon, AlertCircle } from 'lucide-react'
+// --- 修改開始 (1/5): 引入 Checkbox 和 Label ---
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+// --- 修改結束 (1/5) ---
+import { ChevronLeftIcon, AlertCircle, PlusCircle, XCircle } from 'lucide-react'
 import { teamService } from '@/api/team/team'
 import {
   fetchTeamSportOptions,
@@ -27,26 +31,28 @@ import {
 export default function CreateTeamPage() {
   const router = useRouter()
 
-  // 表單狀態
   const [teamName, setTeamName] = useState('')
   const [sportId, setSportId] = useState('')
   const [levelId, setLevelId] = useState('')
-  const [practiceTime, setPracticeTime] = useState('')
   const [centerId, setCenterId] = useState('')
 
-  // 選項列表狀態
+  // --- 修改開始 (2/5): 更新 state 結構 ---
+  // 將 dayOfWeek: '' 改為 selectedDays: []
+  const [schedules, setSchedules] = useState([
+    { selectedDays: [], startTime: '', endTime: '' },
+  ])
+  // --- 修改結束 (2/5) ---
+
   const [sports, setSports] = useState([])
   const [levels, setLevels] = useState([])
   const [centers, setCenters] = useState([])
 
-  // UI 狀態
   const [isLoading, setIsLoading] = useState(true)
   const [isCenterLoading, setIsCenterLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
-  // 載入運動類別和等級的下拉選單
   useEffect(() => {
     const loadInitialOptions = async () => {
       try {
@@ -54,31 +60,23 @@ export default function CreateTeamPage() {
           fetchTeamSportOptions(),
           fetchTeamLevelOptions(),
         ])
-
-        // **關鍵修正點 1**: 確保 setSports 和 setLevels 的是陣列
         setSports(sportData.rows || [])
         setLevels(levelData.rows || [])
       } catch (err) {
         setError(err.message || '載入選項失敗')
-        setSports([]) // 錯誤時也確保是空陣列
-        setLevels([])
       } finally {
         setIsLoading(false)
       }
     }
-
-    // **關鍵修正點 2**: 非同步操作在 useEffect 內部執行
     loadInitialOptions()
-  }, []) // 空依賴陣列確保只在元件掛載後執行一次
+  }, [])
 
-  // 當 sportId 改變時，動態載入場館列表
   useEffect(() => {
     if (!sportId) {
       setCenters([])
       setCenterId('')
       return
     }
-
     const loadCenters = async () => {
       setIsCenterLoading(true)
       setFormError('')
@@ -94,28 +92,85 @@ export default function CreateTeamPage() {
     loadCenters()
   }, [sportId])
 
-  // 儲存隊伍資料
+  // --- 修改開始 (3/5): 更新時程管理函式 ---
+  const handleScheduleChange = (index, field, value) => {
+    const newSchedules = [...schedules]
+    if (field === 'dayOfWeek') {
+      const dayValue = value
+      const currentDays = newSchedules[index].selectedDays
+      if (currentDays.includes(dayValue)) {
+        newSchedules[index].selectedDays = currentDays.filter(
+          (d) => d !== dayValue
+        )
+      } else {
+        newSchedules[index].selectedDays = [...currentDays, dayValue]
+      }
+    } else {
+      newSchedules[index][field] = value
+    }
+    setSchedules(newSchedules)
+  }
+
+  const addSchedule = () => {
+    setSchedules([
+      ...schedules,
+      { selectedDays: [], startTime: '', endTime: '' },
+    ])
+  }
+
+  const removeSchedule = (index) => {
+    const newSchedules = schedules.filter((_, i) => i !== index)
+    setSchedules(newSchedules)
+  }
+  // --- 修改結束 (3/5) ---
+
+  // --- 修改開始 (4/5): 更新儲存邏輯 ---
   async function handleSave() {
     setFormError('')
-    if (!teamName || !sportId || !levelId || !practiceTime || !centerId) {
-      setFormError('請完整填寫所有欄位')
+    if (!teamName || !sportId || !levelId || !centerId) {
+      setFormError('請完整填寫隊伍基本欄位')
       return
     }
+
+    const finalSchedules = []
+    for (const schedule of schedules) {
+      if (
+        schedule.selectedDays.length === 0 ||
+        !schedule.startTime ||
+        !schedule.endTime
+      ) {
+        setFormError('請完整填寫所有練習時段，並至少選擇一個星期')
+        return
+      }
+      // 將使用者勾選的多個星期，拆分成多筆紀錄
+      for (const day of schedule.selectedDays) {
+        finalSchedules.push({
+          dayOfWeek: Number(day),
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+        })
+      }
+    }
+
+    if (finalSchedules.length === 0) {
+      setFormError('請至少設定一個完整的練習時段')
+      return
+    }
+
     const payload = {
       name: teamName,
       sportId: Number(sportId),
       levelId: Number(levelId),
-      practiceTime: practiceTime,
       centerId: Number(centerId),
+      schedules: finalSchedules,
     }
 
     setIsSubmitting(true)
     try {
       const response = await teamService.create(payload)
-
       if (response.success) {
         alert('隊伍建立成功！')
-        router.push('/team')
+        router.push(`/team/${response.team.id}`)
       } else {
         throw new Error(response.error || '建立隊伍失敗')
       }
@@ -125,12 +180,34 @@ export default function CreateTeamPage() {
       setIsSubmitting(false)
     }
   }
+  // --- 修改結束 (4/5) ---
 
   if (isLoading) return <p className="text-center p-8">{'載入中...'}</p>
   if (error)
     return (
       <p className="text-center p-8 text-red-600">{`載入錯誤：${error}`}</p>
     )
+
+  const timeOptions = Array.from({ length: 18 }, (_, i) => {
+    const hour = i + 7
+    return `${String(hour).padStart(2, '0')}:00`
+  })
+  const endTimeOptions = Array.from({ length: 17 }, (_, i) => {
+    const hour = i + 8
+    return `${String(hour).padStart(2, '0')}:00`
+  })
+
+  // --- 修改開始 (5/5): 建立星期選項 ---
+  const dayOptions = [
+    { value: '1', label: '一' },
+    { value: '2', label: '二' },
+    { value: '3', label: '三' },
+    { value: '4', label: '四' },
+    { value: '5', label: '五' },
+    { value: '6', label: '六' },
+    { value: '7', label: '日' },
+  ]
+  // --- 修改結束 (5/5) ---
 
   return (
     <>
@@ -141,16 +218,18 @@ export default function CreateTeamPage() {
         title="馬上加入團隊"
         overlayOpacity="bg-primary/10"
       />
-      <section className="py-20">
-        <div className="container mx-auto max-w-screen-xl px-4">
+      <section className="py-20 bg-background">
+        <div className="container mx-auto max-w-screen-xl px-4 bg-background">
           <div className="w-full max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-            <h1 className="text-popover-foreground text-2xl font-bold mb-8 text-center">
+            <h1 className="text-background-dark text-2xl font-bold mb-8 text-center">
               {'創立您的隊伍'}
             </h1>
             <div className="flex flex-col gap-6">
-              {/* 隊伍名稱 */}
+              {/* 基本資訊欄位... */}
               <div>
-                <h2 className="text-sm font-semibold mb-2">{'隊伍名稱'}</h2>
+                <h2 className="text-sm font-semibold mb-2 text-background-dark">
+                  {'隊伍名稱'}
+                </h2>
                 <Input
                   className="text-popover-foreground"
                   placeholder="請輸入隊伍名稱"
@@ -158,9 +237,10 @@ export default function CreateTeamPage() {
                   onChange={(e) => setTeamName(e.target.value)}
                 />
               </div>
-              {/* 運動類別 */}
               <div>
-                <h2 className="text-sm font-semibold mb-2">{'運動類別'}</h2>
+                <h2 className="text-sm font-semibold mb-2 text-background-dark">
+                  {'運動類別'}
+                </h2>
                 <Select value={sportId} onValueChange={setSportId}>
                   <SelectTrigger className="text-popover-foreground">
                     <SelectValue placeholder="請選擇運動類別" />
@@ -174,9 +254,10 @@ export default function CreateTeamPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {/* 出沒場地 */}
               <div>
-                <h2 className="text-sm font-semibold mb-2">{'出沒場地'}</h2>
+                <h2 className="text-sm font-semibold mb-2 text-background-dark">
+                  {'出沒場地'}
+                </h2>
                 <Select
                   value={centerId}
                   onValueChange={setCenterId}
@@ -208,9 +289,10 @@ export default function CreateTeamPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {/* 階級程度 */}
               <div>
-                <h2 className="text-sm font-semibold mb-2">{'階級程度'}</h2>
+                <h2 className="text-sm font-semibold mb-2 text-background-dark">
+                  {'階級程度'}
+                </h2>
                 <Select value={levelId} onValueChange={setLevelId}>
                   <SelectTrigger className="text-popover-foreground">
                     <SelectValue placeholder="請選擇階級程度" />
@@ -224,15 +306,101 @@ export default function CreateTeamPage() {
                   </SelectContent>
                 </Select>
               </div>
+
               {/* 團隊練習時段 */}
               <div>
-                <h2 className="text-sm font-semibold mb-2">{'團隊練習時段'}</h2>
-                <Input
-                  className="text-popover-foreground"
-                  placeholder="例如：週一、週三晚上 8 點"
-                  value={practiceTime}
-                  onChange={(e) => setPracticeTime(e.target.value)}
-                />
+                <h2 className="text-sm font-semibold mb-2 text-background">
+                  {'團隊練習時段'}
+                </h2>
+                <div className="space-y-4">
+                  {schedules.map((schedule, index) => (
+                    <div key={index} className="p-3 rounded-md space-y-3">
+                      {/* 星期複選 */}
+                      <div className="flex items-center gap-4 flex-wrap">
+                        {dayOptions.map((day) => (
+                          <div
+                            key={day.value}
+                            className="flex items-center space-x-2 text-background-dark"
+                          >
+                            <Checkbox
+                              id={`day-${index}-${day.value}`}
+                              checked={schedule.selectedDays.includes(
+                                day.value
+                              )}
+                              onCheckedChange={() =>
+                                handleScheduleChange(
+                                  index,
+                                  'dayOfWeek',
+                                  day.value
+                                )
+                              }
+                            />
+                            <Label htmlFor={`day-${index}-${day.value}`}>
+                              週{day.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* 時間選擇 */}
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={schedule.startTime}
+                          onValueChange={(value) =>
+                            handleScheduleChange(index, 'startTime', value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="開始時間" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeOptions.map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-gray-500">-</span>
+                        <Select
+                          value={schedule.endTime}
+                          onValueChange={(value) =>
+                            handleScheduleChange(index, 'endTime', value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="結束時間" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {endTimeOptions.map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="00:00">00:00</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {schedules.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeSchedule(index)}
+                          >
+                            <XCircle className="h-5 w-5 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    onClick={addSchedule}
+                    className="w-full"
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    新增其他時段
+                  </Button>
+                </div>
               </div>
             </div>
             {formError && (
