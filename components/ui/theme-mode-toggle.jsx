@@ -14,9 +14,16 @@ import {
 
 export function ModeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
 
-  const isDark = resolvedTheme === 'dark'
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // 在未 mount 時避免使用 client-only 值，防止 hydration mismatch
+  const isDark = mounted ? resolvedTheme === 'dark' : false
   const handleToggle = () => {
+    if (!mounted) return
     setTheme(isDark ? 'light' : 'dark')
   }
 

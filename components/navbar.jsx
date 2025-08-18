@@ -364,7 +364,7 @@ export const Navbar = React.forwardRef(
                 </Button>
                 <Link href={signUpHref}>
                   <div className="p-[1px] sm:p-[2px] bg-gradient-to-r from-orange-600 to-purple-600 rounded-full">
-                    <div className="bg-background transition-colors hover:bg-background/50 px-3 sm:px-4 py-1 sm:py-2 h-8 sm:h-9 rounded-full text-primary-foreground text-xs sm:text-sm flex items-center justify-center whitespace-nowrap">
+                    <div className="bg-background transition-colors hover:bg-background/50 px-3 sm:px-4 py-1 sm:py-2 h-8 sm:h-9 rounded-full light:bg-background/50  text-foreground text-xs sm:text-sm flex items-center justify-center whitespace-nowrap">
                       {signUpText}
                     </div>
                   </div>

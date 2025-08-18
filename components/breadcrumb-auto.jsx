@@ -21,6 +21,7 @@ const pageNameMap = {
   order: '確認購物車',
   team: '揪團組隊',
   course: '課程報名',
+  member: '會員中心',
 }
 
 export default function BreadcrumbAuto({
