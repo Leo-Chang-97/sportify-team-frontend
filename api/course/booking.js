@@ -15,8 +15,17 @@ export const fetchBooking = async (id) => {
 
 // 新增 Booking
 export const createBooking = async (data) => {
-  const res = await apiClient.post('/course/booking', data)
-  return res.data
+  try {
+    const res = await apiClient.post('/course/booking', data)
+    return res.data
+  } catch (err) {
+    // 若後端有回傳錯誤內容（例如 { code:400, success:false, message: ... }），回傳該內容給呼叫端
+    if (err.response && err.response.data) {
+      return err.response.data
+    }
+    // 否則繼續拋錯
+    throw err
+  }
 }
 
 // 編輯 Booking

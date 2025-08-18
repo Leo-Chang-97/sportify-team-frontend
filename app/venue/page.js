@@ -49,6 +49,7 @@ export default function VenueListPage() {
   const [sportId, setSportId] = useState('')
   const [minRating, setMinRating] = useState('')
   const [keyword, setKeyword] = useState('')
+  const safeKeyword = typeof keyword === 'string' ? keyword.trim() : ''
 
   const [locations, setLocations] = useState([])
   const [sports, setSports] = useState([])
@@ -283,11 +284,11 @@ export default function VenueListPage() {
             {/* 篩選結果資訊 */}
             <div>
               <p className="text-sm mt-2">
-                {keyword.trim() && (
+                {safeKeyword && (
                   <>
                     <span>關鍵字</span>
                     <span className="font-bold text-highlight">
-                      「{keyword}」
+                      「{safeKeyword}」
                     </span>
                   </>
                 )}
@@ -302,9 +303,7 @@ export default function VenueListPage() {
               variant="outline"
               onClick={handleResetFilter}
               className="text-sm"
-              disabled={
-                !locationId && !sportId && !minRating && !keyword.trim()
-              }
+              disabled={!locationId && !sportId && !minRating && !safeKeyword}
             >
               清除篩選
             </Button>

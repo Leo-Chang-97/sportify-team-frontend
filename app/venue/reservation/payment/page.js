@@ -589,7 +589,7 @@ export default function PaymentPage() {
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
                           >
-                            <AlertTitle className="text-base font-medium text-blue-500">
+                            <AlertTitle className="font-medium text-blue-500">
                               {slot.courtName}
                             </AlertTitle>
                             <AlertDescription className="flex justify-between">

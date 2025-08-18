@@ -139,7 +139,7 @@ const UserMenu = ({
     <DropdownMenuTrigger asChild>
       <Button
         variant="ghost"
-        className="h-9 px-2 py-0 text-accent-foreground hover:bg-accent/50 hover:text-accent-foreground"
+        className="text-accent-foreground hover:bg-accent/50 hover:text-accent-foreground"
       >
         <Avatar className="h-7 w-7">
           <AvatarImage src={userAvatar} alt={userName} />
@@ -150,7 +150,7 @@ const UserMenu = ({
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <ChevronDownIcon className="text-accent h-3 w-3 ml-1" />
+        <ChevronDownIcon className="text-foreground h-3 w-3 ml-1" />
         <span className="sr-only">User menu</span>
       </Button>
     </DropdownMenuTrigger>
