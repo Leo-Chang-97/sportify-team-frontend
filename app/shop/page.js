@@ -1,14 +1,13 @@
 'use client'
 
+// react
 import React, { useState, useEffect, useMemo } from 'react'
 import { Search, AlignLeft, Funnel } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
-// components/ui
-import { toast } from 'sonner'
+// ui components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -39,15 +38,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
-// components 其他
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import { ProductCard } from '@/components/card/product-card'
 import { PaginationBar } from '@/components/pagination-bar'
 import { LoadingState, ErrorState } from '@/components/loading-states'
-// api
+// hooks
 import { useAuth } from '@/contexts/auth-context'
+// api
 import {
   getProducts,
   fetchMemberOptions,
@@ -56,6 +56,8 @@ import {
   toggleFavorite,
   addProductCart,
 } from '@/api'
+// others
+import { toast } from 'sonner'
 
 // 手機側邊欄
 const MobileSidebar = ({
@@ -205,7 +207,7 @@ export default function ProductListPage() {
     return result
   })
 
-  // ===== 載入選項 =====
+  // ===== 副作用處理 =====
   useEffect(() => {
     // 同步搜尋關鍵字與 URL 參數
     setSearchKeyword(queryParams.keyword || '')

@@ -1,13 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+// react
+import React  from 'react'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
+// icons
 import { FaXmark, FaCheck } from 'react-icons/fa6'
 import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
-// components/ui
+// ui components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -19,13 +21,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-// components
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import Footer from '@/components/footer'
-// api
 import { LoadingState, ErrorState } from '@/components/loading-states'
+// api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getOrderDetail } from '@/api'
 
@@ -96,11 +98,10 @@ export default function ProductSuccessPage() {
     ]
     products = order.items || []
   }
-
+  // ===== 載入和錯誤狀態處理 =====
   if (isLoading) {
     return <LoadingState message="載入訂單資料中..." />
   }
-
   if (error) {
     return (
       <ErrorState

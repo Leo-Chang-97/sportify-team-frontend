@@ -1,14 +1,19 @@
 'use client'
 
-import { Heart, ShoppingCart } from 'lucide-react'
+// react
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
+// icons
+import { Heart, ShoppingCart } from 'lucide-react'
+// ui components
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/card/card'
-import { getProductImageUrl } from '@/api/admin/shop/image'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+// api
+import { getProductImageUrl } from '@/api/admin/shop/image'
+// others
+import { cn } from '@/lib/utils'
 
 export function ProductCard({
   className,
@@ -19,16 +24,17 @@ export function ProductCard({
   variant = 'default',
   ...props
 }) {
+  // ===== 組件狀態管理 =====
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(initialIsFavorited || false) // 初始狀態從 props 傳入
   const [isMounted, setIsMounted] = useState(false)
 
+  // ===== 副作用處理 =====
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // 當 initialIsFavorited prop 改變時，更新本地狀態
   useEffect(() => {
     setIsInWishlist(initialIsFavorited || false)
   }, [initialIsFavorited])
@@ -39,6 +45,7 @@ export function ProductCard({
     product?.image_url ||
     (typeof image === 'object' && image !== null ? image.url : image)
 
+  // ===== 事件處理函數 =====
   const handleAddToCart = async (e) => {
     e.preventDefault()
     if (onAddToCart) {
@@ -85,7 +92,7 @@ export function ProductCard({
             />
           </AspectRatio>
 
-          <CardContent className='px-4 md:px-6'>
+          <CardContent className="px-4 md:px-6">
             {/* 運動和品牌 */}
             <div className="flex items-center justify-between my-2">
               <span className="text-sm text-muted-foreground">

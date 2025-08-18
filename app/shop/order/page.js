@@ -1,10 +1,12 @@
 'use client'
 
+// react
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
+//icons
 import { Minus, Plus } from 'lucide-react'
 // components/ui
 import { toast } from 'sonner'
@@ -12,20 +14,13 @@ import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
-// components
+import { Card, CardContent } from '@/components/ui/card'
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
@@ -33,7 +28,7 @@ import Step from '@/components/step'
 import { LoadingState, ErrorState } from '@/components/loading-states'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
-import { getCarts, addProductCart, updateCarts, removeCart } from '@/api'
+import { getCarts, updateCarts, removeCart } from '@/api'
 import { useAuth } from '@/contexts/auth-context'
 
 const steps = [
@@ -43,15 +38,12 @@ const steps = [
 ]
 
 export default function CartListPage() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const { id } = useParams()
 
   // ===== 組件狀態管理 =====
   const [carts, setCarts] = useState([])
-  const [members, setMembers] = useState([])
 
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
@@ -93,7 +85,7 @@ export default function CartListPage() {
       : null
   )
 
-  // 處理商品數量變更
+  // ===== 副作用處理 =====
   const handleQuantityChange = useCallback(
     async (cartItemId, newQuantity) => {
       // 如果新數量小於 1，就刪除該項目
@@ -161,19 +153,16 @@ export default function CartListPage() {
     [mutate]
   )
 
-  // ===== 載入選項 =====
   useEffect(() => {
     if (data?.data?.cart?.cartItems) {
       setCarts(data.data.cart.cartItems)
     }
   }, [data])
 
-  // 載入狀態處理
+  // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading || authLoading) {
     return <LoadingState message="載入購物車資料中..." />
   }
-
-  // 錯誤狀態處理
   if (error) {
     return (
       <ErrorState
