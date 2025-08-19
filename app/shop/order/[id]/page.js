@@ -2,12 +2,13 @@
 
 // react
 import React, { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
 // icons
-import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
+import { IconLoader } from '@tabler/icons-react'
+import { FaCircle } from 'react-icons/fa'
 // ui components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,21 +20,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 // 自定義 components
 import { Navbar } from '@/components/navbar'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Footer from '@/components/footer'
 import { LoadingState, ErrorState } from '@/components/loading-states'
+// hooks
+import { useAuth } from '@/contexts/auth-context'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getOrderDetail } from '@/api'
 
 export default function OrderDetailPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const { id } = useParams()
 
@@ -41,12 +41,16 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState(null)
 
   // ===== 數據獲取 =====
+  const shouldFetch = isAuthenticated && !!id
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(id ? ['order', id] : null, () => getOrderDetail(id))
+  } = useSWR(
+    shouldFetch ? ['order', id] : null,
+    shouldFetch ? () => getOrderDetail(id) : null
+  )
 
   // ===== 副作用處理 =====
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function OrderDetailPage() {
             {(order.status_name === '待出貨' ||
               order.status_name === '已出貨' ||
               order.status_name === '已完成') && (
-              <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
+              <FaCircle className="fill-green-500 dark:fill-green-400 mr-1" />
             )}
             {order.status_name || '未知'}
           </Badge>
@@ -129,6 +133,22 @@ export default function OrderDetailPage() {
         backUrl="/shop/order"
         backLabel="返回訂單列表"
       />
+    )
+  }
+
+  // 未登入狀態
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">請先登入</div>
+          <Link href="/login">
+            <Button variant="highlight">前往登入</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
     )
   }
 

@@ -8,7 +8,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 // icons
 import { FaXmark, FaCheck } from 'react-icons/fa6'
-import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
+import { IconLoader } from '@tabler/icons-react'
+import { FaCircle } from "react-icons/fa";
 // ui components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -77,11 +78,11 @@ export default function ProductSuccessPage() {
         key: '訂單狀態',
         value: (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
-            {!order.status_name && <IconLoader className="mr-1" />}
+            {!order.status_name && <IconLoader  className="mr-1" />}
             {(order.status_name === '待出貨' ||
               order.status_name === '已出貨' ||
               order.status_name === '已完成') && (
-              <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
+              <FaCircle className="fill-green-500 dark:fill-green-400 mr-1" />
             )}
             {order.status_name || '未知'}
           </Badge>

@@ -2,7 +2,7 @@
 
 // react
 import React, { useState, useEffect, useMemo } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -28,7 +28,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 // 自定義 components
 import { Navbar } from '@/components/navbar'
@@ -38,9 +37,7 @@ import Footer from '@/components/footer'
 import PaymentMethodSelector, {
   paymentOptions,
 } from '@/components/payment-method-selector'
-import ReceiptTypeSelector, {
-  receiptOptions,
-} from '@/components/receipt-type-selector'
+import ReceiptTypeSelector from '@/components/receipt-type-selector'
 import DeliveryMethodSelector, {
   DeliveryOptions,
 } from '@/components/delivery-method-selector'
@@ -49,7 +46,7 @@ import { LoadingState, ErrorState } from '@/components/loading-states'
 import { useAuth } from '@/contexts/auth-context'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
-import { getCarts, getCheckoutData, checkout } from '@/api'
+import { getCarts, checkout } from '@/api'
 // others
 import { toast } from 'sonner'
 import { validateField } from '@/lib/utils'
@@ -62,6 +59,7 @@ const steps = [
 ]
 
 export default function ProductPaymentPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const router = useRouter()
   const { user } = useAuth()
@@ -89,15 +87,21 @@ export default function ProductPaymentPage() {
   const [showEcpayDialog, setShowEcpayDialog] = useState(false) // ECPay 確認對話框狀態
 
   // ===== 數據獲取 =====
+  const shouldFetch = isAuthenticated
   const {
     data: cartData,
     isLoading: isCartLoading,
     error: cartError,
     mutate,
-  } = useSWR(['carts-checkout'], async () => {
-    const result = await getCarts()
-    return result
-  })
+  } = useSWR(
+    shouldFetch ? ['carts-checkout'] : null,
+    shouldFetch
+      ? async () => {
+          const result = await getCarts()
+          return result
+        }
+      : null
+  )
 
   // 計算總價和總數量
   const { totalPrice, itemCount, shippingFee } = useMemo(() => {
@@ -268,7 +272,7 @@ export default function ProductPaymentPage() {
         },
       }
       // Debug 用
-      // console.log('送出前的 orderData', orderData)
+      console.log('送出前的 orderData', orderData)
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
@@ -503,6 +507,22 @@ export default function ProductPaymentPage() {
         backUrl="/shop/order"
         backLabel="返回購物車"
       />
+    )
+  }
+
+  // 未登入狀態
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">請先登入</div>
+          <Link href="/login">
+            <Button variant="highlight">前往登入</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
     )
   }
 
