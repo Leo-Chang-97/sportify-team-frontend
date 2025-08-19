@@ -1,16 +1,10 @@
 'use client'
 
-// ===== 依賴項匯入 =====
+// react
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import {
-  createProduct,
-  fetchProduct,
-  updateProduct,
-  fetchBrandOptions,
-  fetchSportOptions,
-} from '@/api'
+import Image from 'next/image'
+// ui components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,9 +22,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
-import { toast } from 'sonner'
+// api
 import { getProductImageUrl } from '@/api/admin/shop/image'
+import {
+  createProduct,
+  fetchProduct,
+  updateProduct,
+  fetchBrandOptions,
+  fetchSportOptions,
+} from '@/api'
+// others
+import { toast } from 'sonner'
 
 export default function ProductForm({
   mode = 'add', // 'add' 或 'edit'
@@ -40,6 +42,7 @@ export default function ProductForm({
   submitButtonText,
   loadingButtonText,
 }) {
+  // ===== 路由和搜尋參數處理 =====
   const router = useRouter()
 
   // ===== 組件狀態管理 =====
@@ -63,7 +66,7 @@ export default function ProductForm({
     existingImages: [],
   })
 
-  // ===== 載入現有商品資料（僅編輯模式）=====
+  // ===== 副作用處理 =====
   useEffect(() => {
     if (mode !== 'edit' || !productId) {
       setIsDataLoading(false)
@@ -112,7 +115,6 @@ export default function ProductForm({
     loadProductData()
   }, [mode, productId, router])
 
-  // ===== 載入下拉選單選項 =====
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -283,7 +285,7 @@ export default function ProductForm({
     router.push('/admin/shop/product')
   }
 
-  // ===== 載入狀態處理 =====
+  // ===== 載入和錯誤狀態處理 =====
   if (isDataLoading) {
     return (
       <Card>
@@ -294,7 +296,6 @@ export default function ProductForm({
     )
   }
 
-  // ===== 頁面渲染 =====
   return (
     <Card className="max-w-4xl mx-auto w-full">
       <CardHeader>

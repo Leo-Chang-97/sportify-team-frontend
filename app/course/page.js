@@ -107,8 +107,14 @@ export default function VenueListPage() {
 
   // #region 事件處理函數
   // ===== 搜尋和篩選功能 =====
-  const handleSearch = (keyword, customSportId) => {
-    console.log('搜尋:', { coachId, sportId, keyword })
+  const handleSearch = (kw = keyword, customSportId) => {
+    const searchKeyword = typeof kw === 'string' ? kw.trim() : ''
+    console.log('搜尋:', {
+      coachId,
+      sportId,
+      keyword: searchKeyword,
+      customSportId,
+    })
 
     // 重置到第一頁
     setCurrentPage(1)
@@ -117,8 +123,9 @@ export default function VenueListPage() {
     // 更新 URL 參數，觸發 SWR 重新請求
     const params = new URLSearchParams()
     if (coachId) params.set('coachId', coachId)
-    if (sportId) params.set('sportId', sportId)
-    if (keyword.trim()) params.set('keyword', keyword.trim())
+    const sportParam = customSportId || sportId
+    if (sportParam) params.set('sportId', sportParam)
+    if (searchKeyword) params.set('keyword', searchKeyword)
     params.set('page', '1')
 
     router.push(`/course?${params.toString()}`)
@@ -173,7 +180,7 @@ export default function VenueListPage() {
       label: '教練',
       component: (
         <Select value={coachId} onValueChange={setCoachId}>
-          <SelectTrigger className="w-full bg-white !h-10 text-black ">
+          <SelectTrigger className="w-full !bg-card !h-10 text-black ">
             <SelectValue placeholder="請選擇教練" />
           </SelectTrigger>
           <SelectContent>
@@ -194,7 +201,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-white !h-10 text-black ">
+          <SelectTrigger className="w-full !bg-card !h-10 text-black ">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -219,7 +226,7 @@ export default function VenueListPage() {
           placeholder="請輸入課程名稱或關鍵字"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="w-full h-10 bg-white text-black"
+          className="w-full h-10 !bg-card text-black"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               handleSearch()
@@ -238,7 +245,6 @@ export default function VenueListPage() {
       <HeroBanner
         backgroundImage="/banner/class-banner.jpg"
         title="您的完美課程，就在這裡"
-        overlayOpacity="bg-primary/50"
       >
         <SearchField
           fields={searchFields}

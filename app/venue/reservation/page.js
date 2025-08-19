@@ -202,7 +202,6 @@ export default function ReservationPage() {
           )
           // 從 API 回應中取得 rows，這些資料包含預約狀態
           setCourtTimeSlots(courtTimeSlotData.rows || [])
-          console.log('載入的場地時段資料:', courtTimeSlotData)
         } else {
           setCourtTimeSlots([])
         }
@@ -230,7 +229,6 @@ export default function ReservationPage() {
             30 // 查詢 30 天
           )
           setMonthlyAvailability(rangeData.rows || [])
-          console.log('載入的 30 天可預約資料:', rangeData)
         } else {
           setMonthlyAvailability([])
         }
@@ -349,7 +347,7 @@ export default function ReservationPage() {
                   <div className="space-y-2 flex-1">
                     <Label>地區</Label>
                     <Select value={locationId} onValueChange={setLocationId}>
-                      <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+                      <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
                         <SelectValue placeholder="全部地區" />
                       </SelectTrigger>
                       <SelectContent>
@@ -372,7 +370,7 @@ export default function ReservationPage() {
                     <Select value={centerId} onValueChange={setCenterId}>
                       <SelectTrigger
                         className={cn(
-                          'w-full bg-accent text-accent-foreground !h-10',
+                          'w-full !bg-card text-accent-foreground !h-10',
                           errors.center &&
                             'border-destructive focus:border-destructive focus:ring-destructive'
                         )}
@@ -409,21 +407,35 @@ export default function ReservationPage() {
                   </div>
                   <div className="space-y-2 flex-1">
                     <Label>運動</Label>
-                    <Select value={sportId} onValueChange={setSportId}>
+                    <Select
+                      value={sportId}
+                      onValueChange={setSportId}
+                      disabled={!centerId}
+                    >
                       <SelectTrigger
                         className={cn(
-                          'w-full bg-accent text-accent-foreground !h-10',
+                          'w-full !bg-card text-accent-foreground !h-10',
                           errors.sport &&
-                            'border-destructive focus:border-destructive focus:ring-destructive'
+                            'border-destructive focus:border-destructive focus:ring-destructive',
+                          !centerId && 'cursor-not-allowed'
                         )}
                         data-testid="sport-select"
+                        style={!centerId ? { opacity: 0.9 } : undefined}
                       >
-                        <SelectValue placeholder="請選擇運動" />
+                        <SelectValue
+                          placeholder={
+                            !centerId ? '請先選擇中心' : '請選擇運動'
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {centerData &&
-                        centerData.centerSports &&
-                        centerData.centerSports.length === 0 ? (
+                        {!centerId ? (
+                          <div className="px-3 py-2 text-gray-400">
+                            請先選擇中心
+                          </div>
+                        ) : centerData &&
+                          centerData.centerSports &&
+                          centerData.centerSports.length === 0 ? (
                           <div className="px-3 py-2 text-gray-400">
                             沒有符合資料
                           </div>
@@ -473,7 +485,6 @@ export default function ReservationPage() {
                         ...prev,
                         selectedDate: selectedDate,
                       }))
-                      console.log(selectedDate)
                     }}
                     disabled={(date) => {
                       // 禁用今天之前的日期
@@ -498,11 +509,11 @@ export default function ReservationPage() {
                             className={cn(
                               'aspect-[3/2] flex flex-col md:gap-1 items-center justify-center w-full h-full p-1 text-base rounded-md transition-colors',
                               modifiers.selected
-                                ? 'bg-blue-100 text-primary'
+                                ? 'bg-primary text-primary-foreground'
                                 : modifiers.today
-                                  ? 'bg-orange-100 text-highlight'
+                                  ? 'bg-muted'
                                   : '',
-                              !modifiers.selected && 'hover:bg-background/10',
+                              !modifiers.selected && 'hover:bg-muted',
                               modifiers.disabled
                                 ? 'opacity-50 cursor-not-allowed'
                                 : 'cursor-pointer'
@@ -520,28 +531,37 @@ export default function ReservationPage() {
                                     'text-primary-foreground',
                                   !modifiers.selected &&
                                     availableCount === 0 &&
-                                    'text-red-700',
+                                    'text-red',
                                   !modifiers.selected &&
                                     availableCount > 0 &&
-                                    'text-green-700'
+                                    'text-green'
                                 )}
                               >
                                 {modifiers.selected ? (
-                                  <Status status="maintenance">
+                                  <Status
+                                    status="maintenance"
+                                    className="bg-background"
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel className="hidden sm:inline">
                                       已選擇
                                     </StatusLabel>
                                   </Status>
                                 ) : availableCount === 0 ? (
-                                  <Status status="offline">
+                                  <Status
+                                    status="offline"
+                                    className="bg-background"
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel className="hidden sm:inline">
                                       已額滿
                                     </StatusLabel>
                                   </Status>
                                 ) : (
-                                  <Status status="online">
+                                  <Status
+                                    status="online"
+                                    className="bg-background"
+                                  >
                                     <StatusIndicator />
                                     <StatusLabel className="hidden sm:inline">
                                       {availableCount}
@@ -675,7 +695,7 @@ export default function ReservationPage() {
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
                           >
-                            <AlertTitle className="text-base font-medium text-blue-500">
+                            <AlertTitle className="font-medium text-blue-500">
                               {slot.courtName}
                             </AlertTitle>
                             <AlertDescription className="flex justify-between">

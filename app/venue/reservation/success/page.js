@@ -232,7 +232,9 @@ export default function SuccessPage() {
                   <div className="rounded-full bg-highlight p-4">
                     <FaCheck className="text-4xl text-accent" />
                   </div>
-                  <h2 className="text-2xl font-bold text-accent">已完成預訂</h2>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    已完成預訂
+                  </h2>
                 </>
               ) : (
                 <>
@@ -304,7 +306,7 @@ export default function SuccessPage() {
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">場館資訊</h3>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <div className="text-primary">
+                        <div className="text-base text-primary">
                           {centerData?.name || '載入中...'}
                         </div>
                         <div>{centerData?.address || '載入中...'}</div>
@@ -362,7 +364,7 @@ export default function SuccessPage() {
                               key={index}
                               className="text-sm text-muted-foreground bg-muted p-2 rounded"
                             >
-                              <AlertTitle className="text-base font-medium text-blue-500">
+                              <AlertTitle className="font-medium text-blue-500">
                                 {slot.courtName}
                               </AlertTitle>
                               <AlertDescription className="flex justify-between">

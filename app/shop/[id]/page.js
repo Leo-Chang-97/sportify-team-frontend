@@ -1,12 +1,13 @@
 'use client'
 
+// react
 import React, { useState, useEffect, useMemo } from 'react'
-import { Minus, Plus, Heart } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
-// components/ui
-import { toast } from 'sonner'
+// icons
+import { Minus, Plus, Heart } from 'lucide-react'
+// ui components
 import { Button } from '@/components/ui/button'
 import {
   Carousel,
@@ -16,22 +17,15 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-// components
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import { LoadingState, ErrorState } from '@/components/loading-states'
-// api
+// hooks
 import { useAuth } from '@/contexts/auth-context'
+// api
 import { getProductDetail, toggleFavorite, addProductCart } from '@/api'
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import {
@@ -39,10 +33,8 @@ import {
   fetchSportOptions,
   fetchBrandOptions,
 } from '@/api/common'
-
-const CURRENCY_FORMATTER = new Intl.NumberFormat('zh-TW', {
-  currency: 'TWD',
-})
+// others
+import { toast } from 'sonner'
 
 export default function ProductDetailPage() {
   const { isAuthenticated } = useAuth()
@@ -173,8 +165,9 @@ export default function ProductDetailPage() {
           onClick: () => router.push('/shop/order'),
         },
         actionButtonStyle: {
-          background: '#000',
+          background: 'transparent',
           color: '#fff',
+          border: '1px solid #fff',
           borderRadius: 4,
           fontWeight: 500,
         },

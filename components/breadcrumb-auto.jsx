@@ -15,12 +15,13 @@ import { cn } from '@/lib/utils'
 const pageNameMap = {
   venue: '場地預訂',
   reservation: '選擇場地與時間',
-  payment: '付款',
+  payment: '填寫付款資訊',
   success: '完成訂單',
   shop: '購物商城',
-  order: '購物車',
+  order: '確認購物車',
   team: '揪團組隊',
   course: '課程報名',
+  member: '會員中心',
 }
 
 export default function BreadcrumbAuto({
