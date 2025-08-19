@@ -9,18 +9,12 @@ import {
   AlertCircle,
   BrushCleaning,
 } from 'lucide-react'
+import { IoIosArrowDown } from 'react-icons/io'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 // ui components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -38,8 +32,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Slider } from '@/components/ui/slider'
@@ -152,7 +144,7 @@ const MobileSidebar = ({
                         handleSportChange(sport.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-input">
+                    <span className="text-base font-regular text-foreground hover:text-primary">
                       {sport.name}
                     </span>
                   </label>
@@ -176,7 +168,7 @@ const MobileSidebar = ({
                         handleBrandChange(brand.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-input">
+                    <span className="text-base font-regular text-foreground hover:text-primary">
                       {brand.name}
                     </span>
                   </label>
@@ -512,7 +504,7 @@ export default function ProductListPage() {
                         handleSportChange(sport.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-input">
+                    <span className="text-base font-regular text-foreground hover:text-primary">
                       {sport.name}
                     </span>
                   </label>
@@ -533,7 +525,7 @@ export default function ProductListPage() {
                         handleBrandChange(brand.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-input">
+                    <span className="text-base font-regular text-foreground hover:text-primary">
                       {brand.name}
                     </span>
                   </label>
@@ -565,35 +557,17 @@ export default function ProductListPage() {
               </div>
             </div>
           </div>
-          <div className="flex flex-1 flex-col gap-6">
-            {/* 共用工具列 */}
-            <div className="flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4 w-full">
-              {/* 商品數 + 清除篩選 */}
-              <div className="hidden md:flex items-center justify-between basis-full md:basis-auto order-0">
+          <div className="flex flex-1 flex-col gap-3">
+            {/* 桌機、手機上方功能列 */}
+            <div className="flex justify-between items-center gap-3 w-full">
+              <div className="hidden md:block">
                 {selectedCategory.name && (
-                  <p className="text-base text-foreground">
+                  <p className="text-base text-foreground whitespace-nowrap">
                     共有{selectedCategory.count}筆商品
                   </p>
                 )}
-                <Button
-                  variant="outline"
-                  onClick={clearAllFilters}
-                  className="text-sm"
-                  disabled={
-                    !queryParams.brandId &&
-                    !queryParams.sportId &&
-                    !queryParams.minPrice &&
-                    !queryParams.maxPrice &&
-                    !queryParams.keyword
-                  }
-                >
-                  <BrushCleaning />
-                  <span>清除篩選</span>
-                </Button>
               </div>
-              {/* 側邊欄 + 搜尋 + 排序 */}
-              <div className="flex items-center justify-between basis-full md:flex-1 order-1 w-full md:justify-end md:gap-3">
-                {/* 側邊欄按鈕（手機顯示、桌機隱藏） */}
+              <div className="flex items-center justify-between md:justify-end w-full md:gap-3">
                 <Button
                   variant="secondary"
                   onClick={() => setSidebarOpen(true)}
@@ -601,8 +575,24 @@ export default function ProductListPage() {
                 >
                   <AlignLeft size={16} />
                 </Button>
-
-                {/* 搜尋框 */}
+                {/* 桌機版清除篩選 */}
+                <div className="hidden md:flex">
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="text-sm"
+                    disabled={
+                      !queryParams.brandId &&
+                      !queryParams.sportId &&
+                      !queryParams.minPrice &&
+                      !queryParams.maxPrice &&
+                      !queryParams.keyword
+                    }
+                  >
+                    <BrushCleaning />
+                    <span>清除篩選</span>
+                  </Button>
+                </div>
                 <div className="relative flex items-center w-[200px]">
                   <Input
                     type="search"
@@ -620,49 +610,30 @@ export default function ProductListPage() {
                     <Search size={20} />
                   </Button>
                 </div>
-
-                {/* 排序：手機 Dropdown，桌機 Select */}
-                <div className="md:hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        className="!h-10 flex items-center gap-2"
-                      >
-                        <Funnel size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuLabel>請選擇排序</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleSortChange('price-asc')}
-                      >
-                        價格：由低到高
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleSortChange('price-desc')}
-                      >
-                        價格：由高到低
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="hidden md:block">
-                  <Select
-                    onValueChange={handleSortChange}
-                    value={queryParams.sort || ''}
-                  >
-                    <SelectTrigger className="bg-accent text-accent-foreground !h-10 w-[150px]">
-                      <SelectValue placeholder="請選擇排序" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="price-asc">價格：由低到高</SelectItem>
-                      <SelectItem value="price-desc">價格：由高到低</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      className="!h-10 flex items-center gap-2"
+                    >
+                      <Funnel size={16} className="block md:hidden" />
+                      <span className="hidden md:inline">請選擇排序</span>
+                      <IoIosArrowDown size={16} className="hidden md:block" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() => handleSortChange('price-asc')}
+                    >
+                      價格：由低到高
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleSortChange('price-desc')}
+                    >
+                      價格：由高到低
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
             {/* 商品列表 */}
