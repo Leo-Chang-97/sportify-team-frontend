@@ -52,7 +52,7 @@ import { FaFacebook } from 'react-icons/fa6'
 // API 請求
 import { fetchCenter } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
-import { addRating } from '@/api/venue/rating'
+import { addRating, getCenterRatings } from '@/api/venue/rating'
 
 // next 元件
 import Link from 'next/link'
@@ -90,10 +90,65 @@ const Map = dynamic(() => import('@/components/map'), {
 const range = (length) => Array.from({ length }, (_, i) => i)
 
 // #region 評論區元件
-function RatingSection({ centerId, ratings }) {
+function RatingSection({ centerId }) {
   const [userRating, setUserRating] = React.useState(0)
   const [comment, setComment] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  // 分頁評論相關狀態
+  const [ratings, setRatings] = React.useState([])
+  const [page, setPage] = React.useState(1)
+  const [totalPages, setTotalPages] = React.useState(1)
+  const [totalRows, setTotalRows] = React.useState(0)
+  const [loadingMore, setLoadingMore] = React.useState(false)
+  const [initialLoading, setInitialLoading] = React.useState(true)
+
+  // 初次載入評論
+  React.useEffect(() => {
+    const fetchInitialRatings = async () => {
+      try {
+        setInitialLoading(true)
+        const result = await getCenterRatings(centerId, {
+          page: 1,
+          perPage: 5,
+        })
+        setRatings(result.ratings || [])
+        setPage(result.page || 1)
+        setTotalPages(result.totalPages || 1)
+        setTotalRows(result.totalRows || 0)
+      } catch (error) {
+        console.error('載入評論失敗:', error)
+        toast.error('載入評論失敗')
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    if (centerId) {
+      fetchInitialRatings()
+    }
+  }, [centerId])
+
+  // 載入更多評論
+  const handleLoadMore = async () => {
+    if (page >= totalPages) return
+
+    setLoadingMore(true)
+    try {
+      const nextPage = +page + 1
+      const result = await getCenterRatings(centerId, {
+        page: nextPage,
+        perPage: 5,
+      })
+      setRatings((prev) => [...prev, ...(result.ratings || [])])
+      setPage(nextPage)
+    } catch (error) {
+      console.error('載入更多評論失敗:', error)
+      toast.error('載入更多評論失敗')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const handleSubmitRating = async () => {
     if (userRating === 0) {
@@ -110,6 +165,13 @@ function RatingSection({ centerId, ratings }) {
       toast.success('評分提交成功')
       setUserRating(0)
       setComment('')
+
+      // 重新載入第一頁評論
+      const result = await getCenterRatings(centerId, { page: 1, perPage: 5 })
+      setRatings(result.ratings || [])
+      setPage(1)
+      setTotalPages(result.totalPages || 1)
+      setTotalRows(result.totalRows || 0)
     } catch (error) {
       console.error('評分提交失敗:', error)
       toast.error('評分提交失敗')
@@ -178,20 +240,26 @@ function RatingSection({ centerId, ratings }) {
 
       {/* 其他人的評論 */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">
-          其他評價 ({ratings?.length || 0})
-        </h3>
+        <h3 className="text-lg font-semibold">其他評價 ({totalRows || 0})</h3>
 
-        {ratings && ratings.length > 0 ? (
+        {initialLoading ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>載入評價中...</p>
+          </div>
+        ) : ratings && ratings.length > 0 ? (
           <div className="space-y-4">
             {ratings.map((rating, index) => (
-              <Card key={index} className="gap-2">
+              <Card key={rating.id || index} className="gap-2">
                 <CardContent>
                   <div className="flex items-center gap-4">
                     <Avatar>
                       <AvatarImage src={rating.member?.avatar} />
                       <AvatarFallback>
-                        {rating.member?.name?.charAt(0) || 'U'}
+                        {(
+                          rating.member?.name ||
+                          rating.member_name ||
+                          '匿名用戶'
+                        ).charAt(0)}
                       </AvatarFallback>
                     </Avatar>
 
@@ -199,7 +267,9 @@ function RatingSection({ centerId, ratings }) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm md:text-base">
-                            {rating.member?.name || '匿名用戶'}
+                            {rating.member?.name ||
+                              rating.member_name ||
+                              '匿名用戶'}
                           </span>
                           <div className="flex items-center">
                             {range(5).map((i) => (
@@ -216,7 +286,7 @@ function RatingSection({ centerId, ratings }) {
                           </div>
                         </div>
                         <span className="text-xs md:text-sm text-muted-foreground ">
-                          {formatDate(rating.createdAt)}
+                          {formatDate(rating.created_at || rating.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -231,6 +301,22 @@ function RatingSection({ centerId, ratings }) {
                 )}
               </Card>
             ))}
+
+            {/* 載入更多按鈕 */}
+            {page < totalPages && (
+              <div className="text-center pt-4">
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  {loadingMore
+                    ? '載入中...'
+                    : `載入更多評價 (剩餘 ${totalRows - ratings.length} 則)`}
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
@@ -690,7 +776,7 @@ export default function CenterDetailPage() {
           <Separator className="my-8" />
 
           {/* 評論區 */}
-          <RatingSection centerId={data.id} ratings={data.ratings} />
+          <RatingSection centerId={data.id} />
         </div>
       </main>
       <Footer />
