@@ -2,12 +2,13 @@
 
 // react
 import React, { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
 // icons
-import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
+import { IconLoader } from '@tabler/icons-react'
+import { FaCircle } from 'react-icons/fa'
 // ui components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -99,7 +100,7 @@ export default function OrderDetailPage() {
             {(order.status_name === '待出貨' ||
               order.status_name === '已出貨' ||
               order.status_name === '已完成') && (
-              <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 mr-1" />
+              <FaCircle className="fill-green-500 dark:fill-green-400 mr-1" />
             )}
             {order.status_name || '未知'}
           </Badge>
