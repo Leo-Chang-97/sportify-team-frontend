@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ModeToggle } from '@/components/ui/theme-mode-toggle'
 
 export function SiteHeader({ title = 'Documents' }) {
   return (
@@ -22,6 +23,7 @@ export function SiteHeader({ title = 'Documents' }) {
               回到首頁
             </a>
           </Button>
+          <ModeToggle />
         </div>
       </div>
     </header>

@@ -8,6 +8,7 @@ import { useCourse } from '@/contexts/course-context'
 
 // API 請求
 import { fetchLesson } from '@/api/course/lesson'
+import { getLessonImageUrl } from '@/api/course/image'
 
 // next 元件
 import Link from 'next/link'
@@ -98,7 +99,7 @@ export default function CourseDetailPage() {
             {/* 左側 - 主圖片 (桌機版左側，手機版上方) */}
             <div className="md:w-1/2">
               <img
-                src={data.image || '/course-pic/class-img/class1.png'}
+                src={getLessonImageUrl(data.images[0])}
                 alt="桌球教學主圖"
                 className="w-full h-48 sm:h-64 lg:h-auto rounded-lg object-cover"
               />
