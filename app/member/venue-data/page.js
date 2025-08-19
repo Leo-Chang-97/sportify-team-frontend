@@ -192,7 +192,8 @@ export default function VenueDataPage() {
       <ScrollAreaMember />
       <section className="py-10">
         <div className="container flex justify-center mx-auto max-w-screen-xl px-4">
-          <div className="bg-card rounded-lg p-6 w-full">
+          <div className="bg-card rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm rounded-lg p-6 w-full">
             <div className="mb-6">
               <div className="flex justify-between items-center">
                 <div>
@@ -326,7 +327,7 @@ export default function VenueDataPage() {
                             <TableCell className="font-medium text-base py-4 text-accent-foreground">
                               <div className="flex items-center gap-3">
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-semibold line-clamp-2 leading-tight">
+                                  <div className="font-base line-clamp-2 leading-tight">
                                     {reservation?.invoiceNumber ||
                                       reservation?.id ||
                                       '預約編號'}

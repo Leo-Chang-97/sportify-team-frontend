@@ -261,17 +261,19 @@ export default function FormCard() {
   // 如果還沒載入用戶資料，顯示載入中
   if (!user) {
     return (
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1200px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 flex items-center justify-center">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm p-4 sm:p-6 md:p-8">
         <div className="text-lg">載入中...</div>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm p-4 sm:p-6 md:p-8">
       <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
-          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold leading-normal">
+        <div className="self-stretch py-2 sm:py-3 border-b-2 border-foreground inline-flex justify-center items-center gap-2.5">
+          <div className="flex-1 justify-start text-foreground text-lg sm:text-xl font-bold leading-normal">
             帳號設定
           </div>
         </div>
@@ -285,7 +287,7 @@ export default function FormCard() {
 
         <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               email帳號
             </Label>
             <Input
@@ -293,11 +295,11 @@ export default function FormCard() {
               value={formData.email}
               readOnly
               disabled
-              className="bg-gray-100 text-slate-900 cursor-not-allowed"
+              className="bg-gray-100 cursor-not-allowed text-muted-foreground"
             />
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               密碼
             </Label>
             <Input
@@ -305,7 +307,7 @@ export default function FormCard() {
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               placeholder="請輸入新密碼（留空表示不修改）"
-              className={`text-slate-900 ${errors.password ? 'border-red-500' : ''}`}
+              className={` ${errors.password ? 'border-red-500' : ''}`}
             />
             <div className="h-4 flex items-center">
               {errors.password && (
@@ -316,14 +318,14 @@ export default function FormCard() {
             </div>
           </div>
         </div>
-        <div className="self-stretch py-2 sm:py-3 border-b-2 border-slate-900 inline-flex justify-center items-center gap-2.5">
-          <div className="flex-1 justify-start text-slate-900 text-lg sm:text-xl font-bold leading-normal">
+        <div className="self-stretch py-2 sm:py-3 border-b-2 border-foreground inline-flex justify-center items-center gap-2.5">
+          <div className="flex-1 justify-start text-foreground text-lg sm:text-xl font-bold leading-normal">
             個人檔案
           </div>
         </div>
         <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               姓名
             </Label>
             <Input
@@ -331,7 +333,7 @@ export default function FormCard() {
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="請輸入姓名"
-              className={`text-slate-900 ${errors.name ? 'border-red-500' : ''}`}
+              className={` ${errors.name ? 'border-red-500' : ''}`}
             />
             <div className="h-4 flex items-center">
               {errors.name && (
@@ -342,7 +344,7 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               手機
             </Label>
             <Input
@@ -350,7 +352,7 @@ export default function FormCard() {
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="請輸入手機號碼"
-              className={`text-slate-900 ${errors.phone ? 'border-red-500' : ''}`}
+              className={` ${errors.phone ? 'border-red-500' : ''}`}
             />
             <div className="h-4 flex items-center">
               {errors.phone && (
@@ -361,24 +363,24 @@ export default function FormCard() {
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               性別
             </Label>
             <Select
               value={formData.gender}
               onValueChange={(value) => handleInputChange('gender', value)}
             >
-              <SelectTrigger className="w-full sm:w-80 text-slate-900">
+              <SelectTrigger className="w-full sm:w-80 !bg-card text-accent-foreground">
                 <SelectValue placeholder="請選擇性別" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="male" className="text-slate-900">
+                <SelectItem value="male" className="text-accent-foreground">
                   男性
                 </SelectItem>
-                <SelectItem value="female" className="text-slate-900">
+                <SelectItem value="female" className="text-accent-foreground">
                   女性
                 </SelectItem>
-                <SelectItem value="other" className="text-slate-900">
+                <SelectItem value="other" className="text-accent-foreground">
                   不公開
                 </SelectItem>
               </SelectContent>
@@ -388,14 +390,14 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               生日
             </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant="secondary"
-                  className={`w-full justify-start text-left font-normal hover:bg-primary/10 ${
+                  variant="outline"
+                  className={`w-full justify-start text-left font-normal bg-card text-accent-foreground ${
                     errors.birthday ? 'border-red-500' : ''
                   }`}
                 >
@@ -428,7 +430,7 @@ export default function FormCard() {
             </div>
           </div>
           <div className="w-full flex flex-col justify-start items-start gap-2">
-            <Label className="text-slate-900 text-base sm:text-base">
+            <Label className="text-accent-foreground text-base sm:text-base">
               聯絡地址
             </Label>
             <Input
@@ -436,7 +438,7 @@ export default function FormCard() {
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               placeholder="請輸入聯絡地址"
-              className="text-slate-900"
+              className="text-muted-foreground"
             />
             <div className="h-4 flex items-center">
               {/* 地址欄位目前沒有驗證，但保留空間以保持一致性 */}
@@ -448,7 +450,7 @@ export default function FormCard() {
             onClick={handleSubmit}
             disabled={isLoading}
             variant="default"
-            className="w-full px-6 sm:px-8 md:px-12 py-3 sm:py-4 text-base sm:text-lg md:text-xl font-bold "
+            className="w-full px-6 sm:px-8 md:px-12 py-3 sm:py-4 text-base sm:text-base md:text-base font-base "
           >
             {isLoading ? '儲存中...' : '儲存'}
           </Button>

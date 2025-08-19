@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState, useEffect } from 'react'
 
-
 // ===== 組件參數定義 =====
 export function LoginForm({
   className,
@@ -65,7 +64,7 @@ export function LoginForm({
             <div
               className="relative w-1/2 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: `url('/login/login.png')`,
+                backgroundImage: `url('/login/login2.jpg')`,
                 backgroundPosition: 'left center',
                 backgroundSize: 'cover',
               }}
