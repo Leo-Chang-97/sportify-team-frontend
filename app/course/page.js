@@ -237,7 +237,7 @@ export default function VenueListPage() {
     },
   ]
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <>
       <Navbar />

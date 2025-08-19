@@ -184,7 +184,7 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
     }, 0)
   }
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <div className="relative flex flex-col bg-card border rounded-lg p-6 gap-4">
       {courts.length === 0 || timeSlots.length === 0 ? (
