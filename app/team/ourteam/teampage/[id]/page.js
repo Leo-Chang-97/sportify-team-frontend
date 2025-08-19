@@ -67,17 +67,11 @@ const TeamDetailPage = () => {
       try {
         const result = await teamService.fetchById(teamId)
 
-        console.log('--- DEBUGGING START ---')
-        console.log('完整的 team 物件:', result.team)
-        console.log('收到的 calendarMarks 陣列:', result.team?.calendarMarks)
-
         if (result.team?.calendarMarks) {
           const calendarMarksSet = new Set(
             result.team.calendarMarks.map((mark) => mark.date.split('T')[0])
           )
-          console.log('處理後存入 Set 的日期:', calendarMarksSet)
         }
-        console.log('--- DEBUGGING END ---')
 
         if (result.success && result.team) {
           setTeamData(result.team)
@@ -142,7 +136,6 @@ const TeamDetailPage = () => {
     }
   }
   const handleSendMessage = () => {
-    console.log('發送訊息:', newMessage)
     setNewMessage('')
   }
 

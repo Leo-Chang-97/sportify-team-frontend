@@ -25,7 +25,7 @@ import { teamService } from '@/api/team/team'
 import {
   fetchTeamSportOptions,
   fetchTeamLevelOptions,
-  fetchTeamCenterOptions,
+  fetchAllTeamCenterOptions,
 } from '@/api/team/common'
 
 export default function CreateTeamPage() {
@@ -48,7 +48,6 @@ export default function CreateTeamPage() {
   const [centers, setCenters] = useState([])
 
   const [isLoading, setIsLoading] = useState(true)
-  const [isCenterLoading, setIsCenterLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
@@ -56,13 +55,18 @@ export default function CreateTeamPage() {
   useEffect(() => {
     const loadInitialOptions = async () => {
       try {
-        const [sportData, levelData] = await Promise.all([
+        const [sportData, levelData, centerData] = await Promise.all([
           fetchTeamSportOptions(),
           fetchTeamLevelOptions(),
+          fetchAllTeamCenterOptions(),
         ])
+
         setSports(sportData.rows || [])
         setLevels(levelData.rows || [])
+
+        setCenters(centerData.rows.rows || [])
       } catch (err) {
+        console.error('載入初始資料時發生錯誤:', err)
         setError(err.message || '載入選項失敗')
       } finally {
         setIsLoading(false)
@@ -70,27 +74,6 @@ export default function CreateTeamPage() {
     }
     loadInitialOptions()
   }, [])
-
-  useEffect(() => {
-    if (!sportId) {
-      setCenters([])
-      setCenterId('')
-      return
-    }
-    const loadCenters = async () => {
-      setIsCenterLoading(true)
-      setFormError('')
-      try {
-        const centerData = await fetchTeamCenterOptions({ sportId: sportId })
-        setCenters(centerData.rows || [])
-      } catch (err) {
-        setFormError('無法載入場館列表，請稍後再試。')
-      } finally {
-        setIsCenterLoading(false)
-      }
-    }
-    loadCenters()
-  }, [sportId])
 
   // --- 修改開始 (3/5): 更新時程管理函式 ---
   const handleScheduleChange = (index, field, value) => {
@@ -109,13 +92,6 @@ export default function CreateTeamPage() {
       newSchedules[index][field] = value
     }
     setSchedules(newSchedules)
-  }
-
-  const addSchedule = () => {
-    setSchedules([
-      ...schedules,
-      { selectedDays: [], startTime: '', endTime: '' },
-    ])
   }
 
   const removeSchedule = (index) => {
@@ -170,7 +146,7 @@ export default function CreateTeamPage() {
       const response = await teamService.create(payload)
       if (response.success) {
         alert('隊伍建立成功！')
-        router.push(`/team/${response.team.id}`)
+        router.push(`/team`)
       } else {
         throw new Error(response.error || '建立隊伍失敗')
       }
@@ -258,34 +234,16 @@ export default function CreateTeamPage() {
                 <h2 className="text-sm font-semibold mb-2 text-background-dark">
                   {'出沒場地'}
                 </h2>
-                <Select
-                  value={centerId}
-                  onValueChange={setCenterId}
-                  disabled={!sportId || isCenterLoading}
-                >
+                <Select value={centerId} onValueChange={setCenterId}>
                   <SelectTrigger className="text-popover-foreground">
-                    <SelectValue
-                      placeholder={
-                        !sportId
-                          ? '請先選擇運動類別'
-                          : isCenterLoading
-                            ? '場館載入中...'
-                            : '請選擇出沒場地'
-                      }
-                    />
+                    <SelectValue placeholder={'請選擇出沒場地'} />
                   </SelectTrigger>
                   <SelectContent>
-                    {centers.length > 0 ? (
-                      centers.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem disabled value="__empty">
-                        {!sportId ? '...' : '此運動類別無可用場館'}
+                    {centers.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.name}
                       </SelectItem>
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -350,7 +308,7 @@ export default function CreateTeamPage() {
                             handleScheduleChange(index, 'startTime', value)
                           }
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="text-background">
                             <SelectValue placeholder="開始時間" />
                           </SelectTrigger>
                           <SelectContent>
@@ -368,7 +326,7 @@ export default function CreateTeamPage() {
                             handleScheduleChange(index, 'endTime', value)
                           }
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="text-background">
                             <SelectValue placeholder="結束時間" />
                           </SelectTrigger>
                           <SelectContent>
@@ -392,14 +350,6 @@ export default function CreateTeamPage() {
                       </div>
                     </div>
                   ))}
-                  <Button
-                    variant="outline"
-                    onClick={addSchedule}
-                    className="w-full"
-                  >
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    新增其他時段
-                  </Button>
                 </div>
               </div>
             </div>

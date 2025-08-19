@@ -86,7 +86,7 @@ export function TeamCard({
 
           <div className="flex-1 flex flex-col justify-start items-start gap-2 h-auto min-w-0">
             <div className="inline-flex justify-start items-center gap-2 flex-wrap content-center">
-              <div className="px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-border flex justify-center items-center gap-2">
+              <div className="px-2 py-1 rounded-lg outline outline-1 outline-offset-[-1px] outline-border flex justify-center items-center gap-2 bg-foreground">
                 {CurrentSportIcon && (
                   <CurrentSportIcon className="w-6 h-6 text-background" />
                 )}
@@ -127,7 +127,7 @@ export function TeamCard({
               <Badge
                 variant="outline"
                 size="lg"
-                className="bg-gradient-to-r text-base text-slate-900"
+                className="bg-gradient-to-r text-base text-card-foreground"
               >
                 {skillLevel}
               </Badge>
@@ -135,13 +135,13 @@ export function TeamCard({
             <Button
               onClick={onToggleExpand}
               variant="outline"
-              className="flex-shrink-0 mt-auto"
+              className="flex-shrink-0 mt-auto text-foreground"
             >
               <span>詳細</span>
               {isExpanded ? (
-                <ChevronUpIcon className="w-5 h-5 text-primary-foreground" />
+                <ChevronUpIcon className="w-5 h-5 text-foreground" />
               ) : (
-                <ChevronDownIcon className="w-5 h-5 text-primary-foreground" />
+                <ChevronDownIcon className="w-5 h-5 text-foreground" />
               )}
             </Button>
           </div>
@@ -150,20 +150,20 @@ export function TeamCard({
 
       <div
         className={cn(
-          'absolute top-full left-0 right-0 z-10 w-full bg-sidebar-border overflow-hidden transition-all duration-300 ease-in-out rounded-b-lg shadow-lg bg-card',
+          'absolute top-full left-0 right-0 z-10 w-full bg-sidebar-border overflow-hidden transition-all duration-300 ease-in-out rounded-b-lg shadow-lg bg-secondary',
           isExpanded ? 'max-h-[30rem] opacity-100' : 'max-h-0 opacity-0'
         )}
       >
-        <div className="p-4 space-y-4">
+        <div className="p-5 space-y-4">
           {isDetailLoading ? (
             // 載入中的骨架屏效果
             <>
-              <Skeleton className="h-6 w-1/2 bg-gray-700" />
-              <Skeleton className="h-16 w-full bg-gray-700" />
+              <Skeleton className="h-6 w-1/2 muted-foreground" />
+              <Skeleton className="h-16 w-full muted-foreground" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Skeleton className="h-8 w-full bg-gray-700" />
-                <Skeleton className="h-8 w-full bg-gray-700" />
-                <Skeleton className="h-8 w-full bg-gray-700" />
+                <Skeleton className="h-8 w-full muted-foreground" />
+                <Skeleton className="h-8 w-full muted-foreground" />
+                <Skeleton className="h-8 w-full muted-foreground" />
               </div>
             </>
           ) : (

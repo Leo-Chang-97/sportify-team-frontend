@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TeamCard } from '@/components/card/team-card'
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,7 @@ import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import { fetchSportOptions } from '@/api'
-import HeroBanner from '@/components/hero-banner'
+import HeroBanner, { SearchField } from '@/components/hero-banner'
 import ScrollAreaSport from '@/components/scroll-area-sport'
 import {
   Select,
@@ -17,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowRight } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { ArrowRight, Search } from 'lucide-react'
 import { teamService } from '@/api/team/team'
 import { PaginationBar } from '@/components/pagination-bar'
 
@@ -75,6 +77,51 @@ export default function TeamPage() {
   const [sortBy, setSortBy] = useState('newest')
   const [expandedTeamDetails, setExpandedTeamDetails] = useState(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // 從 URL 讀取初始值，或使用預設值
+  const [locationId, setLocationId] = useState(
+    searchParams.get('locationId') || 'all'
+  )
+  const [sportId, setSportId] = useState(searchParams.get('sportId') || 'all')
+  const [minRating, setMinRating] = useState(
+    searchParams.get('minRating') || 'all'
+  )
+  const [keyword, setKeyword] = useState(searchParams.get('keyword') || '')
+
+  const [locations, setLocations] = useState([]) // 用於存放地區選項
+
+  const handleSearch = (keyword, customSportId) => {
+    const newParams = new URLSearchParams(searchParams.toString())
+    // 地區
+    if (locationId && locationId !== 'all') {
+      newParams.set('locationId', locationId)
+    } else {
+      newParams.delete('locationId')
+    }
+    // 運動
+    const sportValue = customSportId ?? sportId
+    if (sportValue && sportValue !== 'all') {
+      newParams.set('sportId', sportValue)
+    } else {
+      newParams.delete('sportId')
+    }
+    // 評分
+    if (minRating && minRating !== 'all') {
+      newParams.set('minRating', minRating)
+    } else {
+      newParams.delete('minRating')
+    }
+    // 關鍵字
+    if (keyword) {
+      newParams.set('keyword', keyword)
+    } else {
+      newParams.delete('keyword')
+    }
+    newParams.set('page', '1') // 搜尋時重設分頁
+    router.push(`?${newParams.toString()}`)
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -142,6 +189,78 @@ export default function TeamPage() {
     }
   }
 
+  const searchFields = [
+    {
+      label: '地區',
+      component: (
+        <Select value={locationId} onValueChange={setLocationId}>
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+            <SelectValue placeholder="請選擇地區" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem key="all" value="all">
+              全部
+            </SelectItem>
+            {locations.length === 0 ? (
+              <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
+            ) : (
+              locations.map((loc) => (
+                <SelectItem key={loc.id} value={loc.id.toString()}>
+                  {loc.name}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      label: '運動',
+      component: (
+        <Select value={sportId} onValueChange={setSportId}>
+          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+            <SelectValue placeholder="請選擇運動" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem key="all" value="all">
+              全部
+            </SelectItem>
+            {sports?.length === 0 ? (
+              <div className="px-3 py-2 text-gray-400">沒有符合資料</div>
+            ) : (
+              sports.map((sport) => (
+                <SelectItem key={sport.id} value={sport.id.toString()}>
+                  {sport.name || sport.id}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      label: '關鍵字',
+      component: (
+        <div className="relative flex items-center">
+          <Search
+            className="absolute left-3 text-accent-foreground/50"
+            size={20}
+          />
+          <Input
+            type="search"
+            className="w-full bg-accent text-accent-foreground !h-10 pl-10"
+            placeholder="請輸入關鍵字"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch(keyword)
+            }}
+          />
+        </div>
+      ),
+    },
+  ]
+
   return (
     <>
       <Navbar />
@@ -149,12 +268,24 @@ export default function TeamPage() {
       <HeroBanner
         backgroundImage="/banner/team-banner.jpg"
         title="馬上加入團隊"
-        overlayOpacity="bg-primary/10"
+        overlayOpacity="bg-primary/50"
+      >
+        <SearchField
+          fields={searchFields}
+          onSearch={() => handleSearch(keyword)}
+          searchButtonText="搜尋"
+        />
+      </HeroBanner>
+      <ScrollAreaSport
+        sportItems={sports}
+        onSportSelect={(id) => {
+          setSportId(id)
+          handleSearch(keyword, id)
+        }}
       />
-      <ScrollAreaSport sportItems={sports} />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
-          <div className="self-stretch text-center justify-start text-white text-xl font-normal leading-loose tracking-[24px]">
+          <div className="self-stretch text-center justify-start text-foreground text-xl font-normal leading-loose tracking-[24px]">
             推·薦·隊·伍
           </div>
 
@@ -197,15 +328,15 @@ export default function TeamPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-center text-white py-20 text-lg">
+            <div className="text-center text-foreground py-20 text-lg">
               載入隊伍中，請稍候...
             </div>
           ) : error ? (
-            <div className="text-center text-red-400 py-20 text-lg">
+            <div className="text-center text-destructive py-20 text-lg">
               載入失敗：{error}
             </div>
           ) : teams.length === 0 ? (
-            <div className="text-center text-gray-400 py-20 text-lg">
+            <div className="text-center text-foreground py-20 text-lg">
               目前沒有任何隊伍。
             </div>
           ) : (
