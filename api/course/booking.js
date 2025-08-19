@@ -47,3 +47,9 @@ export const deleteMultipleBookings = async (checkedItems) => {
   })
   return res.data
 }
+
+// 取得某會員所有 Booking 資料
+export const getUserBookings = async (params = {}) => {
+  const res = await apiClient.get('/course/booking/member', { params })
+  return res.data
+}

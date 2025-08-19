@@ -7,7 +7,7 @@ import useSWR from 'swr'
 import Image from 'next/image'
 // icons
 import { Minus, Plus, Heart } from 'lucide-react'
-// ui components 
+// ui components
 import { Button } from '@/components/ui/button'
 import {
   Carousel,
@@ -17,12 +17,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 // 自定義 components
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
@@ -40,7 +35,6 @@ import {
 } from '@/api/common'
 // others
 import { toast } from 'sonner'
-
 
 export default function ProductDetailPage() {
   const { isAuthenticated } = useAuth()
@@ -171,8 +165,9 @@ export default function ProductDetailPage() {
           onClick: () => router.push('/shop/order'),
         },
         actionButtonStyle: {
-          background: '#000',
+          background: 'transparent',
           color: '#fff',
+          border: '1px solid #fff',
           borderRadius: 4,
           fontWeight: 500,
         },

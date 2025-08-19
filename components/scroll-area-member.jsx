@@ -18,7 +18,7 @@ const memberItems = [
   { icon: VenueDataIcon, label: '場館租借紀錄', path: '/member/venue-data' },
   { icon: ClassDataIcon, label: '課程紀錄', path: '/member/class-data' },
   { icon: ShopDataIcon, label: '商品訂單紀錄', path: '/member/shop-data' },
-  { icon: TeamDataIcon, label: '糾團紀錄', path: '/member/team-data' },
+  { icon: TeamDataIcon, label: '揪團紀錄', path: '/member/team-data' },
   { icon: FavoriteIcon, label: '收藏紀錄', path: '/member/favorite-data' },
 ]
 
