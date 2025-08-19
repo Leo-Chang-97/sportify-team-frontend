@@ -19,18 +19,11 @@ export const fetchTeamLevelOptions = async () => {
 }
 
 /**
- * 根據運動 ID 取得場館選項
- * 對應後端 GET /api/team/centers
- * @param {object} params - 查詢參數，例如 { sportId: 1 }
+ * 取得"所有"場館選項
+ * 對應後端 GET /api/team/centers (不帶 sportId)
  */
-export const fetchTeamCenterOptions = async (params = {}) => {
-  const query = new URLSearchParams(
-    Object.fromEntries(
-      Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
-    )
-  ).toString()
-  // 根據您的 centers.js，路徑是 /team/centers
-  const url = query ? `/team/centers?${query}` : '/team/centers'
-  const res = await apiClient.get(url)
+export const fetchAllTeamCenterOptions = async () => {
+  // 直接呼叫 API，不帶任何參數
+  const res = await apiClient.get('/team/centers')
   return res.data
 }

@@ -52,7 +52,7 @@ import { FaFacebook } from 'react-icons/fa6'
 // API 請求
 import { fetchCenter } from '@/api/venue/center'
 import { getCenterImageUrl } from '@/api/venue/image'
-import { addRating } from '@/api/venue/rating'
+import { addRating, getCenterRatings } from '@/api/venue/rating'
 
 // next 元件
 import Link from 'next/link'
@@ -73,6 +73,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { Rating, RatingButton } from '@/components/ui/rating'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -89,11 +90,65 @@ const Map = dynamic(() => import('@/components/map'), {
 const range = (length) => Array.from({ length }, (_, i) => i)
 
 // #region 評論區元件
-function RatingSection({ centerId, ratings }) {
+function RatingSection({ centerId }) {
   const [userRating, setUserRating] = React.useState(0)
-  const [hoverRating, setHoverRating] = React.useState(0)
   const [comment, setComment] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  // 分頁評論相關狀態
+  const [ratings, setRatings] = React.useState([])
+  const [page, setPage] = React.useState(1)
+  const [totalPages, setTotalPages] = React.useState(1)
+  const [totalRows, setTotalRows] = React.useState(0)
+  const [loadingMore, setLoadingMore] = React.useState(false)
+  const [initialLoading, setInitialLoading] = React.useState(true)
+
+  // 初次載入評論
+  React.useEffect(() => {
+    const fetchInitialRatings = async () => {
+      try {
+        setInitialLoading(true)
+        const result = await getCenterRatings(centerId, {
+          page: 1,
+          perPage: 5,
+        })
+        setRatings(result.ratings || [])
+        setPage(result.page || 1)
+        setTotalPages(result.totalPages || 1)
+        setTotalRows(result.totalRows || 0)
+      } catch (error) {
+        console.error('載入評論失敗:', error)
+        toast.error('載入評論失敗')
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    if (centerId) {
+      fetchInitialRatings()
+    }
+  }, [centerId])
+
+  // 載入更多評論
+  const handleLoadMore = async () => {
+    if (page >= totalPages) return
+
+    setLoadingMore(true)
+    try {
+      const nextPage = +page + 1
+      const result = await getCenterRatings(centerId, {
+        page: nextPage,
+        perPage: 5,
+      })
+      setRatings((prev) => [...prev, ...(result.ratings || [])])
+      setPage(nextPage)
+    } catch (error) {
+      console.error('載入更多評論失敗:', error)
+      toast.error('載入更多評論失敗')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const handleSubmitRating = async () => {
     if (userRating === 0) {
@@ -110,6 +165,13 @@ function RatingSection({ centerId, ratings }) {
       toast.success('評分提交成功')
       setUserRating(0)
       setComment('')
+
+      // 重新載入第一頁評論
+      const result = await getCenterRatings(centerId, { page: 1, perPage: 5 })
+      setRatings(result.ratings || [])
+      setPage(1)
+      setTotalPages(result.totalPages || 1)
+      setTotalRows(result.totalRows || 0)
     } catch (error) {
       console.error('評分提交失敗:', error)
       toast.error('評分提交失敗')
@@ -140,25 +202,15 @@ function RatingSection({ centerId, ratings }) {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">評分</label>
             <div className="flex items-center gap-1">
-              {range(5).map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="focus:outline-none focus:ring-2 focus:ring-yellow-200 rounded"
-                  onMouseEnter={() => setHoverRating(i + 1)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => setUserRating(i + 1)}
-                >
-                  <Star
-                    className={cn(
-                      'w-6 h-6 transition-colors',
-                      (hoverRating || userRating) > i
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-muted-foreground/50 hover:text-yellow-400'
-                    )}
-                  />
-                </button>
-              ))}
+              <Rating
+                value={userRating}
+                onValueChange={(v) => setUserRating(v)}
+                className="text-yellow-400"
+              >
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <RatingButton key={i} size={25} />
+                ))}
+              </Rating>
               <span className="ml-2 text-sm text-muted-foreground">
                 {userRating > 0 && `${userRating} 星`}
               </span>
@@ -188,20 +240,26 @@ function RatingSection({ centerId, ratings }) {
 
       {/* 其他人的評論 */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">
-          其他評價 ({ratings?.length || 0})
-        </h3>
+        <h3 className="text-lg font-semibold">其他評價 ({totalRows || 0})</h3>
 
-        {ratings && ratings.length > 0 ? (
+        {initialLoading ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>載入評價中...</p>
+          </div>
+        ) : ratings && ratings.length > 0 ? (
           <div className="space-y-4">
             {ratings.map((rating, index) => (
-              <Card key={index} className="gap-2">
+              <Card key={rating.id || index} className="gap-2">
                 <CardContent>
                   <div className="flex items-center gap-4">
                     <Avatar>
                       <AvatarImage src={rating.member?.avatar} />
                       <AvatarFallback>
-                        {rating.member?.name?.charAt(0) || 'U'}
+                        {(
+                          rating.member?.name ||
+                          rating.member_name ||
+                          '匿名用戶'
+                        ).charAt(0)}
                       </AvatarFallback>
                     </Avatar>
 
@@ -209,7 +267,9 @@ function RatingSection({ centerId, ratings }) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm md:text-base">
-                            {rating.member?.name || '匿名用戶'}
+                            {rating.member?.name ||
+                              rating.member_name ||
+                              '匿名用戶'}
                           </span>
                           <div className="flex items-center">
                             {range(5).map((i) => (
@@ -219,14 +279,14 @@ function RatingSection({ centerId, ratings }) {
                                   'h-4 w-4',
                                   i < rating.rating
                                     ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-muted-foreground/50'
+                                    : 'text-yellow-400'
                                 )}
                               />
                             ))}
                           </div>
                         </div>
                         <span className="text-xs md:text-sm text-muted-foreground ">
-                          {formatDate(rating.createdAt)}
+                          {formatDate(rating.created_at || rating.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -241,6 +301,22 @@ function RatingSection({ centerId, ratings }) {
                 )}
               </Card>
             ))}
+
+            {/* 載入更多按鈕 */}
+            {page < totalPages && (
+              <div className="text-center pt-4">
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  {loadingMore
+                    ? '載入中...'
+                    : `載入更多評價 (剩餘 ${totalRows - ratings.length} 則)`}
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
@@ -416,7 +492,7 @@ export default function CenterDetailPage() {
                               ? 'fill-yellow-400 text-yellow-400'
                               : i < (data.averageRating || 0)
                                 ? 'fill-yellow-400/50 text-yellow-400'
-                                : 'text-muted-foreground'
+                                : 'text-yellow-400'
                           }
                         `}
                       key={`star-${i}`}
@@ -490,7 +566,11 @@ export default function CenterDetailPage() {
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  src={getCenterImageUrl(data.images[0])}
+                  src={
+                    data.images && data.images[0]
+                      ? getCenterImageUrl(data.images[0])
+                      : 'https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                  }
                 />
               </AspectRatio>
             </div>
@@ -504,7 +584,11 @@ export default function CenterDetailPage() {
                     fill
                     priority
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[1]
+                        ? getCenterImageUrl(data.images[1])
+                        : 'https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -515,7 +599,11 @@ export default function CenterDetailPage() {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1708312604073-90639de903fc?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[2]
+                        ? getCenterImageUrl(data.images[2])
+                        : 'https://images.unsplash.com/photo-1708312604073-90639de903fc?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -526,7 +614,11 @@ export default function CenterDetailPage() {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1708268418738-4863baa9cf72?q=80&w=1214&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[3]
+                        ? getCenterImageUrl(data.images[3])
+                        : 'https://images.unsplash.com/photo-1708268418738-4863baa9cf72?q=80&w=1214&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -537,7 +629,11 @@ export default function CenterDetailPage() {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1627314387807-df615e8567de?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[4]
+                        ? getCenterImageUrl(data.images[4])
+                        : 'https://images.unsplash.com/photo-1627314387807-df615e8567de?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -680,7 +776,7 @@ export default function CenterDetailPage() {
           <Separator className="my-8" />
 
           {/* 評論區 */}
-          <RatingSection centerId={data.id} ratings={data.ratings} />
+          <RatingSection centerId={data.id} />
         </div>
       </main>
       <Footer />
