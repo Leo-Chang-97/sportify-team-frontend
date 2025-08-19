@@ -1,13 +1,24 @@
 // components/card/course-card.jsx
-import { useCourse } from '@/contexts/course-context'
+
+// hooks
 import React from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useCourse } from '@/contexts/course-context'
+
+// utils
+import { cn } from '@/lib/utils'
+
+// Icon
 import { User, Calendar, MapPin, Users, Eye } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 // api 請求
 import { getLessonImageUrl } from '@/api/course/image'
+
+// next 元件
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+
+// UI 元件
+import { Button } from '@/components/ui/button'
 
 const CourseCard = ({ course }) => {
   const router = useRouter()
@@ -106,14 +117,16 @@ const CourseCard = ({ course }) => {
         className="relative h-64 overflow-hidden rounded-lg shadow-lg cursor-pointer group"
         onClick={handleImageClick}
       >
-        <img
-          src={getLessonImageUrl(courseData.images[0])}
-          alt={courseData.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          // onError={(e) => {
-          //   e.target.src = '/course-pic/default-course.png'
-          // }}
-        />
+        {courseData.images && courseData.images.length > 0 && (
+          <img
+            src={getLessonImageUrl(courseData.images[0])}
+            alt={courseData.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            // onError={(e) => {
+            //   e.target.src = '/course-pic/default-course.png'
+            // }}
+          />
+        )}
 
         {/* 狀態標籤 */}
         <div className="absolute top-3 right-3 z-10 flex justify-center">
@@ -182,11 +195,7 @@ const CourseCard = ({ course }) => {
               <Button
                 variant="secondary"
                 onClick={handleBooking}
-                className={`w-full h-9 backdrop-blur-sm border-0 shadow-lg ${
-                  isFullyBooked
-                    ? 'bg-gray-500/80 cursor-not-allowed hover:bg-gray-500/80'
-                    : 'hover:bg-gray-300'
-                } font-medium`}
+                className={cn('w-full hover:bg-secondary/80')}
                 disabled={isFullyBooked}
               >
                 {isFullyBooked ? '課程額滿' : '立即報名'}

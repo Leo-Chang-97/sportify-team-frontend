@@ -15,7 +15,6 @@ import { getCenterImageUrl } from '@/api/venue/image'
 
 // next 元件
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 // UI 元件

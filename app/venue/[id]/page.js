@@ -73,6 +73,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { Rating, RatingButton } from '@/components/ui/rating'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -91,7 +92,6 @@ const range = (length) => Array.from({ length }, (_, i) => i)
 // #region 評論區元件
 function RatingSection({ centerId, ratings }) {
   const [userRating, setUserRating] = React.useState(0)
-  const [hoverRating, setHoverRating] = React.useState(0)
   const [comment, setComment] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -140,25 +140,15 @@ function RatingSection({ centerId, ratings }) {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">評分</label>
             <div className="flex items-center gap-1">
-              {range(5).map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="focus:outline-none focus:ring-2 focus:ring-yellow-200 rounded"
-                  onMouseEnter={() => setHoverRating(i + 1)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => setUserRating(i + 1)}
-                >
-                  <Star
-                    className={cn(
-                      'w-6 h-6 transition-colors',
-                      (hoverRating || userRating) > i
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-muted-foreground/50 hover:text-yellow-400'
-                    )}
-                  />
-                </button>
-              ))}
+              <Rating
+                value={userRating}
+                onValueChange={(v) => setUserRating(v)}
+                className="text-yellow-400"
+              >
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <RatingButton key={i} size={25} />
+                ))}
+              </Rating>
               <span className="ml-2 text-sm text-muted-foreground">
                 {userRating > 0 && `${userRating} 星`}
               </span>
@@ -219,7 +209,7 @@ function RatingSection({ centerId, ratings }) {
                                   'h-4 w-4',
                                   i < rating.rating
                                     ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-muted-foreground/50'
+                                    : 'text-yellow-400'
                                 )}
                               />
                             ))}
@@ -416,7 +406,7 @@ export default function CenterDetailPage() {
                               ? 'fill-yellow-400 text-yellow-400'
                               : i < (data.averageRating || 0)
                                 ? 'fill-yellow-400/50 text-yellow-400'
-                                : 'text-muted-foreground'
+                                : 'text-yellow-400'
                           }
                         `}
                       key={`star-${i}`}
@@ -490,7 +480,11 @@ export default function CenterDetailPage() {
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  src={getCenterImageUrl(data.images[0])}
+                  src={
+                    data.images && data.images[0]
+                      ? getCenterImageUrl(data.images[0])
+                      : 'https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                  }
                 />
               </AspectRatio>
             </div>
@@ -504,7 +498,11 @@ export default function CenterDetailPage() {
                     fill
                     priority
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[1]
+                        ? getCenterImageUrl(data.images[1])
+                        : 'https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -515,7 +513,11 @@ export default function CenterDetailPage() {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1708312604073-90639de903fc?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[2]
+                        ? getCenterImageUrl(data.images[2])
+                        : 'https://images.unsplash.com/photo-1708312604073-90639de903fc?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -526,7 +528,11 @@ export default function CenterDetailPage() {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1708268418738-4863baa9cf72?q=80&w=1214&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[3]
+                        ? getCenterImageUrl(data.images[3])
+                        : 'https://images.unsplash.com/photo-1708268418738-4863baa9cf72?q=80&w=1214&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
@@ -537,7 +543,11 @@ export default function CenterDetailPage() {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    src="https://images.unsplash.com/photo-1627314387807-df615e8567de?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src={
+                      data.images && data.images[4]
+                        ? getCenterImageUrl(data.images[4])
+                        : 'https://images.unsplash.com/photo-1627314387807-df615e8567de?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    }
                   />
                 </AspectRatio>
               </div>
