@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { format as formatDate } from 'date-fns'
 
 // icons
-import { ArrowLeft, ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon } from 'lucide-react'
 import {
   FaRegCircleCheck,
   FaCircleCheck,
@@ -765,11 +765,11 @@ export default function ReservationForm({
                 {!centerId || !sportId || !date ? (
                   <div
                     className={cn(
-                      'text-center py-8 text-muted-foreground border rounded-lg',
+                      'text-center p-4 text-muted-foreground border rounded-lg',
                       errors.timeSlots && 'border-red-500'
                     )}
                   >
-                    <p>請先選擇中心、運動項目和日期來查看可預約時段</p>
+                    <p>請先選擇中心、運動和日期</p>
                   </div>
                 ) : courts.length === 0 || timeSlots.length === 0 ? (
                   <div
@@ -892,12 +892,15 @@ export default function ReservationForm({
                       </TableBody>
                       <TableFooter>
                         <TableRow>
-                          <TableCell colSpan={courts.length}>
+                          <TableCell
+                            colSpan={courts.length}
+                            className="text-left"
+                          >
                             <span>
                               已選擇: {selectedTimeSlots.length} 個時段
                             </span>
                           </TableCell>
-                          <TableCell className="text-right font-medium">
+                          <TableCell className="text-center font-medium">
                             總計 NT$ {getTotalPrice().toLocaleString()}
                           </TableCell>
                         </TableRow>
@@ -1077,7 +1080,7 @@ export default function ReservationForm({
             </div>
 
             {/* 按鈕區域 */}
-            <div className="flex justify-end space-x-4 pt-6 border-t">
+            <div className="flex justify-end space-x-4">
               <Button
                 type="button"
                 variant="outline"
