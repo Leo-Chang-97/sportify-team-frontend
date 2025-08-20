@@ -3,13 +3,24 @@
 // hooks
 import { useState, useEffect } from 'react'
 
+// utils
+import { cn } from '@/lib/utils'
+import { format as formatDate } from 'date-fns'
+
 // icons
 import { ArrowLeft, ChevronDownIcon } from 'lucide-react'
+import {
+  FaRegCircleCheck,
+  FaCircleCheck,
+  FaCircleXmark,
+  FaCircleMinus,
+} from 'react-icons/fa6'
 
 // next 元件
 import { useRouter } from 'next/navigation'
 
 // API 請求
+import { fetchCenter } from '@/api/venue/center'
 import {
   createReservation,
   fetchReservation,
@@ -26,12 +37,14 @@ import {
   fetchPaymentOptions,
   fetchInvoiceOptions,
 } from '@/api'
+import { fetchAvailableTimeSlotsDate } from '@/api/venue/court-time-slot'
 
 // UI 元件
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Popover,
   PopoverContent,
@@ -51,6 +64,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { toast } from 'sonner'
 
 export default function ReservationForm({
@@ -64,6 +87,9 @@ export default function ReservationForm({
   const router = useRouter()
 
   // #region 狀態管理
+  const [centerData, setCenterData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
   const [isInitialDataSet, setIsInitialDataSet] = useState(false)
@@ -101,7 +127,32 @@ export default function ReservationForm({
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
 
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
+  const [originalReservationSlots, setOriginalReservationSlots] = useState([]) // 新增：追踪原始預約時段
+
   // #region 副作用處理
+
+  // #region Center資料
+  useEffect(() => {
+    const fetchCenterData = async () => {
+      try {
+        setLoading(true)
+        // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+        const centerData = await fetchCenter(centerId)
+        setCenterData(centerData.record)
+      } catch (err) {
+        console.error('Error fetching center detail:', err)
+        setError(err.message)
+        toast.error('載入場館資料失敗')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (centerId) {
+      fetchCenterData()
+    }
+  }, [centerId])
 
   // ===== 載入下拉選單選項 =====
   useEffect(() => {
@@ -149,28 +200,35 @@ export default function ReservationForm({
 
         if (reservationData.success && reservationData.record) {
           const data = reservationData.record
-          console.log('預約資料:', data)
 
           // 設定表單資料
           setMemberId(data.memberId?.toString() || '')
           setLocationId(
-            data.courtTimeSlot?.court?.center?.locationId?.toString() || ''
+            data.courtTimeSlots?.[0]?.courtTimeSlot?.court?.center?.locationId?.toString() ||
+              ''
           )
-          setCenterId(data.courtTimeSlots[0].centerId?.toString() || '')
-          setSportId(data.courtTimeSlots[0].sportId?.toString() || '')
+          setCenterId(data.courtTimeSlots?.[0]?.centerId?.toString() || '')
+          setSportId(data.courtTimeSlots?.[0]?.sportId?.toString() || '')
           setTimePeriodId(
-            data.courtTimeSlot?.timeSlot?.timePeriodId?.toString() || ''
+            data.courtTimeSlots?.[0]?.courtTimeSlot?.timeSlot?.timePeriodId?.toString() ||
+              ''
           )
-          setCourtIds(data.courtTimeSlot?.courtId?.toString() || '')
-          setTimeSlotIds(data.courtTimeSlot?.timeSlotId?.toString() || '')
-          setCourtTimeSlotIds(data.courtTimeSlotId?.toString() || '')
           setStatusId(data.statusId?.toString() || '')
           setPaymentId(data.paymentId?.toString() || '')
           setInvoiceId(data.invoiceId?.toString() || '')
           setInvoiceNumber(data.invoiceNumber || '')
           setInvoiceTaxId(data.tax || '')
           setInvoiceCarrier(data.carrier || '')
-          setPrice(data.price?.toString() || '')
+
+          // 設定選中的時段
+          if (data.courtTimeSlots && data.courtTimeSlots.length > 0) {
+            const selectedSlots = data.courtTimeSlots.map((item) => ({
+              courtId: item.courtId,
+              timeSlotId: item.timeSlotId,
+            }))
+            setSelectedTimeSlots(selectedSlots)
+            setOriginalReservationSlots(selectedSlots) // 記錄原始預約時段
+          }
 
           // 設定日期
           if (data.date) {
@@ -180,7 +238,7 @@ export default function ReservationForm({
           // 標記初始資料已設定
           setIsInitialDataSet(true)
         } else {
-          console.log('API 回應格式不正確或沒有資料:', reservationData)
+          // 處理沒有資料的情況
         }
       } catch (error) {
         console.error('載入預約資料失敗:', error)
@@ -208,10 +266,7 @@ export default function ReservationForm({
         setCenters(centerData.rows || [])
         if (
           centerId &&
-          !centerData.rows?.some(
-            (center) => center.id.toString() === centerId
-          ) &&
-          !isDataLoading
+          !centerData.rows?.some((center) => center.id.toString() === centerId)
         ) {
           setCenterId('')
         }
@@ -224,124 +279,106 @@ export default function ReservationForm({
       }
     }
     loadData()
-  }, [locationId, centerId, isDataLoading])
+  }, [locationId])
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        let courtData
-        // 在初始載入時或者新增模式，載入所有球場選項
-        if (isDataLoading || mode === 'add') {
-          if (mode === 'add') {
-            // 新增模式：根據條件篩選
-            if (centerId || sportId) {
-              courtData = await fetchCourtOptions({
-                centerId: centerId ? Number(centerId) : undefined,
-                sportId: sportId ? Number(sportId) : undefined,
-              })
-            } else {
-              courtData = await fetchCourtOptions()
-            }
-          } else {
-            // 編輯模式初始載入：載入所有選項
-            courtData = await fetchCourtOptions()
-          }
-        } else if (centerId || sportId) {
-          courtData = await fetchCourtOptions({
-            centerId: centerId ? Number(centerId) : undefined,
-            sportId: sportId ? Number(sportId) : undefined,
-          })
-        } else {
-          courtData = await fetchCourtOptions()
-        }
-
-        const newCourts = courtData.rows || []
-        setCourts(newCourts)
-
-        // 新增模式：只有在條件變動時且當前選擇不在新選項中才清空
-        if (mode === 'add' && courtId) {
-          const currentCourtExists = newCourts.some(
-            (court) => court.id.toString() === courtId
-          )
-          if (!currentCourtExists) {
-            setCourtIds('')
-          }
-        } else if (
-          mode === 'edit' &&
-          isInitialDataSet &&
-          !isDataLoading &&
-          courtId
-        ) {
-          // 編輯模式：只有在初始資料設定完成且不是載入中才檢查
-          const currentCourtExists = newCourts.some(
-            (court) => court.id.toString() === courtId
-          )
-          if (!currentCourtExists) {
-            setCourtIds('')
-          }
-        }
-      } catch (err) {
-        setCourts([])
-      }
-    }
-    loadData()
-  }, [centerId, sportId, isDataLoading, isInitialDataSet, mode])
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        let timeSlotData
-        if (timePeriodId) {
-          timeSlotData = await fetchTimeSlotOptions({
-            timePeriodId: Number(timePeriodId),
-          })
-        } else {
-          timeSlotData = await fetchTimeSlotOptions()
-        }
-        setTimeSlots(timeSlotData.rows || [])
-        if (
-          timeSlotId &&
-          !timeSlotData.rows?.some(
-            (timeSlot) => timeSlot.id.toString() === timeSlotId
-          ) &&
-          !isDataLoading
-        ) {
-          setTimeSlotIds('')
-        }
-      } catch (err) {
-        if (err.response && err.response.status === 404) {
-          setTimeSlots([])
-        } else {
-          setTimeSlots([])
-        }
-      }
-    }
-    loadData()
-  }, [timePeriodId, timeSlotId, isDataLoading])
-
+  // #region 中心、運動與日期篩選可選時段
   useEffect(() => {
     const loadData = async () => {
       try {
         let courtTimeSlotData
-        if (courtId || timeSlotId) {
-          courtTimeSlotData = await fetchCourtTimeSlotOptions({
-            courtId: courtId ? Number(courtId) : undefined,
-            timeSlotId: timeSlotId ? Number(timeSlotId) : undefined,
+        if (centerId && sportId && date) {
+          // 將選擇的日期轉換為 YYYY-MM-DD 格式
+          const dateStr = date ? formatDate(date, 'yyyy-MM-dd') : ''
+
+          // 編輯模式時傳入 reservationId 來排除自己的預約
+          const excludeReservationId = mode === 'edit' ? reservationId : null
+
+          courtTimeSlotData = await fetchAvailableTimeSlotsDate(
+            Number(centerId),
+            Number(sportId),
+            dateStr,
+            excludeReservationId
+          )
+
+          // 從 API 回應中取得 rows，這些資料包含預約狀態
+          setCourtTimeSlots(courtTimeSlotData.rows || [])
+
+          // 從 courtTimeSlots 中提取 courts 和 timeSlots
+          const uniqueCourts = []
+          const uniqueTimeSlots = []
+          const courtMap = new Map()
+          const timeSlotMap = new Map()
+
+          courtTimeSlotData.rows?.forEach((item) => {
+            // 提取球場資訊
+            if (item.court && !courtMap.has(item.court.id)) {
+              courtMap.set(item.court.id, item.court)
+              uniqueCourts.push(item.court)
+            }
+
+            // 提取時段資訊
+            if (item.timeSlot && !timeSlotMap.has(item.timeSlot.id)) {
+              timeSlotMap.set(item.timeSlot.id, item.timeSlot)
+              uniqueTimeSlots.push(item.timeSlot)
+            }
           })
+
+          // 依照時間排序時段
+          uniqueTimeSlots.sort((a, b) => {
+            const timeA = a.startTime || a.label
+            const timeB = b.startTime || b.label
+            return timeA.localeCompare(timeB)
+          })
+
+          setCourts(uniqueCourts)
+          setTimeSlots(uniqueTimeSlots)
+
+          // 編輯模式：確保原始預約時段被正確選取
+          if (mode === 'edit' && originalReservationSlots.length > 0) {
+            // 檢查原始預約時段是否在當前可用時段中
+            const validOriginalSlots = originalReservationSlots.filter(
+              ({ courtId, timeSlotId }) => {
+                const courtTimeSlot = courtTimeSlotData.rows?.find(
+                  (item) =>
+                    item.court?.id === courtId &&
+                    item.timeSlot?.id === timeSlotId
+                )
+                return courtTimeSlot && courtTimeSlot.isAvailable
+              }
+            )
+
+            // 如果當前選取的時段為空或與原始時段不同，則重新設定
+            const currentSlotKeys = selectedTimeSlots
+              .map((s) => `${s.courtId}-${s.timeSlotId}`)
+              .sort()
+            const originalSlotKeys = validOriginalSlots
+              .map((s) => `${s.courtId}-${s.timeSlotId}`)
+              .sort()
+
+            if (currentSlotKeys.join(',') !== originalSlotKeys.join(',')) {
+              setSelectedTimeSlots(validOriginalSlots)
+            }
+          }
         } else {
-          courtTimeSlotData = await fetchCourtTimeSlotOptions()
+          setCourtTimeSlots([])
+          setCourts([])
+          setTimeSlots([])
         }
-        setCourtTimeSlots(courtTimeSlotData.rows || [])
       } catch (err) {
+        console.error('載入場地時段失敗:', err)
         if (err.response && err.response.status === 404) {
           setCourtTimeSlots([])
+          setCourts([])
+          setTimeSlots([])
         } else {
           setCourtTimeSlots([])
+          setCourts([])
+          setTimeSlots([])
         }
       }
     }
     loadData()
-  }, [courtId, timeSlotId])
+  }, [centerId, sportId, date, mode, reservationId, originalReservationSlots])
 
   // #region 事件處理函數
   const handleSubmit = async (e) => {
@@ -349,25 +386,33 @@ export default function ReservationForm({
     setErrors({})
     setIsLoading(true)
 
-    // 根據 courtId 和 timeSlotId 組合出 courtTimeSlotId
-    const selectedCourtTimeSlot = courtTimeSlots.find(
-      (cts) =>
-        cts.courtId?.toString() === courtId &&
-        cts.timeSlotId?.toString() === timeSlotId
-    )
-    const courtTimeSlotIdToSend = selectedCourtTimeSlot?.id?.toString() || ''
+    // 驗證是否有選擇時段
+    if (selectedTimeSlots.length === 0) {
+      setErrors({ timeSlots: '請至少選擇一個時段' })
+      setIsLoading(false)
+      return
+    }
+
+    // 將選中的時段轉換為 courtTimeSlotId 陣列
+    const courtTimeSlotIds = selectedTimeSlots
+      .map(({ courtId, timeSlotId }) => {
+        const courtTimeSlot = courtTimeSlots.find(
+          (cts) => cts.court?.id === courtId && cts.timeSlot?.id === timeSlotId
+        )
+        return courtTimeSlot?.id
+      })
+      .filter((id) => id !== undefined) // 過濾掉 undefined 的值
 
     const submitData = {
-      memberId,
-      courtTimeSlotId: courtTimeSlotIdToSend,
+      memberId: Number(memberId),
+      courtTimeSlotId: courtTimeSlotIds,
       date: date ? date.toISOString().slice(0, 10) : '',
-      statusId,
-      paymentId,
-      invoiceId,
+      statusId: Number(statusId),
+      paymentId: Number(paymentId),
+      invoiceId: Number(invoiceId),
       invoiceNumber: invoiceNumber || null,
       tax: invoiceTaxId || null,
       carrier: invoiceCarrier || null,
-      price,
     }
 
     try {
@@ -416,7 +461,76 @@ export default function ReservationForm({
     router.push('/admin/venue/reservation')
   }
 
-  // #region 頁面渲染
+  // 切換選擇狀態（只允許選擇可預約的時段）
+  const toggleTimeSlot = (courtId, timeSlotId) => {
+    const slotInfo = getSlotInfo(courtId, timeSlotId)
+
+    // 只有可預約的時段才能被選擇
+    if (!slotInfo || !slotInfo.isAvailable) {
+      return
+    }
+
+    setSelectedTimeSlots((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) => item.courtId === courtId && item.timeSlotId === timeSlotId
+      )
+
+      if (existingIndex >= 0) {
+        // 如果已選中，則移除
+        return prev.filter((_, index) => index !== existingIndex)
+      } else {
+        // 檢查是否已達到最大選擇數量（4個時段）
+        // if (prev.length >= 4) {
+        //   setShowLimitDialog(true)
+        //   return prev
+        // }
+        // 如果未選中，則添加
+        return [...prev, { courtId, timeSlotId }]
+      }
+    })
+  }
+
+  // 檢查是否已選中
+  const isSelected = (courtId, timeSlotId) => {
+    return selectedTimeSlots.some(
+      (item) => item.courtId === courtId && item.timeSlotId === timeSlotId
+    )
+  }
+
+  // 獲取場地時間段的價格和預約狀態
+  const getSlotInfo = (courtId, timeSlotId) => {
+    const courtTimeSlot = courtTimeSlots.find(
+      (item) => item.court?.id === courtId && item.timeSlot?.id === timeSlotId
+    )
+
+    if (!courtTimeSlot) {
+      return null
+    }
+
+    return {
+      price: courtTimeSlot.price,
+      isAvailable: courtTimeSlot.isAvailable === true, // 確保只有明確可用的時段才能選擇
+      status:
+        courtTimeSlot.isAvailable === true
+          ? '可預約'
+          : courtTimeSlot.status || '已被預約',
+    }
+  }
+
+  // 獲取場地時間段的價格（保持向後兼容）
+  const getPrice = (courtId, timeSlotId) => {
+    const slotInfo = getSlotInfo(courtId, timeSlotId)
+    return slotInfo ? slotInfo.price : null
+  }
+
+  // 計算總價格
+  const getTotalPrice = () => {
+    return selectedTimeSlots.reduce((total, { courtId, timeSlotId }) => {
+      const price = Number(getPrice(courtId, timeSlotId))
+      return total + (price || 0)
+    }, 0)
+  }
+
   return (
     <Card className="max-w-4xl mx-auto w-full">
       <CardHeader>
@@ -557,26 +671,55 @@ export default function ReservationForm({
               {/* 運動 */}
               <div className="space-y-2">
                 <Label>運動</Label>
-                <Select value={sportId} onValueChange={setSportId}>
+                <Select
+                  value={sportId}
+                  onValueChange={setSportId}
+                  disabled={!centerId}
+                >
                   <SelectTrigger
-                    className={errors.sportId ? 'border-red-500' : ''}
+                    className={cn(
+                      'w-full !bg-card text-accent-foreground !h-10',
+                      errors.sport &&
+                        'border-destructive focus:border-destructive focus:ring-destructive',
+                      !centerId && 'cursor-not-allowed'
+                    )}
+                    data-testid="sport-select"
+                    style={!centerId ? { opacity: 0.9 } : undefined}
                   >
-                    <SelectValue placeholder="請選擇運動" />
+                    <SelectValue
+                      placeholder={!centerId ? '請先選擇中心' : '請選擇運動'}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {sports?.length === 0 ? (
+                    {!centerId ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        請先選擇中心
+                      </div>
+                    ) : centerData &&
+                      centerData.centerSports &&
+                      centerData.centerSports.length === 0 ? (
                       <div className="px-3 py-2 text-gray-400">
                         沒有符合資料
                       </div>
                     ) : (
-                      sports.map((sport) => (
-                        <SelectItem key={sport.id} value={sport.id.toString()}>
-                          {sport.name || sport.id}
+                      centerData &&
+                      centerData.centerSports &&
+                      centerData.centerSports.map((cs) => (
+                        <SelectItem
+                          key={cs.sportId}
+                          value={cs.sportId.toString()}
+                        >
+                          {cs.sport.name || cs.sport.id}
                         </SelectItem>
                       ))
                     )}
                   </SelectContent>
                 </Select>
+                {errors.sport && (
+                  <span className="text-destructive text-sm">
+                    {errors.sport}
+                  </span>
+                )}
               </div>
 
               {/* 日期 */}
@@ -627,148 +770,133 @@ export default function ReservationForm({
                 )}
               </div>
 
-              {/* 球場 */}
+              {/* 球場、時間、價格 */}
               <div className="space-y-2">
-                <Label htmlFor="courtId">
-                  球場
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Select value={courtId} onValueChange={setCourtIds}>
-                  <SelectTrigger
-                    className={errors.courtId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="請選擇球場" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courts?.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      (() => {
-                        // 編輯模式才需要檢查目前選中的球場是否在選項中
-                        if (mode === 'edit') {
-                          const selectedCourt = courtId
-                            ? courts.find((c) => c.id.toString() === courtId)
-                            : null
-                          const selectedInOptions = courts.some(
-                            (c) => c.id.toString() === courtId
-                          )
+                <Label>球場、時間、價格</Label>
 
-                          return (
-                            <>
-                              {/* 若目前選到的 courtId 不在選項中，額外顯示 */}
-                              {selectedCourt && !selectedInOptions && (
-                                <SelectItem
-                                  value={selectedCourt.id.toString()}
-                                  disabled
-                                >
-                                  {selectedCourt.name || selectedCourt.id}{' '}
-                                  (已載入)
-                                </SelectItem>
-                              )}
-                              {courts.map((court) => (
-                                <SelectItem
-                                  key={court.id}
-                                  value={court.id.toString()}
-                                >
-                                  {court.name || court.id}
-                                </SelectItem>
-                              ))}
-                            </>
-                          )
-                        } else {
-                          // 新增模式直接顯示所有選項
-                          return courts.map((court) => (
-                            <SelectItem
-                              key={court.id}
-                              value={court.id.toString()}
-                            >
-                              {court.name || court.id}
-                            </SelectItem>
-                          ))
-                        }
-                      })()
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.courtId && (
-                  <p className="text-sm text-red-500 mt-1">{errors.courtId}</p>
+                {/* 檢查是否有必要的篩選條件 */}
+                {!centerId || !sportId || !date ? (
+                  <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                    <p>請先選擇中心、運動項目和日期來查看可預約時段</p>
+                  </div>
+                ) : courts.length === 0 || timeSlots.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                    <p>該日期沒有可預約的時段</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[100px]">時間</TableHead>
+                        {courts.map((court) => (
+                          <TableHead
+                            key={court.id}
+                            className="text-muted-foreground text-center"
+                          >
+                            {court.name}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {timeSlots.map((timeSlot) => (
+                        <TableRow key={timeSlot.id}>
+                          <TableCell className="font-medium w-[100px]">
+                            {timeSlot.label}
+                          </TableCell>
+                          {courts.map((court) => {
+                            const slotInfo = getSlotInfo(court.id, timeSlot.id)
+                            const selected = isSelected(court.id, timeSlot.id)
+
+                            return (
+                              <TableCell key={court.id} className="text-center">
+                                {slotInfo ? (
+                                  slotInfo.isAvailable ? (
+                                    // 可預約的時段
+                                    <Button
+                                      variant={
+                                        selected ? 'default' : 'secondary'
+                                      }
+                                      size="sm"
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        toggleTimeSlot(court.id, timeSlot.id)
+                                      }}
+                                      className={cn(
+                                        'w-full',
+                                        'hover:bg-primary/20',
+                                        'dark:hover:bg-primary/50',
+                                        selected &&
+                                          'bg-primary text-primary-foreground hover:bg-primary/90'
+                                      )}
+                                    >
+                                      <div className="flex gap-2">
+                                        <span className="text-xs">
+                                          NT$ {slotInfo.price}
+                                        </span>
+                                        <span
+                                          style={{
+                                            width: 20,
+                                            display: 'inline-block',
+                                          }}
+                                        >
+                                          {selected ? (
+                                            <FaCircleCheck className="text-chart-2" />
+                                          ) : (
+                                            <span className="text-chart-2">
+                                              <FaRegCircleCheck />
+                                            </span>
+                                          )}
+                                        </span>
+                                      </div>
+                                    </Button>
+                                  ) : (
+                                    // 已被預約的時段
+                                    <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
+                                      {/* <span>NT$ {slotInfo.price}</span> */}
+                                      <span className="text-destructive">
+                                        {slotInfo.status}
+                                      </span>
+                                      <span className="text-destructive text-base">
+                                        <FaCircleXmark />
+                                      </span>
+                                    </div>
+                                  )
+                                ) : (
+                                  // 沒有資料的時段
+                                  <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
+                                    <span className="text-muted-foreground text-sm">
+                                      不可預約
+                                    </span>
+                                    <span className="text-muted-foreground text-sm">
+                                      <FaCircleMinus />
+                                    </span>
+                                  </div>
+                                )}
+                              </TableCell>
+                            )
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                    <TableFooter>
+                      <TableRow>
+                        <TableCell colSpan={courts.length}>
+                          <span>已選擇: {selectedTimeSlots.length} 個時段</span>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          總計 NT$ {getTotalPrice().toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    </TableFooter>
+                  </Table>
                 )}
-              </div>
-
-              {/* 時段區段 */}
-              <div className="space-y-2">
-                <Label>時段區段</Label>
-                <Select value={timePeriodId} onValueChange={setTimePeriodId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="全部時段區段" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timePeriods.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      timePeriods.map((tp) => (
-                        <SelectItem key={tp.id} value={tp.id.toString()}>
-                          {tp.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 時段 */}
-              <div className="space-y-2">
-                <Label htmlFor="timeSlotId">
-                  時段
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Select value={timeSlotId} onValueChange={setTimeSlotIds}>
-                  <SelectTrigger
-                    className={errors.timeSlotId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="請選擇時段" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots?.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      timeSlots.map((ts) => (
-                        <SelectItem key={ts.id} value={ts.id.toString()}>
-                          {ts.label}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.timeSlotId && (
+                {errors.timeSlots && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.timeSlotId}
+                    {errors.timeSlots}
                   </p>
-                )}
-              </div>
-
-              {/* 價格 */}
-              <div className="space-y-2">
-                <Label>
-                  價格<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="請輸入價格"
-                  min="0"
-                  step="1"
-                  className={`w-auto ${errors.price ? 'border-red-500' : ''}`}
-                />
-                {errors.price && (
-                  <p className="text-sm text-red-500 mt-1">{errors.price}</p>
                 )}
               </div>
 

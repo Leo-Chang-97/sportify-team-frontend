@@ -239,7 +239,9 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                 toggleTimeSlot(court.id, timeSlot.id)
                               }
                               className={cn(
-                                'w-full hover:bg-muted-foreground',
+                                'w-full',
+                                'hover:bg-primary/20',
+                                'dark:hover:bg-primary/50',
                                 selected &&
                                   'bg-primary text-primary-foreground hover:bg-primary/90'
                               )}
