@@ -61,18 +61,16 @@ export const timeSlotColumns = [
     cell: ({ row, table }) => (
       <div className="flex items-timeSlot gap-2">
         <Button
-          variant="outline"
+          variant="outlineBlue"
           size="sm"
           onClick={() => table.options.meta?.onEdit?.(row.original)}
-          className="h-8 text-blue-500 border-blue-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
         >
           <IconEdit />
         </Button>
         <Button
-          variant="outline"
+          variant="outlineRed"
           size="sm"
           onClick={() => table.options.meta?.onDelete?.(row.original)}
-          className="h-8 text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
         >
           <IconTrash />
         </Button>
