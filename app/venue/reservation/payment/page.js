@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Card,
   CardContent,
@@ -316,7 +317,7 @@ export default function PaymentPage() {
       // 準備付款參數但不立即建立訂單
       const amount = venueData.totalPrice
       const itemsArray = venueData.timeSlots.map(
-        (slot) => `場地:${slot.courtName} - 時間:${slot.timeRange}`
+        (slot) => `${slot.courtName} - ${slot.timeRange}`
       )
       const items = itemsArray.join(',')
 
@@ -552,7 +553,9 @@ export default function PaymentPage() {
                     </h4>
                     <div className="text-sm text-muted-foreground space-y-1">
                       {/* <div>地區: {venueData.location || '未選擇'}</div> */}
-                      <div>中心: {venueData.center || '未選擇'}</div>
+                      <div className="text-sm text-primary">
+                        {venueData.center || '未選擇'}
+                      </div>
                       <div>運動: {venueData.sport || '未選擇'}</div>
                     </div>
                   </div>
@@ -562,7 +565,7 @@ export default function PaymentPage() {
                     <h4 className="font-medium text-accent-foreground">
                       預約日期
                     </h4>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-primary">
                       {venueData.selectedDate
                         ? venueData.selectedDate.toLocaleDateString('zh-TW', {
                             year: 'numeric',
@@ -582,16 +585,20 @@ export default function PaymentPage() {
                     {venueData.timeSlots?.length > 0 ? (
                       <div className="space-y-2">
                         {venueData.timeSlots.map((slot, index) => (
-                          <div
+                          <Alert
                             key={index}
                             className="text-sm text-muted-foreground bg-muted p-2 rounded"
                           >
-                            <div className="font-medium">{slot.courtName}</div>
-                            <div className="flex justify-between">
+                            <AlertTitle className="font-medium text-blue-500">
+                              {slot.courtName}
+                            </AlertTitle>
+                            <AlertDescription className="flex justify-between">
                               <span>{slot.timeRange}</span>
-                              <span>NT$ {slot.price}</span>
-                            </div>
-                          </div>
+                              <span className="text-primary">
+                                NT$ {slot.price}
+                              </span>
+                            </AlertDescription>
+                          </Alert>
                         ))}
                       </div>
                     ) : (

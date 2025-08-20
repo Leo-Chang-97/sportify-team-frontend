@@ -7,12 +7,12 @@ import { Label } from '@/components/ui/label'
 export default function HeroBanner({
   backgroundImage = '/banner/venue-banner.jpg',
   title = '馬上預訂動起來',
-  overlayOpacity = 'bg-primary/50',
+  overlayOpacity = 'bg-black/50',
   children,
   onSearch,
   className = '',
   containerClassName = '',
-  titleClassName = 'text-4xl text-accent font-bold',
+  titleClassName = 'text-4xl text-white font-bold',
   ...props
 }) {
   return (

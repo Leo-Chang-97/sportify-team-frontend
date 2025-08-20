@@ -1,16 +1,13 @@
-// app/admin/shop/product/page.js
 'use client'
 
-// ===== 依賴項匯入 =====
+// react
 import { useState, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { AppSidebar } from '@/components/admin/app-sidebar'
-import { SiteHeader } from '@/components/admin/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { DataTable } from '@/components/admin/data-table'
-import { productColumns } from './columns'
 import useSWR from 'swr'
-import { fetchProducts, deleteProduct } from '@/api'
+// icons
+import { IconTrash } from '@tabler/icons-react'
+// ui components
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { IconTrash } from '@tabler/icons-react'
+// 自定義 components
+import { AppSidebar } from '@/components/admin/app-sidebar'
+import { SiteHeader } from '@/components/admin/site-header'
+import { DataTable } from '@/components/admin/data-table'
+import { productColumns } from './columns'
+// api
+import { fetchProducts, deleteProduct } from '@/api'
+// others
 import { toast } from 'sonner'
 
 export default function ProductPage() {
@@ -90,7 +94,6 @@ export default function ProductPage() {
   }
 
   const handleDelete = (product) => {
-    console.log('準備刪除商品 - 完整資料:', product)
     setProductToDelete(product)
     setIsDeleteDialogOpen(true)
   }
@@ -127,14 +130,6 @@ export default function ProductPage() {
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
 
-  // ===== Debug 資料格式 =====
-  /*console.log('完整資料:', data)
-  console.log('資料結構:', JSON.stringify(data, null, 2))
-  if (data?.rows && data.rows.length > 0) {
-    console.log('第一筆資料:', data.rows[0])
-    console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
-  }*/
-
   // ===== 頁面渲染 =====
   return (
     <SidebarProvider
@@ -145,7 +140,7 @@ export default function ProductPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Product" />
+        <SiteHeader title="商品管理" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">

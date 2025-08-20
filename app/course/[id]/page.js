@@ -8,10 +8,10 @@ import { useCourse } from '@/contexts/course-context'
 
 // API 請求
 import { fetchLesson } from '@/api/course/lesson'
+import { getLessonImageUrl } from '@/api/course/image'
 
 // next 元件
 import Link from 'next/link'
-import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 
 // UI 元件
@@ -84,13 +84,13 @@ export default function CourseDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto courseName={data?.title} />
 
       {/* 課程資訊區域 */}
-      <section className=" text-white py-16">
+      <section className="py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* 主標題 */}
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-white mb-12 sm:mb-16 lg:mb-20">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-foreground mb-12 sm:mb-16 lg:mb-20">
             {data.title}
           </h1>
 
@@ -99,25 +99,25 @@ export default function CourseDetailPage() {
             {/* 左側 - 主圖片 (桌機版左側，手機版上方) */}
             <div className="md:w-1/2">
               <img
-                src={data.image || '/course-pic/class-img/class1.png'}
+                src={getLessonImageUrl(data.images[0])}
                 alt="桌球教學主圖"
                 className="w-full h-48 sm:h-64 lg:h-auto rounded-lg object-cover"
               />
             </div>
 
             {/* 右側 - 課程資訊 (桌機版右側，手機版下方) */}
-            <div className="text-white md:w-1/2">
+            <div className="text-foreground md:w-1/2">
               <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">
                 課程簡介說明:
               </h3>
-              <p className="text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8 text-slate-200">
+              <p className="text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8 text-primary">
                 {data.description}
               </p>
 
               <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">
                 課程特色:
               </h3>
-              <ul className="space-y-1 text-xs sm:text-sm text-slate-200 mb-6 sm:mb-8">
+              <ul className="space-y-1 text-xs sm:text-sm text-primary mb-6 sm:mb-8">
                 <li>• 小班教學，精緻化人數規劃</li>
                 <li>• 豐富經驗，具備豐富教學心得</li>
                 <li>• 專業師資，擁有專業訓練與認證</li>
@@ -125,10 +125,10 @@ export default function CourseDetailPage() {
               </ul>
 
               {/* 課程詳細資訊 */}
-              <div className="text-xs leading-relaxed space-y-1 mb-6 sm:mb-8 text-slate-300 bg-slate-800/50 p-3 sm:p-4 rounded-lg">
+              <div className="text-sm leading-relaxed space-y-1 mb-6 sm:mb-8 text-popover-foreground bg-popover p-3 sm:p-4 rounded border shadow">
                 <p>適合年齡：中學-高中、國小中學年以上</p>
                 <p>
-                  課程日期：{data.startDate}-{data.endDate}
+                  課程日期：{data.startDate} ~ {data.endDate}
                 </p>
                 <p>課程時間：{data.dayOfWeek}18:00-20:00</p>
                 <p>上課人數：最大人數{data.maxCapacity}名以內完美學員</p>
@@ -139,17 +139,14 @@ export default function CourseDetailPage() {
               {/* 報名區域 */}
               <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
                 <div className="flex items-center space-x-2 sm:space-x-4">
-                  <span className="text-slate-300 text-xs sm:text-sm">
+                  <span className="text-primary text-xs sm:text-sm">
                     一期十堂
                   </span>
-                  <span className="text-white text-lg sm:text-xl font-bold">
+                  <span className="text-foreground text-lg sm:text-xl font-bold">
                     {data.price}
                   </span>
                 </div>
-                <Link
-                  href={`/course/payment`}
-                  className="w-full sm:w-auto"
-                >
+                <Link href={`/course/payment`} className="w-full sm:w-auto">
                   <Button
                     onClick={handleBooking}
                     variant="highlight"
