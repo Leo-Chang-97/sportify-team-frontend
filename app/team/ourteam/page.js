@@ -135,12 +135,12 @@ export default function OurTeamPage() {
       <BreadcrumbAuto />
       <HeroBanner
         backgroundImage="/banner/team-banner.jpg"
-        title="馬上加入團隊"
+        title=""
         overlayOpacity="bg-primary/10"
       ></HeroBanner>
       <div className="container mx-auto max-w-screen-xl px-4 gap-8">
         <div className="w-full min-h-[814px] max-w-[1140px] py-20 flex flex-col justify-start items-center gap-8">
-          <h1 className="text-3xl font-bold mb-6 text-center text-popover">
+          <h1 className="text-3xl font-bold mb-6 text-center text-card-foreground">
             你隸屬的隊伍資訊
           </h1>
           <Table>
