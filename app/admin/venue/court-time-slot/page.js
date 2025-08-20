@@ -1,21 +1,18 @@
 // app/admin/venue/center/page.js
 'use client'
 
-// ===== 依賴項匯入 =====
+// hooks
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { AppSidebar } from '@/components/admin/app-sidebar'
-import { SiteHeader } from '@/components/admin/site-header'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { DataTable } from '@/components/admin/data-table'
-import { courtTimeSlotColumns } from './columns'
+
+// 資料請求函式庫
 import useSWR from 'swr'
 
+// Icon
+import { IconTrash, IconSearch, IconX } from '@tabler/icons-react'
+
+// API 請求
 import {
   fetchCourtTimeSlots,
-  fetchCourtTimeSlot,
-  createCourtTimeSlot,
-  updateCourtTimeSlot,
   deleteCourtTimeSlot,
   deleteMultipleCourtTimeSlots,
   fetchLocationOptions,
@@ -26,6 +23,16 @@ import {
   fetchTimeSlotOptions,
   batchSetCourtTimeSlotPrice,
 } from '@/api'
+
+// next 元件
+import { useSearchParams, useRouter } from 'next/navigation'
+
+// UI 元件
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/admin/app-sidebar'
+import { SiteHeader } from '@/components/admin/site-header'
+import { DataTable } from '@/components/admin/data-table'
+import { courtTimeSlotColumns } from './columns'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -45,6 +52,15 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -61,16 +77,18 @@ import {
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu'
-import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { useAuth } from '@/contexts/auth-context'
 
 export default function CourtTimeSlotPage() {
-  // ===== 路由和搜尋參數處理 =====
+  // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
 
-  // ===== 組件狀態管理 =====
+  // #region 狀態管理
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -97,13 +115,14 @@ export default function CourtTimeSlotPage() {
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [itemsToDelete, setItemsToDelete] = useState([])
 
-  // ===== URL 參數處理 =====
-  const queryParams = useMemo(() => {
-    const entries = Object.fromEntries(searchParams.entries())
-    return entries
-  }, [searchParams])
+  const [filters, setFilters] = useState({
+    locationId: queryParams.locationId || '',
+    centerId: queryParams.centerId || '',
+    sportId: queryParams.sportId || '',
+    timePeriodId: queryParams.timePeriodId || '',
+  })
 
-  // ===== 數據獲取 =====
+  // #region 數據獲取
   const {
     data,
     isLoading: isDataLoading,
@@ -113,7 +132,22 @@ export default function CourtTimeSlotPage() {
     fetchCourtTimeSlots(params)
   )
 
-  // ===== 副作用處理 =====
+  // #region 副作用處理
+  // 同步篩選狀態與 URL 參數
+  useEffect(() => {
+    setFilters({
+      locationId: queryParams.locationId || '',
+      centerId: queryParams.centerId || '',
+      sportId: queryParams.sportId || '',
+      timePeriodId: queryParams.timePeriodId || '',
+    })
+  }, [
+    queryParams.locationId,
+    queryParams.centerId,
+    queryParams.sportId,
+    queryParams.timePeriodId,
+  ])
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -137,19 +171,21 @@ export default function CourtTimeSlotPage() {
     const loadData = async () => {
       try {
         let centerData
-        if (locationId) {
+        if (filters.locationId) {
           centerData = await fetchCenterOptions({
-            locationId: Number(locationId),
+            locationId: Number(filters.locationId),
           })
         } else {
           centerData = await fetchCenterOptions()
         }
         setCenters(centerData.rows || [])
         if (
-          centerId &&
-          !centerData.rows?.some((center) => center.id.toString() === centerId)
+          filters.centerId &&
+          !centerData.rows?.some(
+            (center) => center.id.toString() === filters.centerId
+          )
         ) {
-          setCenterId('')
+          setFilters((prev) => ({ ...prev, centerId: '' }))
         }
       } catch (err) {
         if (err.response && err.response.status === 404) {
@@ -160,7 +196,7 @@ export default function CourtTimeSlotPage() {
       }
     }
     loadData()
-  }, [locationId])
+  }, [filters.locationId])
 
   useEffect(() => {
     const loadData = async () => {
@@ -209,7 +245,7 @@ export default function CourtTimeSlotPage() {
     loadData()
   }, [timePeriodId])
 
-  // ===== 事件處理函數 =====
+  // #region 事件處理函數
   const handlePaginationChange = (paginationState) => {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(paginationState.pageIndex + 1))
@@ -228,7 +264,75 @@ export default function CourtTimeSlotPage() {
     }
     router.push(`?${newParams.toString()}`)
   }
+  // 處理篩選變更
+  const handleFilterChange = (filterName, value) => {
+    setFilters((prev) => {
+      const newFilters = { ...prev, [filterName]: value }
 
+      // 如果變更地區，清空場館選擇
+      if (filterName === 'locationId') {
+        newFilters.centerId = ''
+      }
+
+      return newFilters
+    })
+  }
+
+  // 清除所有篩選
+  const handleClearFilters = () => {
+    setFilters({
+      locationId: '',
+      centerId: '',
+      sportId: '',
+      timePeriodId: '',
+    })
+
+    // 清除 URL 中的篩選參數
+    const newParams = new URLSearchParams(searchParams.toString())
+    newParams.delete('locationId')
+    newParams.delete('centerId')
+    newParams.delete('sportId')
+    newParams.delete('timePeriodId')
+    newParams.set('page', '1')
+
+    router.push(`?${newParams.toString()}`)
+  }
+
+  // 套用篩選
+  const handleApplyFilters = () => {
+    const newParams = new URLSearchParams(searchParams.toString())
+
+    // 設置篩選參數
+    if (filters.locationId) {
+      newParams.set('locationId', filters.locationId)
+    } else {
+      newParams.delete('locationId')
+    }
+
+    if (filters.centerId) {
+      newParams.set('centerId', filters.centerId)
+    } else {
+      newParams.delete('centerId')
+    }
+
+    if (filters.sportId) {
+      newParams.set('sportId', filters.sportId)
+    } else {
+      newParams.delete('sportId')
+    }
+
+    if (filters.timePeriodId) {
+      newParams.set('timePeriodId', filters.timePeriodId)
+    } else {
+      newParams.delete('timePeriodId')
+    }
+
+    // 重置到第一頁
+    newParams.set('page', '1')
+
+    // 更新 URL
+    router.push(`?${newParams.toString()}`)
+  }
   const handleOrderBy = (orderby) => {
     const newParams = new URLSearchParams(searchParams.toString())
     if (orderby) {
@@ -407,7 +511,7 @@ export default function CourtTimeSlotPage() {
     setItemToDelete(null)
   }
 
-  // ===== 載入和錯誤狀態處理 =====
+  //  #region 載入和錯誤狀態處理
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
 
@@ -419,7 +523,8 @@ export default function CourtTimeSlotPage() {
     console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
   } */
 
-  // ===== 頁面渲染 =====
+  // #region 頁面渲染
+
   return (
     <SidebarProvider
       style={{
@@ -432,6 +537,155 @@ export default function CourtTimeSlotPage() {
         <SiteHeader title="Court Time Slot" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
+            {/* 篩選表單 */}
+            <div className="flex flex-col gap-4 px-4 md:px-6 py-4 md:gap-6 md:py-6">
+              <Card>
+                {/* <CardHeader>
+                  <CardTitle>篩選條件</CardTitle>
+                </CardHeader> */}
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* 地區篩選 */}
+                    <div className="space-y-2">
+                      <Label>地區</Label>
+                      <Select
+                        value={filters.locationId || 'all'}
+                        onValueChange={(value) =>
+                          handleFilterChange(
+                            'locationId',
+                            value === 'all' ? '' : value
+                          )
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="選擇地區" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">全部地區</SelectItem>
+                          {locations.map((location) => (
+                            <SelectItem
+                              key={location.id}
+                              value={location.id.toString()}
+                            >
+                              {location.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 場館篩選 */}
+                    <div className="space-y-2">
+                      <Label>場館</Label>
+                      <Select
+                        value={filters.centerId || 'all'}
+                        onValueChange={(value) =>
+                          handleFilterChange(
+                            'centerId',
+                            value === 'all' ? '' : value
+                          )
+                        }
+                        disabled={!filters.locationId}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="選擇場館" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">全部場館</SelectItem>
+                          {centers
+                            .filter(
+                              (center) =>
+                                !filters.locationId ||
+                                center.locationId === +filters.locationId
+                            )
+                            .map((center) => (
+                              <SelectItem
+                                key={center.id}
+                                value={center.id.toString()}
+                              >
+                                {center.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 運動項目篩選 */}
+                    <div className="space-y-2">
+                      <Label>運動項目</Label>
+                      <Select
+                        value={filters.sportId || 'all'}
+                        onValueChange={(value) =>
+                          handleFilterChange(
+                            'sportId',
+                            value === 'all' ? '' : value
+                          )
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="選擇運動項目" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">全部運動</SelectItem>
+                          {sports.map((sport) => (
+                            <SelectItem
+                              key={sport.id}
+                              value={sport.id.toString()}
+                            >
+                              {sport.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 時段類型篩選 */}
+                    <div className="space-y-2">
+                      <Label>時段類型</Label>
+                      <Select
+                        value={filters.timePeriodId || 'all'}
+                        onValueChange={(value) =>
+                          handleFilterChange(
+                            'timePeriodId',
+                            value === 'all' ? '' : value
+                          )
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="選擇時段類型" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">全部時段</SelectItem>
+                          {timePeriods.map((period) => (
+                            <SelectItem
+                              key={period.id}
+                              value={period.id.toString()}
+                            >
+                              {period.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* 篩選按鈕 */}
+                  <div className="flex flex-col md:flex-row justify-end gap-4 mt-4">
+                    <Button
+                      onClick={() => handleApplyFilters()}
+                      variant="default"
+                    >
+                      <IconSearch />
+                      套用篩選
+                    </Button>
+                    <Button onClick={handleClearFilters} variant="outline">
+                      <IconX />
+                      清除篩選
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <DataTable
                 data={data?.rows ?? []}
