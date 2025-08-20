@@ -260,7 +260,7 @@ export default function OrderDetailPage() {
               </div>
             </div>
             <div className="flex justify-center mt-6">
-              <Link href="/shop/order">
+              <Link href="/member/shop-data">
                 <Button variant="highlight" className="w-[120px]">
                   返回我的訂單
                 </Button>
