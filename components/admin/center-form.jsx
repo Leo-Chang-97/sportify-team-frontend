@@ -3,7 +3,10 @@
 // hooks
 import { useState, useEffect } from 'react'
 
+// utils
+import { cn } from '@/lib/utils'
 // icons
+
 import { ArrowLeft, IconUpload, IconX } from '@tabler/icons-react'
 
 // next 元件
@@ -221,14 +224,14 @@ export default function CenterForm({
 
   // #region 頁面渲染
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-2xl mx-auto w-full">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
+          <div className="flex flex-col gap-6">
             {/* 中心名稱 */}
             <div className="space-y-2">
               <Label htmlFor="name">
@@ -248,10 +251,10 @@ export default function CenterForm({
               )}
             </div>
 
-            {/* 地點選擇 */}
+            {/* 地區 */}
             <div className="space-y-2">
               <Label htmlFor="locationId">
-                地點
+                地區
                 <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -261,7 +264,10 @@ export default function CenterForm({
                 }
               >
                 <SelectTrigger
-                  className={errors.locationId ? 'border-red-500' : ''}
+                  className={cn(
+                    'w-full',
+                    errors.locationId && 'border-red-500'
+                  )}
                 >
                   <SelectValue placeholder="請選擇地點" />
                 </SelectTrigger>
@@ -341,7 +347,12 @@ export default function CenterForm({
             {/* 運動項目選擇 */}
             <div className="space-y-2">
               <Label>運動項目</Label>
-              <div className="grid grid-cols-2 gap-2 border rounded-md p-3">
+              <div
+                className={cn(
+                  'grid grid-cols-2 gap-2 border rounded-md p-3',
+                  errors.sportIds && 'border-red-500'
+                )}
+              >
                 {sports.map((sport) => (
                   <div key={sport.id} className="flex items-center space-x-2">
                     <Checkbox
@@ -461,7 +472,7 @@ export default function CenterForm({
           </div>
 
           {/* 按鈕區域 */}
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-end space-x-4 pt-6 border-t">
             <Button
               type="button"
               variant="outline"

@@ -44,7 +44,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Popover,
   PopoverContent,
@@ -74,6 +73,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '@/components/ui/combobox'
 import { toast } from 'sonner'
 
 export default function ReservationForm({
@@ -531,10 +540,17 @@ export default function ReservationForm({
     }, 0)
   }
 
+  // #region資料選項
+  const comboboxData = members.map((m) => ({
+    value: m.id?.toString?.() ?? String(m.id),
+    label: `${m.id}.${m.name}` ?? `${m.id}`,
+  }))
+
+  // #region 頁面渲染
   return (
-    <Card className="max-w-4xl mx-auto w-full">
+    <Card className="max-w-2xl mx-auto w-full">
       <CardHeader>
-        <CardTitle className="text-2xl text-primary">{title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -551,121 +567,92 @@ export default function ReservationForm({
                   使用者
                   <span className="text-red-500">*</span>
                 </Label>
-                {/* 搜尋使用者 */}
-                <Input
-                  type="text"
-                  value={memberSearch}
-                  onChange={(e) => setMemberSearch(e.target.value)}
-                  placeholder="搜尋使用者"
-                  className="w-auto"
-                />
-                <Select value={memberId} onValueChange={setMemberId}>
-                  <SelectTrigger
-                    className={errors.memberId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="請選擇使用者" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members?.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      (() => {
-                        const filtered = members.filter((member) =>
-                          `${member.id}-${member.name}`
-                            .toLowerCase()
-                            .includes(memberSearch.toLowerCase())
-                        )
-                        const selectedMember = memberId
-                          ? members.find((m) => m.id.toString() === memberId)
-                          : null
-                        const selectedInFiltered = filtered.some(
-                          (m) => m.id.toString() === memberId
-                        )
-                        return (
-                          <>
-                            {/* 若目前選到的 memberId 不在篩選結果，額外顯示 */}
-                            {selectedMember && !selectedInFiltered && (
-                              <SelectItem
-                                value={selectedMember.id.toString()}
-                                disabled
-                              >
-                                {`${selectedMember.id}-${selectedMember.name}`}
-                              </SelectItem>
-                            )}
-                            {filtered.length === 0 ? (
-                              <div className="px-3 py-2 text-gray-400">
-                                沒有符合資料
-                              </div>
-                            ) : (
-                              filtered.map((member) => (
-                                <SelectItem
-                                  key={member.id}
-                                  value={member.id.toString()}
-                                >
-                                  {`${member.id}-${member.name}` || member.id}
-                                </SelectItem>
-                              ))
-                            )}
-                          </>
-                        )
-                      })()
-                    )}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  data={comboboxData}
+                  value={memberId}
+                  onOpenChange={() => {}}
+                  onValueChange={(newValue) => setMemberId(newValue)}
+                  type="會員"
+                >
+                  <ComboboxTrigger />
+                  <ComboboxContent>
+                    <ComboboxInput />
+                    <ComboboxEmpty />
+                    <ComboboxList>
+                      <ComboboxGroup>
+                        {comboboxData.map((cbd) => (
+                          <ComboboxItem key={cbd.value} value={cbd.value}>
+                            {cbd.label}
+                          </ComboboxItem>
+                        ))}
+                      </ComboboxGroup>
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
                 {errors.memberId && (
                   <p className="text-sm text-red-500 mt-1">{errors.memberId}</p>
                 )}
               </div>
 
-              {/* 地區 */}
-              <div className="space-y-2">
-                <Label>地區</Label>
-                <Select value={locationId} onValueChange={setLocationId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="全部地區" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      locations.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id.toString()}>
-                          {loc.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* 地區 */}
+                <div className="flex-1 space-y-2">
+                  <Label>地區</Label>
+                  <Select value={locationId} onValueChange={setLocationId}>
+                    <SelectTrigger
+                      className={cn(
+                        'w-full',
+                        errors.locationId && 'border-red-500'
+                      )}
+                    >
+                      <SelectValue placeholder="全部地區" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.length === 0 ? (
+                        <div className="px-3 py-2 text-gray-400">
+                          沒有符合資料
+                        </div>
+                      ) : (
+                        locations.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id.toString()}>
+                            {loc.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* 中心 */}
-              <div className="space-y-2">
-                <Label>中心</Label>
-                <Select value={centerId} onValueChange={setCenterId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="全部中心" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {centers.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      centers.map((center) => (
-                        <SelectItem
-                          key={center.id}
-                          value={center.id.toString()}
-                        >
-                          {center.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                {/* 中心 */}
+                <div className="flex-1 space-y-2">
+                  <Label>中心</Label>
+                  <Select value={centerId} onValueChange={setCenterId}>
+                    <SelectTrigger
+                      className={cn(
+                        'w-full',
+                        errors.centerId && 'border-red-500'
+                      )}
+                    >
+                      <SelectValue placeholder="全部中心" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {centers.length === 0 ? (
+                        <div className="px-3 py-2 text-gray-400">
+                          沒有符合資料
+                        </div>
+                      ) : (
+                        centers.map((center) => (
+                          <SelectItem
+                            key={center.id}
+                            value={center.id.toString()}
+                          >
+                            {center.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* 運動 */}
@@ -776,122 +763,147 @@ export default function ReservationForm({
 
                 {/* 檢查是否有必要的篩選條件 */}
                 {!centerId || !sportId || !date ? (
-                  <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                  <div
+                    className={cn(
+                      'text-center py-8 text-muted-foreground border rounded-lg',
+                      errors.timeSlots && 'border-red-500'
+                    )}
+                  >
                     <p>請先選擇中心、運動項目和日期來查看可預約時段</p>
                   </div>
                 ) : courts.length === 0 || timeSlots.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                  <div
+                    className={cn(
+                      'text-center py-8 text-muted-foreground border rounded-lg',
+                      errors.timeSlots && 'border-red-500'
+                    )}
+                  >
                     <p>該日期沒有可預約的時段</p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[100px]">時間</TableHead>
-                        {courts.map((court) => (
-                          <TableHead
-                            key={court.id}
-                            className="text-muted-foreground text-center"
-                          >
-                            {court.name}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {timeSlots.map((timeSlot) => (
-                        <TableRow key={timeSlot.id}>
-                          <TableCell className="font-medium w-[100px]">
-                            {timeSlot.label}
-                          </TableCell>
-                          {courts.map((court) => {
-                            const slotInfo = getSlotInfo(court.id, timeSlot.id)
-                            const selected = isSelected(court.id, timeSlot.id)
+                  <div
+                    className={cn(
+                      'text-center p-4 text-muted-foreground border rounded-lg',
+                      errors.timeSlots && 'border-red-500'
+                    )}
+                  >
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[100px]">時間</TableHead>
+                          {courts.map((court) => (
+                            <TableHead
+                              key={court.id}
+                              className="text-muted-foreground text-center"
+                            >
+                              {court.name}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {timeSlots.map((timeSlot) => (
+                          <TableRow key={timeSlot.id}>
+                            <TableCell className="font-medium w-[100px]">
+                              {timeSlot.label}
+                            </TableCell>
+                            {courts.map((court) => {
+                              const slotInfo = getSlotInfo(
+                                court.id,
+                                timeSlot.id
+                              )
+                              const selected = isSelected(court.id, timeSlot.id)
 
-                            return (
-                              <TableCell key={court.id} className="text-center">
-                                {slotInfo ? (
-                                  slotInfo.isAvailable ? (
-                                    // 可預約的時段
-                                    <Button
-                                      variant={
-                                        selected ? 'default' : 'secondary'
-                                      }
-                                      size="sm"
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        toggleTimeSlot(court.id, timeSlot.id)
-                                      }}
-                                      className={cn(
-                                        'w-full',
-                                        'hover:bg-primary/20',
-                                        'dark:hover:bg-primary/50',
-                                        selected &&
-                                          'bg-primary text-primary-foreground hover:bg-primary/90'
-                                      )}
-                                    >
-                                      <div className="flex gap-2">
-                                        <span className="text-xs">
-                                          NT$ {slotInfo.price}
+                              return (
+                                <TableCell
+                                  key={court.id}
+                                  className="text-center"
+                                >
+                                  {slotInfo ? (
+                                    slotInfo.isAvailable ? (
+                                      // 可預約的時段
+                                      <Button
+                                        variant={
+                                          selected ? 'default' : 'secondary'
+                                        }
+                                        size="sm"
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          toggleTimeSlot(court.id, timeSlot.id)
+                                        }}
+                                        className={cn(
+                                          'w-full',
+                                          'hover:bg-primary/20',
+                                          'dark:hover:bg-primary/50',
+                                          selected &&
+                                            'bg-primary text-primary-foreground hover:bg-primary/90'
+                                        )}
+                                      >
+                                        <div className="flex gap-2">
+                                          <span className="text-xs">
+                                            NT$ {slotInfo.price}
+                                          </span>
+                                          <span
+                                            style={{
+                                              width: 20,
+                                              display: 'inline-block',
+                                            }}
+                                          >
+                                            {selected ? (
+                                              <FaCircleCheck className="text-chart-2" />
+                                            ) : (
+                                              <span className="text-chart-2">
+                                                <FaRegCircleCheck />
+                                              </span>
+                                            )}
+                                          </span>
+                                        </div>
+                                      </Button>
+                                    ) : (
+                                      // 已被預約的時段
+                                      <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
+                                        {/* <span>NT$ {slotInfo.price}</span> */}
+                                        <span className="text-destructive">
+                                          {slotInfo.status}
                                         </span>
-                                        <span
-                                          style={{
-                                            width: 20,
-                                            display: 'inline-block',
-                                          }}
-                                        >
-                                          {selected ? (
-                                            <FaCircleCheck className="text-chart-2" />
-                                          ) : (
-                                            <span className="text-chart-2">
-                                              <FaRegCircleCheck />
-                                            </span>
-                                          )}
+                                        <span className="text-destructive text-base">
+                                          <FaCircleXmark />
                                         </span>
                                       </div>
-                                    </Button>
+                                    )
                                   ) : (
-                                    // 已被預約的時段
+                                    // 沒有資料的時段
                                     <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
-                                      {/* <span>NT$ {slotInfo.price}</span> */}
-                                      <span className="text-destructive">
-                                        {slotInfo.status}
+                                      <span className="text-muted-foreground text-sm">
+                                        不可預約
                                       </span>
-                                      <span className="text-destructive text-base">
-                                        <FaCircleXmark />
+                                      <span className="text-muted-foreground text-sm">
+                                        <FaCircleMinus />
                                       </span>
                                     </div>
-                                  )
-                                ) : (
-                                  // 沒有資料的時段
-                                  <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
-                                    <span className="text-muted-foreground text-sm">
-                                      不可預約
-                                    </span>
-                                    <span className="text-muted-foreground text-sm">
-                                      <FaCircleMinus />
-                                    </span>
-                                  </div>
-                                )}
-                              </TableCell>
-                            )
-                          })}
+                                  )}
+                                </TableCell>
+                              )
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TableCell colSpan={courts.length}>
+                            <span>
+                              已選擇: {selectedTimeSlots.length} 個時段
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            總計 NT$ {getTotalPrice().toLocaleString()}
+                          </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                    <TableFooter>
-                      <TableRow>
-                        <TableCell colSpan={courts.length}>
-                          <span>已選擇: {selectedTimeSlots.length} 個時段</span>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          總計 NT$ {getTotalPrice().toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    </TableFooter>
-                  </Table>
+                      </TableFooter>
+                    </Table>
+                  </div>
                 )}
                 {errors.timeSlots && (
                   <p className="text-sm text-red-500 mt-1">
@@ -907,7 +919,10 @@ export default function ReservationForm({
                 </Label>
                 <Select value={paymentId} onValueChange={setPaymentId}>
                   <SelectTrigger
-                    className={errors.paymentId ? 'border-red-500' : ''}
+                    className={cn(
+                      'w-full',
+                      errors.paymentId && 'border-red-500'
+                    )}
                   >
                     <SelectValue placeholder="請選擇付款方式" />
                   </SelectTrigger>
@@ -944,7 +959,10 @@ export default function ReservationForm({
                 </Label>
                 <Select value={invoiceId} onValueChange={setInvoiceId}>
                   <SelectTrigger
-                    className={errors.invoiceId ? 'border-red-500' : ''}
+                    className={cn(
+                      'w-full',
+                      errors.invoiceId && 'border-red-500'
+                    )}
                   >
                     <SelectValue placeholder="請選擇發票類型" />
                   </SelectTrigger>
@@ -1037,7 +1055,10 @@ export default function ReservationForm({
                 </Label>
                 <Select value={statusId} onValueChange={setStatusId}>
                   <SelectTrigger
-                    className={errors.statusId ? 'border-red-500' : ''}
+                    className={cn(
+                      'w-full',
+                      errors.statusId && 'border-red-500'
+                    )}
                   >
                     <SelectValue placeholder="請選擇狀態" />
                   </SelectTrigger>
