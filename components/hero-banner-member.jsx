@@ -130,6 +130,7 @@ export default function HeroBanner({
       return
     }
 
+
     // 驗證檔案大小 (限制為 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('圖片大小不能超過 5MB')

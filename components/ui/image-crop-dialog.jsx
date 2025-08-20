@@ -54,6 +54,10 @@ export default function ImageCropDialog({
         'jpeg' // 使用 JPEG 作為預設格式，檔案較小且相容性好
       )
       onCropComplete(croppedFile)
+      // 清空檔案輸入以允許重新選擇相同檔案
+      if (onDialogClose) {
+        onDialogClose()
+      }
       onClose()
     } catch (error) {
       console.error('裁切失敗:', error)
