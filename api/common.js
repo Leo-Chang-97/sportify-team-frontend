@@ -98,3 +98,9 @@ export const fetchCoachOptions = async () => {
   const res = await apiClient.get('/common/coach')
   return res.data
 }
+
+// Firebase Google 登入
+export const firebaseLogin = async (idToken) => {
+  const res = await apiClient.post('/auth/firebase-login', { idToken })
+  return res.data
+}
