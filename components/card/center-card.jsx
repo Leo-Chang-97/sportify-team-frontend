@@ -15,7 +15,6 @@ import { getCenterImageUrl } from '@/api/venue/image'
 
 // next 元件
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 // UI 元件
@@ -69,6 +68,20 @@ export function CenterCard({
       centerId: data.id,
       locationId: data.location.id,
     }))
+    router.push('/venue/reservation')
+  }
+
+  const handleSportButton = (item) => {
+    setVenueData((prev) => ({
+      ...prev,
+      center: data.name,
+      centerId: data.id,
+      location: data.location.name,
+      locationId: data.location.id,
+      sport: item.name,
+      sportId: item.id,
+    }))
+    // 跳轉到預約頁面
     router.push('/venue/reservation')
   }
 
@@ -198,18 +211,17 @@ export function CenterCard({
                 {data.sports.map((item, idx) => {
                   const IconComponent = sportIconMap[item.iconKey]
                   return (
-                    <Link href="#" key={idx}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="hover:bg-primary/10"
-                      >
-                        {IconComponent && (
-                          <IconComponent className="!w-6 !h-6" />
-                        )}
-                        {item.name}
-                      </Button>
-                    </Link>
+                    <Button
+                      key={idx}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        handleSportButton(item)
+                      }}
+                    >
+                      {IconComponent && <IconComponent className="!w-6 !h-6" />}
+                      {item.name}
+                    </Button>
                   )
                 })}
               </div>
@@ -222,7 +234,7 @@ export function CenterCard({
             <Button
               onClick={() => router.push(`/venue/${data.id}`)}
               variant="secondary"
-              className="hover:bg-primary/10 w-full flex-1"
+              className="w-full flex-1"
             >
               詳細
               <Eye />

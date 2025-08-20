@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 
 // Icon
 import { FaXmark, FaCheck } from 'react-icons/fa6'
+import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
 
 // API 請求
 import { fetchReservation } from '@/api/venue/reservation'
@@ -18,7 +19,9 @@ import { useSearchParams } from 'next/navigation'
 
 // UI 元件
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Card,
   CardContent,
@@ -34,6 +37,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from '@/components/ui/table'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 
@@ -136,6 +140,74 @@ export default function SuccessPage() {
     { id: 3, title: '完成訂單', active: true },
   ]
 
+  const summaries = [
+    {
+      key: '訂單編號',
+      value: reservationId || '未知',
+    },
+    {
+      key: '預訂人',
+      value: reservationData?.memberName || '未知',
+    },
+    {
+      key: '電話號碼',
+      value: reservationData?.member?.phone || '未知',
+    },
+    {
+      key: '建立時間',
+      value: reservationData?.createdAt || '未知',
+    },
+    {
+      key: '發票號碼',
+      value: reservationData?.invoiceNumber || '未知',
+    },
+    {
+      key: '發票類型',
+      value: (
+        <>
+          {reservationData?.invoice.name || '未知'}
+          {reservationData?.invoiceId === 2 && (
+            <span className="ml-2 text-muted-foreground">
+              {reservationData?.tax ? `${reservationData.tax}` : ''}
+            </span>
+          )}
+          {reservationData?.invoiceId === 3 && (
+            <span className="ml-2 text-muted-foreground">
+              {reservationData?.carrier ? `${reservationData.carrier}` : ''}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: '付款方式',
+      value: reservationData?.payment?.name || '未知',
+    },
+    {
+      key: '狀態',
+      value: (
+        <>
+          <Badge variant="outline" className="text-muted-foreground px-1.5">
+            {reservationData?.status?.name === '已付款' ? (
+              <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
+            ) : (
+              <IconLoader />
+            )}
+            {reservationData?.status?.name || '未知'}
+          </Badge>
+        </>
+      ),
+    },
+    {
+      key: '訂單金額',
+      value: (
+        <span className="text-lg font-bold text-primary">
+          NT$ {reservationData?.price || '未知'}
+        </span>
+      ),
+    },
+  ]
+
   // #region Markup
   return (
     <>
@@ -151,6 +223,7 @@ export default function SuccessPage() {
               onStepClick={(step, index) => {}}
             />
           </section>
+
           {/* 預訂成功訊息 */}
           <section>
             <div className="flex flex-col items-center gap-4 py-4 md:py-8">
@@ -159,7 +232,9 @@ export default function SuccessPage() {
                   <div className="rounded-full bg-highlight p-4">
                     <FaCheck className="text-4xl text-accent" />
                   </div>
-                  <h2 className="text-2xl font-bold text-accent">預訂成功</h2>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    已完成預訂
+                  </h2>
                 </>
               ) : (
                 <>
@@ -172,131 +247,69 @@ export default function SuccessPage() {
             </div>
           </section>
 
-          <div className="mx-auto md:max-w-screen-lg gap-6">
-            <div className="flex flex-col md:flex-row gap-6">
+          <div className="mx-auto md:max-w-2xl gap-6">
+            <div className="flex flex-col gap-6">
               {/* 訂單詳細 */}
-              <section className="flex-1 w-full">
-                <h2 className="text-xl font-semibold mb-4">付款資訊</h2>
+              <section className="w-full">
                 {/* 訂單摘要卡片 */}
-                <Card>
+                <Card className="gap-0">
+                  <CardHeader>
+                    <h2 className="text-lg font-semibold">訂單詳情</h2>
+                  </CardHeader>
                   <CardContent className="space-y-4">
                     <Table className="w-full table-fixed">
-                      <TableBody className="divide-y divide-foreground">
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            訂單編號
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
+                      {/* <TableCaption>
+                        A list of your recent invoices.
+                      </TableCaption> */}
+                      <TableHeader>
+                        {/* <TableRow>
+                          <TableHead className="w-[100px]">Invoice</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Method</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                        </TableRow> */}
+                      </TableHeader>
+                      <TableBody>
+                        {summaries.map((summary) => (
+                          <TableRow
+                            key={summary.key}
+                            className="border-b border-muted-foreground/30"
                           >
-                            {reservationId || '未知'}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            預訂人
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
-                          >
-                            {reservationData?.memberName || '未知'}
-                          </TableCell>
-                        </TableRow>
-
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            狀態
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
-                          >
-                            {reservationData?.status?.name || '未知'}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            建立時間
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
-                          >
-                            {reservationData?.createdAt || '未知'}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            發票號碼
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
-                          >
-                            {reservationData?.invoiceNumber || '未知'}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            發票類型
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
-                          >
-                            {reservationData?.invoice.name || '未知'}
-                            {reservationData?.invoiceId === 2 && (
-                              <span className="ml-2 text-muted-foreground">
-                                {reservationData?.tax
-                                  ? `${reservationData.tax}`
-                                  : ''}
-                              </span>
-                            )}
-                            {reservationData?.invoiceId === 3 && (
-                              <span className="ml-2 text-muted-foreground">
-                                {reservationData?.carrier
-                                  ? `${reservationData.carrier}`
-                                  : ''}
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="border-b border-card-foreground">
-                          <TableCell className="font-medium text-base py-2 text-accent-foreground align-top !w-[120px] !min-w-[120px] !max-w-[160px] whitespace-nowrap overflow-hidden">
-                            付款方式
-                          </TableCell>
-                          <TableCell
-                            className="text-base py-2 whitespace-normal text-accent-foreground align-top break-words"
-                            style={{ width: '100%' }}
-                          >
-                            {reservationData?.payment?.name || '未知'}
-                          </TableCell>
-                        </TableRow>
+                            <TableCell className="font-medium">
+                              {summary.key}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {summary.value}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
+                      {/* <TableFooter>
+                        <TableRow>
+                          <TableCell colSpan={3}>Total</TableCell>
+                          <TableCell className="text-right">
+                            $2,500.00
+                          </TableCell>
+                        </TableRow>
+                      </TableFooter> */}
                     </Table>
                   </CardContent>
                 </Card>
               </section>
 
               {/* 訂單確認 */}
-              <section className="order-1 md:order-2 flex-1 w-full">
-                <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
+              <section className="w-full">
                 {/* 訂單摘要卡片 */}
                 <Card>
                   <CardHeader className="flex flex-col md:flex-row justify-between gap-4">
                     {/* 場館資訊 */}
-                    <div className="space-y-2 order-2 md:order-1">
-                      <h4 className="font-medium text-accent-foreground">
-                        場館資訊
-                      </h4>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">場館資訊</h3>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <div>
-                          地區: {centerData?.location?.name || '載入中...'}
+                        <div className="text-base text-primary">
+                          {centerData?.name || '載入中...'}
                         </div>
-                        <div>地址: {centerData?.address || '載入中...'}</div>
-                        <div>中心: {centerData?.name || '載入中...'}</div>
+                        <div>{centerData?.address || '載入中...'}</div>
                         <div>
                           運動:{' '}
                           {reservationData?.courtTimeSlots[0]?.sportName ||
@@ -309,7 +322,7 @@ export default function SuccessPage() {
                     centerData.images &&
                     Array.isArray(centerData.images) &&
                     centerData.images.length > 0 ? (
-                      <div className="w-full md:w-50 min-w-0 flex-shrink-0 overflow-hidden rounded-lg order-1">
+                      <div className="w-full md:w-50 min-w-0 flex-shrink-0 overflow-hidden rounded-lg">
                         <AspectRatio ratio={4 / 3} className="bg-muted">
                           <Image
                             alt={centerData.name || '場館圖片'}
@@ -322,7 +335,7 @@ export default function SuccessPage() {
                         </AspectRatio>
                       </div>
                     ) : (
-                      <div className="w-full md:w-50 min-w-0 flex-shrink-0 overflow-hidden rounded-lg order-1 bg-gray-200 flex items-center justify-center">
+                      <div className="w-full md:w-50 min-w-0 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center">
                         <AspectRatio
                           ratio={4 / 3}
                           className="bg-muted flex items-center justify-center"
@@ -335,34 +348,32 @@ export default function SuccessPage() {
                   <CardContent className="space-y-4">
                     {/* 預約日期 */}
                     <div className="space-y-2">
-                      <h4 className="font-medium text-accent-foreground">
-                        預約日期
-                      </h4>
-                      <div className="text-sm text-muted-foreground">
+                      <h3 className="text-lg font-semibold">預約日期</h3>
+                      <div className="text-base text-primary">
                         {reservationData?.date || '未知日期'}
                       </div>
                     </div>
 
                     {/* 場地時段 */}
                     <div className="space-y-2">
-                      <h4 className="font-medium text-accent-foreground">
-                        場地時段
-                      </h4>
+                      <h3 className="text-lg font-semibold">場地時段</h3>
                       {reservationData?.courtTimeSlots?.length > 0 ? (
                         <div className="space-y-2">
                           {reservationData.courtTimeSlots.map((slot, index) => (
-                            <div
+                            <Alert
                               key={index}
                               className="text-sm text-muted-foreground bg-muted p-2 rounded"
                             >
-                              <div className="font-medium">
+                              <AlertTitle className="font-medium text-blue-500">
                                 {slot.courtName}
-                              </div>
-                              <div className="flex justify-between">
+                              </AlertTitle>
+                              <AlertDescription className="flex justify-between">
                                 <span>{slot.timeLabel}</span>
-                                <span>{slot.date}</span>
-                              </div>
-                            </div>
+                                <span className="text-primary">
+                                  NT$ {slot.price}
+                                </span>
+                              </AlertDescription>
+                            </Alert>
                           ))}
                         </div>
                       ) : (
@@ -373,7 +384,7 @@ export default function SuccessPage() {
                     </div>
 
                     {/* 總計 */}
-                    <div className="pt-2 border-t">
+                    {/* <div className="pt-2 border-t">
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-foreground">
                           總計
@@ -382,7 +393,7 @@ export default function SuccessPage() {
                           NT$ {totalPrice}
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                   </CardContent>
                 </Card>
               </section>

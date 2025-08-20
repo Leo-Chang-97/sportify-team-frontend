@@ -172,7 +172,7 @@ export default function HeroBanner({
         {...props}
       >
         <div className={`absolute inset-0 ${overlayOpacity}`}></div>
-        <div className="relative container mx-auto flex flex-col self-stretch h-70 max-w-screen-xl gap-16 justify-between items-center ">
+        <div className="relative container mx-auto flex flex-col self-stretch h-70 max-w-screen-xl gap-8 justify-between items-center ">
           <div className="w-full h-32 max-w-[1140px] pb-2.5 flex flex-col justify-center items-center gap-4 mt-8">
             <div className="self-stretch inline-flex justify-center items-center gap-1">
               <div className="text-center justify-center">
@@ -212,7 +212,7 @@ export default function HeroBanner({
             />
 
             <div className="inline-flex justify-center items-center gap-1">
-              <div className="text-center justify-center text-white text-xl font-medium font-['Montserrat'] leading-[48px]">
+              <div className="text-center justify-center text-background text-xl font-medium font-['Montserrat'] leading-[48px]">
                 {getUserName()}
               </div>
             </div>

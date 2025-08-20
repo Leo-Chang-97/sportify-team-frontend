@@ -23,11 +23,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
   // #region 組件狀態管理
   // 儲存選中的時間段 {courtId: number, timeSlotId: number}[]
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
+  // 控制超過限制警告對話框
+  const [showLimitDialog, setShowLimitDialog] = useState(false)
 
   // 從真實資料中提取唯一的場地和時間段
   const { courts, timeSlots } = useMemo(() => {
@@ -125,6 +138,11 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
         // 如果已選中，則移除
         return prev.filter((_, index) => index !== existingIndex)
       } else {
+        // 檢查是否已達到最大選擇數量（4個時段）
+        if (prev.length >= 4) {
+          setShowLimitDialog(true)
+          return prev
+        }
         // 如果未選中，則添加
         return [...prev, { courtId, timeSlotId }]
       }
@@ -175,6 +193,12 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
         </div>
       ) : (
         <>
+          {/* 選擇提示 */}
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            <span>選擇您要預約的場地時間段</span>
+            <span>已選擇: {selectedTimeSlots.length}/4 個時段</span>
+          </div>
+
           <Table className="text-muted-foreground">
             {/* <TableCaption>選擇您要預約的場地時間段</TableCaption> */}
 
@@ -215,9 +239,9 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                 toggleTimeSlot(court.id, timeSlot.id)
                               }
                               className={cn(
-                                'w-full hover:bg-background/10',
+                                'w-full hover:bg-muted-foreground',
                                 selected &&
-                                  'bg-primary text-primary-foreground hover:bg-primary/80'
+                                  'bg-primary text-primary-foreground hover:bg-primary/90'
                               )}
                             >
                               <div className="flex gap-2">
@@ -228,9 +252,9 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                   style={{ width: 20, display: 'inline-block' }}
                                 >
                                   {selected ? (
-                                    <FaCircleCheck className="text-primary-foreground" />
+                                    <FaCircleCheck className="text-chart-2" />
                                   ) : (
-                                    <span className="text-primary">
+                                    <span className="text-chart-2">
                                       <FaRegCircleCheck />
                                     </span>
                                   )}
@@ -239,12 +263,12 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                             </Button>
                           ) : (
                             // 已被預約的時段
-                            <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs bg-red-100 text-muted-foreground bg-muted rounded-md">
+                            <div className="flex justify-center items-center gap-2 cursor-not-allowed w-full py-2 px-3 text-xs text-muted-foreground bg-muted rounded-md">
                               {/* <span>NT$ {slotInfo.price}</span> */}
-                              <span className="text-red-500">
+                              <span className="text-destructive">
                                 {slotInfo.status}
                               </span>
-                              <span className="text-red-500 text-base">
+                              <span className="text-destructive text-base">
                                 <FaCircleXmark />
                               </span>
                             </div>
@@ -267,8 +291,45 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
               ))}
             </TableBody>
           </Table>
+
+          {/* 狀態說明 */}
+          <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground border-t pt-4">
+            <div className="flex items-center gap-2">
+              <FaRegCircleCheck className="text-green-700" />
+              <span>可預約</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FaCircleCheck className="text-blue-500" />
+              <span>已選擇</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FaCircleXmark className="text-red-500" />
+              <span>已被預約</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FaCircleMinus className="text-muted-foreground" />
+              <span>不可預約</span>
+            </div>
+          </div>
         </>
       )}
+
+      {/* 超過限制警告對話框 */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>選擇數量已達上限</AlertDialogTitle>
+            <AlertDialogDescription>
+              您最多只能選擇 4 個時段進行預約。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
+              確認
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

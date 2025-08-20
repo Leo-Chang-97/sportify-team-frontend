@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* 添加 line-clamp 樣式 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-background-dark: var(--background-dark);
@@ -46,22 +55,22 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --animate-grid: grid 15s linear infinite;
-  @keyframes grid {
-  0% {
-    transform: translateY(-50%);
+  @keyframes ripple {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) scale(1);
     }
-  100% {
-    transform: translateY(0);
+    50% {
+      transform: translate(-50%, -50%) scale(0.9);
     }
   }
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.2176 0.0793 269.3);
-  --background-dark: oklch(0.178 0.0575 270.26);
-  --foreground: oklch(1 0 0);
+  --background: oklch(1 0 0);
+  --background-dark: oklch(0.98 0 0);
+  --foreground: oklch(0.2176 0.0793 269.3);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -96,19 +105,20 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.2176 0.0793 269.3);
+  --background-dark: oklch(0.1571 0.0194 262.03);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.2 0.04 262.03);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.269 0 0);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --secondary: oklch(0.343 0.0678 269.33);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
+  --muted: oklch(0.343 0.0678 269.33);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
+  --accent: oklch(0.371 0.0678 269.33);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
@@ -155,4 +165,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.animate-ripple {
+  animation: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
 }

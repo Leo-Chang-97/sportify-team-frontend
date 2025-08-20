@@ -1,8 +1,11 @@
 'use client'
 
-import React from 'react'
+// react
+import React, { useState, useEffect } from 'react'
+// ui components
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import {
   Choicebox,
   ChoiceboxItem,
@@ -37,18 +40,6 @@ const DeliveryOptions = [
   },
 ]
 
-/**
- * 物流方式選擇元件
- * @param {Object} props
- * @param {string} props.selectedDelivery - 當前選中的物流方式ID
- * @param {function} props.onDeliveryChange - 物流方式變更回調函數
- * @param {Object} props.errors - 驗證錯誤物件
- * @param {string} props.className - 自定義樣式類名
- * @param {Object} props.formData - 表單資料
- * @param {function} props.onInputChange - 輸入變更回調函數
- * @param {function} props.onInputBlur - 輸入失焦回調函數
- * @returns {JSX.Element}
- */
 export default function DeliveryMethodSelector({
   selectedDelivery,
   onDeliveryChange,
@@ -58,6 +49,32 @@ export default function DeliveryMethodSelector({
   onInputChange,
   onInputBlur,
 }) {
+  // ===== 組件狀態管理 =====
+  const [store, setStore] = useState(null)
+
+  const sevenStore = () => {
+    window.open(
+      'https://emap.presco.com.tw/c2cemap.ashx?eshopid=870&&servicetype=1&url=' +
+        encodeURIComponent('http://localhost:3005/api/shop/shipment'),
+      '',
+      'width=900,height=600'
+    )
+  }
+
+  // 接收後端傳回的門市資料
+  useEffect(() => {
+    const handleMessage = (event) => {
+      setStore(event.data)
+      if (event.data && event.data.storename && onInputChange) {
+        onInputChange('storeName', event.data.storename)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [onInputChange])
+
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center gap-2">
@@ -84,6 +101,26 @@ export default function DeliveryMethodSelector({
                 </ChoiceboxItemContent>
               </ChoiceboxItem>
               {/* 動態顯示選中選項的組件 */}
+              {selectedDelivery === option.id && option.id === '1' && (
+                <div
+                  id="storeName"
+                  className="ml-6 mt-3 flex gap-3 items-center"
+                >
+                  <Button variant="highlight" onClick={sevenStore}>
+                    選擇門市
+                  </Button>
+                  {store && (
+                    <div className="text-sm">
+                      {store.storename} - {store.storeaddress}
+                    </div>
+                  )}
+                  {errors.storeName && (
+                    <span className="text-destructive text-sm">
+                      {errors.storeName}
+                    </span>
+                  )}
+                </div>
+              )}
               {selectedDelivery === option.id && option.id === '3' && (
                 <div className="ml-6 mt-3 space-y-2">
                   <Label htmlFor="address">收件地址</Label>

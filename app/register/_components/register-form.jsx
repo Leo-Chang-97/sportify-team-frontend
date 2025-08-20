@@ -65,7 +65,7 @@ export function RegisterForm({
             <div
               className="relative w-1/2 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: `url('/login/login.png')`,
+                backgroundImage: `url('/login/reg.jpg')`,
                 backgroundPosition: 'left center',
                 backgroundSize: 'cover',
               }}

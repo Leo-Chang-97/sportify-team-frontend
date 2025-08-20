@@ -1,10 +1,12 @@
 'use client'
 
+// react
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
+//icons
 import { Minus, Plus } from 'lucide-react'
 // components/ui
 import { toast } from 'sonner'
@@ -12,28 +14,23 @@ import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
-// components
+import { Card, CardContent } from '@/components/ui/card'
+// 自定義 components
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import { LoadingState, ErrorState } from '@/components/loading-states'
+// hooks
+import { useAuth } from '@/contexts/auth-context'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
-import { getCarts, addProductCart, updateCarts, removeCart } from '@/api'
+import { getCarts, updateCarts, removeCart } from '@/api'
 
 const steps = [
   { id: 1, title: '確認購物車', active: true },
@@ -42,14 +39,12 @@ const steps = [
 ]
 
 export default function CartListPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const { id } = useParams()
 
   // ===== 組件狀態管理 =====
   const [carts, setCarts] = useState([])
-  const [members, setMembers] = useState([])
 
   // 格式化價格，加上千分位逗號
   const formatPrice = (price) => {
@@ -75,17 +70,23 @@ export default function CartListPage() {
   }, [searchParams])
 
   // ===== 數據獲取 =====
+  const shouldFetch = isAuthenticated
   const {
     data,
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['carts', queryParams], async ([, params]) => {
-    const result = await getCarts(params)
-    return result
-  })
+  } = useSWR(
+    shouldFetch ? ['carts', queryParams] : null,
+    shouldFetch
+      ? async ([, params]) => {
+          const result = await getCarts(params)
+          return result
+        }
+      : null
+  )
 
-  // 處理商品數量變更
+  // ===== 副作用處理 =====
   const handleQuantityChange = useCallback(
     async (cartItemId, newQuantity) => {
       // 如果新數量小於 1，就刪除該項目
@@ -153,19 +154,16 @@ export default function CartListPage() {
     [mutate]
   )
 
-  // ===== 載入選項 =====
   useEffect(() => {
     if (data?.data?.cart?.cartItems) {
       setCarts(data.data.cart.cartItems)
     }
   }, [data])
 
-  // 載入狀態處理
-  if (isDataLoading) {
+  // ===== 載入和錯誤狀態處理 =====
+  if (isDataLoading || authLoading) {
     return <LoadingState message="載入購物車資料中..." />
   }
-
-  // 錯誤狀態處理
   if (error) {
     return (
       <ErrorState
@@ -175,6 +173,38 @@ export default function CartListPage() {
         backUrl="/shop"
         backLabel="返回商品列表"
       />
+    )
+  }
+
+  // 未登入狀態
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">請先登入</div>
+          <Link href="/login">
+            <Button variant="highlight">前往登入</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
+    )
+  }
+
+  // 購物車為空時顯示無商品與前往商城首頁按鈕
+  if (!carts || carts.length === 0) {
+    return (
+      <>
+        <Navbar />
+        <section className="flex flex-col items-center justify-center min-h-[60vh] py-20">
+          <div className="text-2xl font-bold mb-4">購物車無商品</div>
+          <Link href="/shop">
+            <Button variant="highlight">瀏覽商品</Button>
+          </Link>
+        </section>
+        <Footer />
+      </>
     )
   }
 
@@ -189,12 +219,12 @@ export default function CartListPage() {
             orientation="horizontal"
             onStepClick={(step, index) => console.log('Clicked step:', step)}
           />
-          <div className="flex flex-col md:flex-row justify-between gap-5 min-h-screen">
+          <div className="flex flex-col md:flex-row justify-between gap-5">
             <Card className="flex-3 self-start">
               <CardContent>
                 <Table className="w-full table-fixed">
                   <TableHeader className="border-b-2 border-card-foreground">
-                    <TableRow className="text-lg">
+                    <TableRow className="text-base font-bold">
                       <TableHead className="font-bold w-1/2 text-accent-foreground p-2">
                         商品名稱
                       </TableHead>
@@ -210,80 +240,69 @@ export default function CartListPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-card-foreground">
-                    {carts && carts.length > 0 ? (
-                      carts.map((cartItem) => {
-                        // 處理圖片路徑
-                        const product = cartItem.product
-                        const imageFileName = product.images?.[0]?.url || ''
+                    {carts.map((cartItem) => {
+                      // 處理圖片路徑
+                      const product = cartItem.product
+                      const imageFileName = product.images?.[0]?.url || ''
 
-                        return (
-                          <TableRow key={cartItem.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-10 h-10 overflow-hidden flex-shrink-0">
-                                  <Image
-                                    className="object-cover w-full h-full"
-                                    src={getProductImageUrl(imageFileName)}
-                                    alt={product.name}
-                                    width={40}
-                                    height={40}
-                                  />
-                                </div>
-                                <span className="text-sm whitespace-normal text-accent-foreground">
-                                  {product.name}
-                                </span>
+                      return (
+                        <TableRow key={cartItem.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 overflow-hidden flex-shrink-0">
+                                <Image
+                                  className="object-cover w-full h-full"
+                                  src={getProductImageUrl(imageFileName)}
+                                  alt={product.name}
+                                  width={40}
+                                  height={40}
+                                />
                               </div>
-                            </TableCell>
-                            <TableCell className="text-accent-foreground">
-                              ${formatPrice(product.price)}
-                            </TableCell>
-                            <TableCell className="text-accent-foreground">
-                              <div className="flex items-center justify-center gap-2">
-                                <span
-                                  className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
-                                  aria-label="Decrease quantity"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      cartItem.id,
-                                      cartItem.quantity - 1
-                                    )
-                                  }
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </span>
-                                <span className="w-12 text-center select-none">
-                                  {cartItem.quantity}
-                                </span>
-                                <span
-                                  className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
-                                  aria-label="Increase quantity"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      cartItem.id,
-                                      cartItem.quantity + 1
-                                    )
-                                  }
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right hidden md:table-cell text-accent-foreground">
-                              ${formatPrice(product.price * cartItem.quantity)}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="text-center py-8 text-muted-foreground"
-                        >
-                          購物車是空的
-                        </TableCell>
-                      </TableRow>
-                    )}
+                              <span className="text-sm whitespace-normal text-accent-foreground">
+                                {product.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-accent-foreground">
+                            ${formatPrice(product.price)}
+                          </TableCell>
+                          <TableCell className="text-accent-foreground">
+                            <div className="flex items-center justify-center gap-2">
+                              <span
+                                className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                                aria-label="Decrease quantity"
+                                onClick={() =>
+                                  handleQuantityChange(
+                                    cartItem.id,
+                                    cartItem.quantity - 1
+                                  )
+                                }
+                              >
+                                <Minus className="h-4 w-4" />
+                              </span>
+                              <span className="w-12 text-center select-none">
+                                {cartItem.quantity}
+                              </span>
+                              <span
+                                className="cursor-pointer transition-all duration-150 hover:shadow-lg hover:scale-110"
+                                aria-label="Increase quantity"
+                                onClick={() =>
+                                  handleQuantityChange(
+                                    cartItem.id,
+                                    cartItem.quantity + 1
+                                  )
+                                }
+                              >
+                                <Plus className="h-4 w-4" />
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right hidden md:table-cell text-accent-foreground">
+                            ${formatPrice(product.price * cartItem.quantity)}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -310,14 +329,14 @@ export default function CartListPage() {
                     </TableRow>
                   </TableBody>
                 </Table>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <Link href="/shop">
                     <Button variant="default" className="w-[120px]">
                       繼續購物
                     </Button>
                   </Link>
                   <Link
-                    href={`/shop/order/pay?totalPrice=${totalPrice}&itemCount=${itemCount}`}
+                    href={`/shop/order/payment?totalPrice=${totalPrice}&itemCount=${itemCount}`}
                   >
                     <Button variant="highlight" className="w-[120px]">
                       填寫付款資訊

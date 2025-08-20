@@ -8,13 +8,14 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 
 // Icon
-import { AlertCircle, Star, Search } from 'lucide-react'
+import { AlertCircle, Star, Search, BrushCleaning } from 'lucide-react'
 
 // API 請求
 import { fetchLocationOptions, fetchSportOptions } from '@/api'
 import { fetchCenters } from '@/api/venue/center'
 
 // UI 元件
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -48,13 +49,10 @@ export default function VenueListPage() {
   const [sportId, setSportId] = useState('')
   const [minRating, setMinRating] = useState('')
   const [keyword, setKeyword] = useState('')
-  const [date, setDate] = useState(null)
+  const safeKeyword = typeof keyword === 'string' ? keyword.trim() : ''
 
   const [locations, setLocations] = useState([])
   const [sports, setSports] = useState([])
-
-  const [errors, setErrors] = useState({})
-  const [open, setOpen] = useState(false)
 
   // #region 數據獲取
   const {
@@ -125,6 +123,16 @@ export default function VenueListPage() {
     router.push(`?${newParams.toString()}`)
   }
 
+  // 重設篩選功能
+  const handleResetFilter = () => {
+    setLocationId('')
+    setSportId('')
+    setMinRating('')
+    setKeyword('')
+    // setCurrentPage(1)
+    // setCourses([])
+    router.push('/venue')
+  }
   //  #region 載入和錯誤狀態處理
   if (isDataLoading) return <LoadingState message="載入場館資料中..." />
   if (error)
@@ -140,7 +148,7 @@ export default function VenueListPage() {
 
   // #region 資料顯示選項
 
-  // #region 評分系統選項
+  // 評分系統選項
   const ratingOptions = [
     { label: <>全部</>, value: 'all' },
     ...[2, 3, 4, 5].map((num) => ({
@@ -156,13 +164,13 @@ export default function VenueListPage() {
     })),
   ]
 
-  //#region  定義 Hero Banner 搜尋欄位
+  //定義 Hero Banner 搜尋欄位
   const searchFields = [
     {
       label: '地區',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-foreground !h-10">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -186,7 +194,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -210,7 +218,7 @@ export default function VenueListPage() {
       label: '評分',
       component: (
         <Select value={minRating} onValueChange={setMinRating}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇評分星等" />
           </SelectTrigger>
           <SelectContent>
@@ -233,7 +241,7 @@ export default function VenueListPage() {
           />
           <Input
             type="search"
-            className="w-full bg-accent text-accent-foreground !h-10 pl-10"
+            className="w-full !bg-card text-accent-foreground !h-10 pl-10"
             placeholder="請輸入關鍵字"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -255,7 +263,6 @@ export default function VenueListPage() {
       <HeroBanner
         backgroundImage="/banner/venue-banner.jpg"
         title="馬上預訂動起來"
-        overlayOpacity="bg-primary/50"
       >
         <SearchField
           fields={searchFields}
@@ -272,9 +279,34 @@ export default function VenueListPage() {
       />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl gap-6">
-          <h3 className="text-center text-lg font-normal tracking-[24px]">
-            精·選·場·館
-          </h3>
+          <div className="flex justify-between items-center">
+            {/* 篩選結果資訊 */}
+            <p className="text-sm mt-2 hidden lg:inline">
+              {safeKeyword && (
+                <>
+                  <span>關鍵字</span>
+                  <span className="font-bold text-highlight">
+                    「{safeKeyword}」
+                  </span>
+                </>
+              )}
+              共 {data?.totalRows} 筆資料
+            </p>
+            <h3 className="text-center text-base md:text-lg font-normal md:tracking-[24px]">
+              精·選·場·館
+            </h3>
+            {/* 重設篩選按鈕 */}
+            <Button
+              variant="outline"
+              onClick={handleResetFilter}
+              className="text-sm"
+              disabled={!locationId && !sportId && !minRating && !safeKeyword}
+            >
+              <BrushCleaning />
+              <span className="hidden lg:inline">清除篩選</span>
+            </Button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {data?.rows.length === 0 ? (
               <div className="col-span-full text-center text-muted-foreground py-12 text-lg">

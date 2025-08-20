@@ -47,6 +47,29 @@ export const centerColumns = [
     },
   },
   {
+    accessorKey: 'sports',
+    header: '運動項目',
+    cell: ({ row, table }) => {
+      const slots = row.original.sports ?? []
+      if (!slots.length) return '—'
+      const value = slots.map((slot) => slot.name).join('、')
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
+    accessorKey: 'averageRating',
+    header: '評分',
+    cell: ({ row, table }) => {
+      const value =
+        row.original.averageRating != null
+          ? `${row.original.averageRating} 星`
+          : '—'
+      const highlightKeyword = table.options.meta?.highlightKeyword
+      return highlightKeyword ? highlightKeyword(value) : value
+    },
+  },
+  {
     id: 'actions',
     header: '操作',
     cell: ({ row, table }) => (

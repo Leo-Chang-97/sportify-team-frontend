@@ -11,6 +11,9 @@ import { twMerge } from 'tailwind-merge'
 import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+// ===== 【修改 1】引入我們建立的 teamService =====
+import { teamService } from '@/api/team/team'
+
 // --- 輔助元件 (維持不變) ---
 const cn = (...inputs) => {
   return twMerge(clsx(inputs))
@@ -60,52 +63,30 @@ const TableCell = ({ className, ...props }) => (
   />
 )
 
-// --- API 請求相關設定 ---
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+// ===== 【修改 2】移除舊的 fetchAPI 和 API_BASE_URL =====
+// const API_BASE_URL = ...
+// async function fetchAPI(...) { ... }
 
-async function fetchAPI(url) {
-  if (!API_BASE_URL) {
-    throw new Error('前端環境變數 NEXT_PUBLIC_API_BASE_URL 未設定！')
-  }
-  const fullUrl = `${API_BASE_URL}${url}`
-  const res = await fetch(fullUrl)
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}))
-    throw new Error(errorData.error || `請求 ${fullUrl} 失敗`)
-  }
-  return res.json()
-}
-
-// ===== 【新】分頁元件 =====
+// 分頁元件 (維持不變)
 function Pagination({ currentPage, totalPages, onPageChange }) {
-  // 如果總頁數小於等於1，則不顯示分頁
   if (totalPages <= 1) {
     return null
   }
-
-  const handlePrev = () => {
-    onPageChange(currentPage - 1)
-  }
-
-  const handleNext = () => {
-    onPageChange(currentPage + 1)
-  }
-
   return (
     <div className="flex items-center justify-center gap-4 mt-8">
       <Button
-        onClick={handlePrev}
+        onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         variant="outline"
         size="icon"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="text-white font-semibold">
+      <span className="text-foreground font-semibold">
         第 {currentPage} 頁 / 共 {totalPages} 頁
       </span>
       <Button
-        onClick={handleNext}
+        onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         variant="outline"
         size="icon"
@@ -117,39 +98,36 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 }
 
 export default function OurTeamPage() {
-  // ===== 【核心修改 1】新增狀態來管理從 API 獲取的資料 =====
-  const [teams, setTeams] = useState([]) // 用來儲存真實的隊伍資料
-  const [isLoading, setIsLoading] = useState(true) // 追蹤載入狀態
-  const [error, setError] = useState(null) // 追蹤錯誤狀態
-  const [currentPage, setCurrentPage] = useState(1) // 目前頁碼，預設為第1頁
-  const [totalPages, setTotalPages] = useState(1) // 總頁數
+  const [teams, setTeams] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
-  // ===== 【核心修改 2】使用 useEffect 在組件載入時，向後端請求資料 =====
   useEffect(() => {
-    // 1. 定義一個非同步函式來獲取資料
-    const loadTeams = async () => {
-      setIsLoading(true) // 開始載入，顯示 "載入中..."
+    const loadMyTeams = async () => {
+      setIsLoading(true)
       setError(null)
       try {
-        // 2. 呼叫 API 時，使用當前的 `currentPage` 狀態來請求對應頁面的資料
-        const data = await fetchAPI(
-          `/api/team/teams?page=${currentPage}&limit=12`
-        ) // 每頁顯示12筆
-        // 注意：您的 listTeams API 回傳的結構是 { teams: [...] }
+        // ===== 【修改 3】使用 teamService.fetchMyTeams 來獲取「我的隊伍」列表 =====
+        // 這會對應到後端的 /api/team/ourteam 路由
+        const data = await teamService.fetchMyTeams({
+          page: currentPage,
+          limit: 12,
+        })
+
         setTeams(data.teams || [])
         setTotalPages(data.totalPages || 1)
       } catch (err) {
         setError(err.message)
-        console.error('載入隊伍列表失敗:', err)
+        console.error('載入我的隊伍列表失敗:', err)
       } finally {
-        setIsLoading(false) //載入結束,無論成功或失敗
+        setIsLoading(false)
       }
     }
 
-    // 3. 執行這個函式
-    loadTeams()
-  }, [currentPage]) // 4. 【最重要的部分】將 `currentPage` 加入依賴陣列。
-  //    這告訴 React: "請監聽 currentPage，只要它一改變，就重新執行上面的所有程式碼！"
+    loadMyTeams()
+  }, [currentPage])
 
   return (
     <>
@@ -162,11 +140,11 @@ export default function OurTeamPage() {
       ></HeroBanner>
       <div className="container mx-auto max-w-screen-xl px-4 gap-8">
         <div className="w-full min-h-[814px] max-w-[1140px] py-20 flex flex-col justify-start items-center gap-8">
-          <h1 className="text-3xl font-bold mb-6 text-center text-popover dark:text-popover-foreground">
+          <h1 className="text-3xl font-bold mb-6 text-center text-popover">
             你隸屬的隊伍資訊
           </h1>
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-card">
               <TableRow>
                 <TableHead className="w-[200px]">隊伍名稱</TableHead>
                 <TableHead>隊伍成立時間</TableHead>
@@ -176,13 +154,12 @@ export default function OurTeamPage() {
                 <TableHead>隊伍專頁</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {/* ===== 【核心修改 3】根據載入狀態顯示不同內容 ===== */}
+            <TableBody className="bg-card">
               {isLoading ? (
                 <TableRow>
                   <TableCell
                     colSpan="6"
-                    className="h-24 text-center text-muted-foreground"
+                    className="h-24 text-center text-card-foreground"
                   >
                     資料載入中...
                   </TableCell>
@@ -200,29 +177,27 @@ export default function OurTeamPage() {
                 <TableRow>
                   <TableCell
                     colSpan="6"
-                    className="h-24 text-center text-muted-foreground"
+                    className="h-24 text-center text-card-foreground"
                   >
-                    目前沒有任何隊伍。
+                    您尚未加入任何隊伍。
                   </TableCell>
                 </TableRow>
               ) : (
-                // ===== 【核心修改 4】使用從 API 來的 teams 資料來渲染表格內容 =====
                 teams.map((team) => (
                   <TableRow key={team.id}>
-                    <TableCell className="font-medium text-lg text-blue-600 dark:text-blue-400">
+                    <TableCell className="font-medium text-lg text-card-foreground">
                       {team.name}
                     </TableCell>
-                    <TableCell className="text-muted-foreground dark:text-ring">
-                      {/* 將 ISO 日期字串格式化為 YYYY-MM-DD */}
+                    <TableCell className="text-card-foreground">
                       {new Date(team.createdAt).toLocaleDateString('zh-TW')}
                     </TableCell>
                     <TableCell className="text-center font-mono">
                       {team.memberCount}
                     </TableCell>
-                    <TableCell className="text-muted-foreground dark:text-ring">
+                    <TableCell className="text-card-foreground">
                       {team.court?.sport?.name || '未知'}
                     </TableCell>
-                    <TableCell className="text-muted-foreground dark:text-ring">
+                    <TableCell className="text-card-foreground">
                       {team.court?.center?.name || '未知'}
                     </TableCell>
                     <TableCell>
@@ -230,10 +205,10 @@ export default function OurTeamPage() {
                         <Button
                           variant="default"
                           size="lg"
-                          className="bg-gradient-to-r from-highlight to-primary relative group"
+                          className="bg-highlight relative group"
                         >
                           <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
-                          <span className="justify-start text-popover font-bold leading-7 z-10">
+                          <span className="justify-start text-popover leading-7 z-10">
                             點擊
                           </span>
                         </Button>
@@ -255,7 +230,7 @@ export default function OurTeamPage() {
               <Button
                 variant="default"
                 size="lg"
-                className="bg-gradient-to-r from-highlight to-primary relative group"
+                className="bg-muted-foreground relative group"
               >
                 <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
                 <span className="justify-start text-popover font-bold leading-7 z-10">
@@ -263,17 +238,6 @@ export default function OurTeamPage() {
                 </span>
               </Button>
             </Link>
-
-            <Button
-              variant="default"
-              size="lg"
-              className="bg-gradient-to-r from-highlight to-primary relative group"
-            >
-              <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
-              <span className="justify-start text-popover font-bold leading-7 z-10">
-                儲存
-              </span>
-            </Button>
           </div>
         </div>
       </div>
