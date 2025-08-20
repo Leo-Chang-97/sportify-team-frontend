@@ -234,6 +234,17 @@ export default function ProductListPage() {
     return entries
   }, [searchParams])
 
+  const sortLabel = useMemo(() => {
+    switch (queryParams.sort) {
+      case 'price-asc':
+        return '價格：由低到高'
+      case 'price-desc':
+        return '價格：由高到低'
+      default:
+        return '請選擇排序'
+    }
+  }, [queryParams.sort])
+
   // ===== 數據獲取 =====
   const {
     data,
@@ -577,21 +588,16 @@ export default function ProductListPage() {
                 </Button>
                 {/* 桌機版清除篩選 */}
                 <div className="hidden md:flex">
-                  <Button
-                    variant="outline"
-                    onClick={clearAllFilters}
-                    className="text-sm"
-                    disabled={
-                      !queryParams.brandId &&
-                      !queryParams.sportId &&
-                      !queryParams.minPrice &&
-                      !queryParams.maxPrice &&
-                      !queryParams.keyword
-                    }
-                  >
-                    <BrushCleaning />
-                    <span>清除篩選</span>
-                  </Button>
+                  {selectedCategory.name && (
+                    <Button
+                      variant="outline"
+                      onClick={clearAllFilters}
+                      className="text-sm"
+                    >
+                      <BrushCleaning />
+                      <span>清除篩選</span>
+                    </Button>
+                  )}
                 </div>
                 <div className="relative flex items-center w-[200px]">
                   <Input
@@ -617,11 +623,14 @@ export default function ProductListPage() {
                       className="!h-10 flex items-center gap-2"
                     >
                       <Funnel size={16} className="block md:hidden" />
-                      <span className="hidden md:inline">請選擇排序</span>
+                      <span className="hidden md:inline">{sortLabel}</span>
                       <IoIosArrowDown size={16} className="hidden md:block" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleSortChange('')}>
+                      請選擇排序
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleSortChange('price-asc')}
                     >
