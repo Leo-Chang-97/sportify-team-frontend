@@ -1,8 +1,15 @@
 'use client'
 
-// ===== 依賴項匯入 =====
+// hooks
 import { useState, useEffect } from 'react'
+
+// icons
+import { ArrowLeft, ChevronDownIcon } from 'lucide-react'
+
+// next 元件
 import { useRouter } from 'next/navigation'
+
+// API 請求
 import {
   createReservation,
   fetchReservation,
@@ -16,7 +23,11 @@ import {
   fetchTimeSlotOptions,
   fetchCourtTimeSlotOptions,
   fetchStatusOptions,
+  fetchPaymentOptions,
+  fetchInvoiceOptions,
 } from '@/api'
+
+// UI 元件
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -40,7 +51,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { ArrowLeft, ChevronDownIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function ReservationForm({
@@ -52,12 +62,12 @@ export default function ReservationForm({
   loadingButtonText,
 }) {
   const router = useRouter()
-  const [memberSearch, setMemberSearch] = useState('')
 
-  // ===== 組件狀態管理 =====
+  // #region 狀態管理
   const [isLoading, setIsLoading] = useState(false)
   const [isDataLoading, setIsDataLoading] = useState(mode === 'edit')
   const [isInitialDataSet, setIsInitialDataSet] = useState(false)
+  const [memberSearch, setMemberSearch] = useState('')
 
   const [memberId, setMemberId] = useState('')
   const [locationId, setLocationId] = useState('')
@@ -68,6 +78,11 @@ export default function ReservationForm({
   const [timeSlotId, setTimeSlotIds] = useState('')
   const [courtTimeSlotId, setCourtTimeSlotIds] = useState('')
   const [statusId, setStatusId] = useState('')
+  const [paymentId, setPaymentId] = useState('')
+  const [invoiceId, setInvoiceId] = useState('')
+  const [invoiceNumber, setInvoiceNumber] = useState('')
+  const [invoiceTaxId, setInvoiceTaxId] = useState('')
+  const [invoiceCarrier, setInvoiceCarrier] = useState('')
   const [date, setDate] = useState(null)
   const [price, setPrice] = useState('')
 
@@ -80,11 +95,46 @@ export default function ReservationForm({
   const [timeSlots, setTimeSlots] = useState([])
   const [courtTimeSlots, setCourtTimeSlots] = useState([])
   const [status, setStatus] = useState([])
+  const [payments, setPayments] = useState([])
+  const [invoices, setInvoices] = useState([])
 
   const [errors, setErrors] = useState({})
   const [open, setOpen] = useState(false)
 
-  // ===== 副作用處理 =====
+  // #region 副作用處理
+
+  // ===== 載入下拉選單選項 =====
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const memberData = await fetchMemberOptions()
+        setMembers(memberData.rows || [])
+
+        const locationData = await fetchLocationOptions()
+        setLocations(locationData.rows || [])
+
+        const sportData = await fetchSportOptions()
+        setSports(sportData.rows || [])
+
+        const timePeriodData = await fetchTimePeriodOptions()
+        setTimePeriods(timePeriodData.rows || [])
+
+        const statusData = await fetchStatusOptions()
+        setStatus(statusData.rows || [])
+
+        const paymentData = await fetchPaymentOptions()
+        setPayments(paymentData.rows || [])
+
+        const invoiceData = await fetchInvoiceOptions()
+        setInvoices(invoiceData.rows || [])
+      } catch (error) {
+        console.error('載入球場/時段失敗:', error)
+        toast.error('載入球場/時段失敗')
+      }
+    }
+    loadData()
+  }, [])
+
   // ===== 載入現有預約資料（僅編輯模式） =====
   useEffect(() => {
     if (mode !== 'edit' || !reservationId) {
@@ -103,18 +153,23 @@ export default function ReservationForm({
 
           // 設定表單資料
           setMemberId(data.memberId?.toString() || '')
-          setCourtIds(data.courtTimeSlot?.courtId?.toString() || '')
-          setSportId(data.courtTimeSlot?.court?.sportId?.toString() || '')
-          setCenterId(data.courtTimeSlot?.court?.centerId?.toString() || '')
           setLocationId(
             data.courtTimeSlot?.court?.center?.locationId?.toString() || ''
           )
-          setTimeSlotIds(data.courtTimeSlot?.timeSlotId?.toString() || '')
+          setCenterId(data.courtTimeSlots[0].centerId?.toString() || '')
+          setSportId(data.courtTimeSlots[0].sportId?.toString() || '')
           setTimePeriodId(
             data.courtTimeSlot?.timeSlot?.timePeriodId?.toString() || ''
           )
+          setCourtIds(data.courtTimeSlot?.courtId?.toString() || '')
+          setTimeSlotIds(data.courtTimeSlot?.timeSlotId?.toString() || '')
           setCourtTimeSlotIds(data.courtTimeSlotId?.toString() || '')
           setStatusId(data.statusId?.toString() || '')
+          setPaymentId(data.paymentId?.toString() || '')
+          setInvoiceId(data.invoiceId?.toString() || '')
+          setInvoiceNumber(data.invoiceNumber || '')
+          setInvoiceTaxId(data.tax || '')
+          setInvoiceCarrier(data.carrier || '')
           setPrice(data.price?.toString() || '')
 
           // 設定日期
@@ -138,32 +193,6 @@ export default function ReservationForm({
 
     loadReservationData()
   }, [mode, reservationId, router])
-
-  // ===== 載入下拉選單選項 =====
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const memberData = await fetchMemberOptions()
-        setMembers(memberData.rows || [])
-
-        const locationData = await fetchLocationOptions()
-        setLocations(locationData.rows || [])
-
-        const sportData = await fetchSportOptions()
-        setSports(sportData.rows || [])
-
-        const timePeriodData = await fetchTimePeriodOptions()
-        setTimePeriods(timePeriodData.rows || [])
-
-        const statusData = await fetchStatusOptions()
-        setStatus(statusData.rows || [])
-      } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
-      }
-    }
-    loadData()
-  }, [])
 
   useEffect(() => {
     const loadData = async () => {
@@ -256,7 +285,7 @@ export default function ReservationForm({
       }
     }
     loadData()
-  }, [centerId, sportId, isDataLoading, isInitialDataSet, mode]) // 移除 courtId 依賴避免循環
+  }, [centerId, sportId, isDataLoading, isInitialDataSet, mode])
 
   useEffect(() => {
     const loadData = async () => {
@@ -314,7 +343,7 @@ export default function ReservationForm({
     loadData()
   }, [courtId, timeSlotId])
 
-  // ===== 事件處理函數 =====
+  // #region 事件處理函數
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
@@ -333,6 +362,11 @@ export default function ReservationForm({
       courtTimeSlotId: courtTimeSlotIdToSend,
       date: date ? date.toISOString().slice(0, 10) : '',
       statusId,
+      paymentId,
+      invoiceId,
+      invoiceNumber: invoiceNumber || null,
+      tax: invoiceTaxId || null,
+      carrier: invoiceCarrier || null,
       price,
     }
 
@@ -382,6 +416,7 @@ export default function ReservationForm({
     router.push('/admin/venue/reservation')
   }
 
+  // #region 頁面渲染
   return (
     <Card className="max-w-4xl mx-auto w-full">
       <CardHeader>
@@ -395,7 +430,7 @@ export default function ReservationForm({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-6">
               {/* 使用者 */}
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="memberId">
@@ -544,6 +579,54 @@ export default function ReservationForm({
                 </Select>
               </div>
 
+              {/* 日期 */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="date">
+                  日期
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      id="date"
+                      className={`w-48 justify-between font-normal${
+                        !date ? ' text-gray-500' : ''
+                      }`}
+                    >
+                      {date ? date.toLocaleDateString() : '請選擇預訂日期'}
+                      <ChevronDownIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="start"
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      captionLayout="dropdown"
+                      onSelect={(date) => {
+                        setDate(date)
+                        setOpen(false)
+                      }}
+                      disabled={(date) => {
+                        // 禁用今天之前的日期
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        return date < today
+                      }}
+                      className={
+                        errors.date ? 'border border-red-500 rounded-md' : ''
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.date && (
+                  <p className="text-sm text-red-500 mt-1">{errors.date}</p>
+                )}
+              </div>
+
               {/* 球場 */}
               <div className="space-y-2">
                 <Label htmlFor="courtId">
@@ -611,48 +694,6 @@ export default function ReservationForm({
                 </Select>
                 {errors.courtId && (
                   <p className="text-sm text-red-500 mt-1">{errors.courtId}</p>
-                )}
-              </div>
-
-              {/* 日期 */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="date">
-                  日期
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      id="date"
-                      className={`w-48 justify-between font-normal${
-                        !date ? ' text-gray-500' : ''
-                      }`}
-                    >
-                      {date ? date.toLocaleDateString() : '請選擇預訂日期'}
-                      <ChevronDownIcon />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto overflow-hidden p-0"
-                    align="start"
-                  >
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      captionLayout="dropdown"
-                      onSelect={(date) => {
-                        setDate(date)
-                        setOpen(false)
-                      }}
-                      className={
-                        errors.date ? 'border border-red-500 rounded-md' : ''
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-                {errors.date && (
-                  <p className="text-sm text-red-500 mt-1">{errors.date}</p>
                 )}
               </div>
 
@@ -730,6 +771,135 @@ export default function ReservationForm({
                   <p className="text-sm text-red-500 mt-1">{errors.price}</p>
                 )}
               </div>
+
+              {/* 付款方式 */}
+              <div className="space-y-2">
+                <Label htmlFor="payment">
+                  付款方式<span className="text-red-500">*</span>
+                </Label>
+                <Select value={paymentId} onValueChange={setPaymentId}>
+                  <SelectTrigger
+                    className={errors.paymentId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇付款方式" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {payments.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      payments
+                        .filter((item) => item.id && item.id !== '')
+                        .map((item, idx) => (
+                          <SelectItem
+                            key={`payment-${item.id}-${idx}`}
+                            value={item.id.toString()}
+                          >
+                            {item.name}
+                          </SelectItem>
+                        ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {errors.paymentId && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.paymentId}
+                  </p>
+                )}
+              </div>
+
+              {/* 發票類型 */}
+              <div className="space-y-2">
+                <Label htmlFor="invoice">
+                  發票類型<span className="text-red-500">*</span>
+                </Label>
+                <Select value={invoiceId} onValueChange={setInvoiceId}>
+                  <SelectTrigger
+                    className={errors.invoiceId ? 'border-red-500' : ''}
+                  >
+                    <SelectValue placeholder="請選擇發票類型" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {invoices.length === 0 ? (
+                      <div className="px-3 py-2 text-gray-400">
+                        沒有符合資料
+                      </div>
+                    ) : (
+                      invoices.map((item, idx) => (
+                        <SelectItem
+                          key={`invoice-${item.id}-${idx}`}
+                          value={item.id.toString()}
+                        >
+                          {item.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {errors.invoiceId && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.invoiceId}
+                  </p>
+                )}
+              </div>
+
+              {/* 發票詳細資訊欄位 */}
+              {invoiceId === '3' && (
+                <div className="space-y-2">
+                  <Label htmlFor="invoiceCarrier">
+                    載具號碼<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="invoiceCarrier"
+                    type="text"
+                    value={invoiceCarrier || ''}
+                    onChange={(e) => setInvoiceCarrier(e.target.value)}
+                    placeholder="請輸入載具號碼 (如手機條碼)"
+                    className={errors.invoiceCarrier ? 'border-red-500' : ''}
+                  />
+                  {errors.invoiceCarrier && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.invoiceCarrier}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {invoiceId === '2' && (
+                <div className="space-y-2">
+                  <Label htmlFor="invoiceTaxId">
+                    統一編號<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="invoiceTaxId"
+                    type="text"
+                    value={invoiceTaxId || ''}
+                    onChange={(e) => setInvoiceTaxId(e.target.value)}
+                    placeholder="請輸入8位數統一編號"
+                    className={errors.invoiceTaxId ? 'border-red-500' : ''}
+                    maxLength={8}
+                  />
+                  {errors.invoiceTaxId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.invoiceTaxId}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {mode === 'edit' && (
+                <div className="space-y-2">
+                  <Label htmlFor="invoiceNumber">發票號碼</Label>
+                  <Input
+                    id="invoiceNumber"
+                    type="text"
+                    value={invoiceNumber || ''}
+                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                    placeholder="請輸入發票號碼"
+                  />
+                </div>
+              )}
 
               {/* 狀態 */}
               <div className="space-y-2">

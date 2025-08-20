@@ -3,8 +3,8 @@
 // hooks
 import { useState, useEffect } from 'react'
 
-// icon
-import { IconUpload, IconX } from '@tabler/icons-react'
+// icons
+import { ArrowLeft, IconUpload, IconX } from '@tabler/icons-react'
 
 // next 元件
 import { useRouter } from 'next/navigation'
