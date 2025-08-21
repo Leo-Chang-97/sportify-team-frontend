@@ -31,8 +31,14 @@ export const fetchCenterOptions = async (params = {}) => {
   return res.data
 }
 
-export const fetchSportOptions = async () => {
-  const res = await apiClient.get('/common/sport')
+export const fetchSportOptions = async (params = {}) => {
+  const query = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
+    )
+  ).toString()
+  const url = query ? `/common/sport?${query}` : '/common/sport'
+  const res = await apiClient.get(url)
   return res.data
 }
 
