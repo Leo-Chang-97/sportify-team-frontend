@@ -196,17 +196,17 @@ export default function VenueDataPage() {
           text-card-foreground shadow-sm rounded-lg p-6 w-full"
           >
             <div className="mb-6">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-accent-foreground">
-                    我的場地預約
+                  <h2 className="text-xl font-bold text-accent-foreground">
+                    場地預訂紀錄
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    管理您的場地預約記錄
+                    管理您的場地預訂紀錄
                   </p>
                   {!isLoading && !error && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      共有 {allReservations.length} 筆預約
+                      共有 {allReservations.length} 筆預訂紀錄
                     </p>
                   )}
                 </div>

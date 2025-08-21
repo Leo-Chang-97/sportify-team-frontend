@@ -213,10 +213,10 @@ export default function ShopDataPage() {
           text-card-foreground shadow-sm rounded-lg p-6 w-full"
           >
             <div className="mb-6">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-accent-foreground">
-                    我的商品訂單
+                  <h2 className="text-xl font-bold text-accent-foreground">
+                    商品訂單紀錄
                   </h2>
                   <p className="text-muted-foreground mt-2">管理您訂購的商品</p>
                   {!isLoading && !error && (

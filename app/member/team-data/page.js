@@ -146,10 +146,10 @@ export default function TeamDataPage() {
           text-card-foreground shadow-sm rounded-lg p-6 w-full"
           >
             <div className="mb-6">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-accent-foreground">
-                    我的隊伍資料
+                  <h2 className="text-xl font-bold text-accent-foreground">
+                    揪團紀錄
                   </h2>
                   <p className="text-muted-foreground mt-2">管理您加入的隊伍</p>
                   {!isLoading && !error && (
