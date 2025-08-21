@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import {
   UserIcon,
@@ -52,52 +52,32 @@ const TeamDetailPage = () => {
   const params = useParams()
   const teamId = params.id
 
+  // 1. 所有 State 宣告
   const [teamData, setTeamData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-
+  const [currentUser, setCurrentUser] = useState(null)
+  const [joinRequests, setJoinRequests] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [displayDate, setDisplayDate] = useState(new Date())
   const [selectedDates, setSelectedDates] = useState(new Set())
   const [currentMode, setCurrentMode] = useState('select')
+  const [editingDate, setEditingDate] = useState(null)
+  const [noteInput, setNoteInput] = useState('')
   const memberRefs = useRef(new Map())
-  const [currentUser, setCurrentUser] = useState(null) // 用來存放當前登入者資訊
-  const [joinRequests, setJoinRequests] = useState([]) // 用來存放加入申請
-  const [editingDate, setEditingDate] = useState(null) // 儲存當前正在編輯的日期字串
-  const [noteInput, setNoteInput] = useState('') // 繫結到 input 輸入框的值
 
-  useEffect(() => {
-    try {
-      const token = localStorage.getItem('sportify-auth')
-      if (token) {
-        // 使用 jwtDecode 解碼 token，取出 payload 中的使用者資訊
-        const userData = jwtDecode(token)
-        setCurrentUser(userData)
-      }
-    } catch (error) {
-      console.error('從 localStorage 解碼 JWT 失敗:', error)
-    }
+  // 2. 統一定義的資料獲取函式
+  const fetchTeamData = useCallback(
+    async (isInitialLoad = false) => {
+      if (!teamId) return
 
-    if (!teamId) return
-
-    const loadTeamDetails = async () => {
-      setIsLoading(true)
+      if (isInitialLoad) setIsLoading(true)
       setError(null)
       try {
         const result = await teamService.fetchById(teamId)
-
-        if (result.team?.calendarMarks) {
-          const calendarMarksSet = new Set(
-            result.team.calendarMarks.map((mark) => mark.date.split('T')[0])
-          )
-        }
-
         if (result.success && result.team) {
           setTeamData(result.team)
-
-          // --- ★★★ 最終修改點 ★★★ ---
-          // 從 API 來的日期字串，我們直接使用 split('T')[0] 取得日期部分
-          // 這是最穩定的方式，因為它不經過瀏覽器的 new Date() 解析，避免了時區問題
+          setJoinRequests(result.team.joinRequests || [])
           const calendarMarks = new Set(
             result.team.calendarMarks.map((mark) => mark.date.split('T')[0])
           )
@@ -109,34 +89,38 @@ const TeamDetailPage = () => {
         setError(err.message)
         console.error('載入隊伍詳細資料失敗:', err)
       } finally {
-        setIsLoading(false)
+        if (isInitialLoad) setIsLoading(false)
       }
-    }
+    },
+    [teamId]
+  )
 
-    loadTeamDetails()
-  }, [teamId])
-
-  // --- 【新增】另一個 useEffect 來專門處理從 teamData 中提取資料 ---
-  // 這樣可以確保在 teamData 和 currentUser 都更新後才執行
+  // 3. 簡潔的 useEffect，只負責初次載入
   useEffect(() => {
-    if (teamData) {
-      setJoinRequests(teamData.joinRequests || [])
+    try {
+      const token = localStorage.getItem('sportify-auth')
+      if (token) {
+        const userData = jwtDecode(token)
+        setCurrentUser(userData)
+      }
+    } catch (error) {
+      console.error('從 localStorage 解碼 JWT 失敗:', error)
     }
-  }, [teamData]) // 當 teamData 變化時觸發
 
-  // isCaptain 的判斷邏輯維持不變，但現在 currentUser 會有值了
+    fetchTeamData(true) // 呼叫獲取函式，並告知是「初次載入」
+  }, [teamId, fetchTeamData])
+
+  // 4. isCaptain 的判斷邏輯
   const captain = teamData?.TeamMember?.[0]?.member
   const isCaptain = currentUser?.id === captain?.id
 
-  // --- 【新增】處理管理功能的函式 ---
+  // 5. 所有 handle... 事件處理函式
   const handleKickMember = async (memberIdToKick) => {
     if (!window.confirm('您確定要將此成員踢出隊伍嗎？')) return
     try {
-      // --- 【修改這裡的呼叫】 ---
-      // 現在需要傳入 teamId 和 memberIdToKick
       await teamService.kickMember(teamId, memberIdToKick)
       alert('成員已成功踢除')
-      window.location.reload() // 重新整理頁面
+      await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('踢除成員時發生錯誤:', error)
       alert(`踢除失敗：${error.response?.data?.error || error.message}`)
@@ -145,62 +129,17 @@ const TeamDetailPage = () => {
 
   const handleReviewRequest = async (requestId, status) => {
     try {
-      // 呼叫我們在 team.js 中新增的 API 服務函式
-      const result = await teamService.reviewRequest(requestId, { status })
-
-      if (result) {
-        alert(`申請已成功 ${status === 'APPROVED' ? '批准' : '拒絕'}`)
-
-        // 更新成功後，需要讓畫面上的資料同步
-        // 方法一：簡單粗暴，直接重新整理頁面
-        window.location.reload()
-
-        // 方法二 (進階)：重新獲取資料並更新 state，體驗更好
-        // setJoinRequests(prevRequests =>
-        //   prevRequests.filter(req => req.id !== requestId)
-        // );
-        // 如果是批准，可能還需要重新獲取成員列表
-        // loadTeamDetails(); // 假設 loadTeamDetails 已被定義
-      }
+      await teamService.reviewRequest(requestId, { status })
+      alert(`申請已成功 ${status === 'APPROVED' ? '批准' : '拒絕'}`)
+      await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('審核申請時發生錯誤:', error)
       alert(`審核失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
-  const currentYear = displayDate.getFullYear()
-  const currentMonth = displayDate.getMonth()
-  const calendarDays = generateCalendarDays(currentYear, currentMonth)
-
-  const handleMonthChange = (offset) => {
-    setDisplayDate((prev) => {
-      const newDate = new Date(prev)
-      newDate.setMonth(newDate.getMonth() + offset)
-      return newDate
-    })
-    setEditingDate(null) // 切換月份時，取消編輯狀態
-    setNoteInput('') // 並清空輸入框
-  }
-
-  const handleDayClick = (day) => {
-    // 如果不是隊長，或點擊的不是當月日期，則不執行任何操作
-    if (!isCaptain || !day.isCurrentMonth) return
-
-    const dateString = toYYYYMMDD(day.date)
-    setEditingDate(dateString) // 將點擊的日期設為正在編輯的日期
-
-    // 檢查這一天是否已經有記事，如果有，就將內容填入輸入框
-    const existingNote = eventsForCurrentMonth.find(
-      (e) => toYYYYMMDD(e.dateObj) === dateString
-    )
-    setNoteInput(existingNote?.note || '')
-  }
-
-  // --- 【新增】儲存記事的函式 ---
   const handleSaveNote = async () => {
     if (!editingDate) return
-
-    // 這裡您需要呼叫一個新的後端 API 來儲存或更新記事
     try {
       await teamService.saveCalendarMark({
         teamId,
@@ -208,39 +147,96 @@ const TeamDetailPage = () => {
         note: noteInput,
       })
       alert(`已成功為 ${editingDate} 新增/更新記事！`)
-      window.location.reload() // 重新整理頁面以看到最新資料
+      setEditingDate(null)
+      setNoteInput('')
+      await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('儲存記事失敗:', error)
       alert(`儲存失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
+  const handleDeleteNote = async (markId) => {
+    if (!window.confirm('您確定要刪除這則記事嗎？')) return
+    try {
+      await teamService.deleteCalendarMark(markId)
+      alert('記事已成功刪除！')
+      await fetchTeamData() // 無刷新更新
+    } catch (error) {
+      console.error('刪除記事失敗:', error)
+      alert(`刪除失敗：${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return
+    try {
+      await teamService.addMessage({
+        teamId: teamId,
+        content: newMessage,
+      })
+      setNewMessage('')
+      await fetchTeamData() // 無刷新更新
+    } catch (error) {
+      console.error('發送訊息失敗:', error)
+      alert(`發送失敗：${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  const handleMonthChange = (offset) => {
+    setDisplayDate((prev) => {
+      const newDate = new Date(prev)
+      newDate.setMonth(newDate.getMonth() + offset)
+      return newDate
+    })
+    setEditingDate(null)
+    setNoteInput('')
+  }
+
+  const handleDayClick = (day) => {
+    if (!isCaptain || !day.isCurrentMonth) return
+    const dateString = toYYYYMMDD(day.date)
+    setEditingDate(dateString)
+    const existingNote = eventsForCurrentMonth.find(
+      (e) => toYYYYMMDD(e.dateObj) === dateString
+    )
+    setNoteInput(existingNote?.note || '')
+  }
+
+  const handleEditNote = (event) => {
+    const dateString = toYYYYMMDD(new Date(event.date))
+    setEditingDate(dateString)
+    setNoteInput(event.note || '')
+    document
+      .getElementById('note-editor')
+      ?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   const handleSelectMode = () => setCurrentMode('select')
   const handleClearMode = () => setCurrentMode('clear')
   const scrollToMember = (id) => {
-    const node = memberRefs.current.get(id)
-    if (node) {
-      node.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-  const handleSendMessage = () => {
-    setNewMessage('')
+    /* ... */
   }
 
-  // 在 render 之前，根據 displayDate 過濾出當月事件
+  // 6. 輔助變數
+  const currentYear = displayDate.getFullYear()
+  const currentMonth = displayDate.getMonth()
+  const calendarDays = generateCalendarDays(currentYear, currentMonth)
+
   const eventsForCurrentMonth =
     teamData?.calendarMarks
       ?.map((mark) => ({
         ...mark,
-        dateObj: new Date(mark.date), // 建立 Date 物件以便比較
+        dateObj: new Date(mark.date),
       }))
       .filter(
         (mark) =>
           mark.dateObj.getFullYear() === displayDate.getFullYear() &&
           mark.dateObj.getMonth() === displayDate.getMonth()
       )
-      .sort((a, b) => a.dateObj - b.dateObj) || [] // 依日期排序
+      .sort((a, b) => a.dateObj - b.dateObj) || []
 
+  // 7. 處理載入與錯誤的 Render 判斷
   if (isLoading) {
     return (
       <>
@@ -259,6 +255,9 @@ const TeamDetailPage = () => {
       </>
     )
   }
+
+  // 這個判斷式是解決您目前問題的關鍵！
+  // 它確保在 teamData 確定有值之後，才會執行下面的主要渲染邏輯
   if (!teamData) {
     return (
       <>
@@ -267,33 +266,6 @@ const TeamDetailPage = () => {
         <Footer />
       </>
     )
-  }
-
-  // --- 【新增】處理「修改」按鈕點擊的函式 ---
-  const handleEditNote = (event) => {
-    // 將該事件的日期和內容，設定到編輯區的 state 中
-    const dateString = toYYYYMMDD(new Date(event.date)) // 確保日期格式正確
-    setEditingDate(dateString)
-    setNoteInput(event.note || '')
-    // 讓頁面滾動到編輯區，方便使用者操作
-    // 您需要為編輯區的 div 加上一個 id="note-editor"
-    document
-      .getElementById('note-editor')
-      ?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  // --- 【新增】處理「刪除」按鈕點擊的函式 ---
-  const handleDeleteNote = async (markId) => {
-    if (!window.confirm('您確定要刪除這則記事嗎？')) return
-
-    try {
-      await teamService.deleteCalendarMark(markId)
-      alert('記事已成功刪除！')
-      window.location.reload() // 重新整理頁面
-    } catch (error) {
-      console.error('刪除記事失敗:', error)
-      alert(`刪除失敗：${error.response?.data?.error || error.message}`)
-    }
   }
 
   return (
@@ -594,12 +566,17 @@ const TeamDetailPage = () => {
                 {teamData.messages?.map((msg) => (
                   <div key={msg.id} className="flex items-start gap-4">
                     <img
-                      src={'https://placehold.co/32x32/E0E0E0/333333?text=??'}
-                      alt="avatar"
+                      src={
+                        msg.member?.avatar || // <--- 使用 msg.member.avatar
+                        'https://placehold.co/32x32/E0E0E0/333333?text=user'
+                      }
+                      alt={msg.member?.name} // <--- 使用 msg.member.name
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                      <p className="font-bold text-card-foreground">匿名成員</p>
+                      <p className="font-bold text-card-foreground dark:text-card">
+                        {msg.member?.name || '未知使用者'}
+                      </p>
                       <p className="text-sm text-gray-600">{msg.content}</p>
                     </div>
                   </div>

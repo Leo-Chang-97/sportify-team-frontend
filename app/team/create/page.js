@@ -196,14 +196,14 @@ export default function CreateTeamPage() {
       />
       <section className="py-20 bg-background">
         <div className="container mx-auto max-w-screen-xl px-4 bg-background">
-          <div className="w-full max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-            <h1 className="text-card-foreground text-2xl font-bold mb-8 text-center dark:text-card">
+          <div className="w-full max-w-3xl mx-auto p-8 bg-card-foreground rounded-lg shadow-lg">
+            <h1 className="text-card text-2xl font-bold mb-8 text-center dark:text-card">
               {'創立您的隊伍'}
             </h1>
             <div className="flex flex-col gap-6">
               {/* 基本資訊欄位... */}
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-card-foreground dark:text-card">
+                <h2 className="text-sm font-semibold mb-2 text-card">
                   {'隊伍名稱'}
                 </h2>
                 <Input
@@ -214,7 +214,7 @@ export default function CreateTeamPage() {
                 />
               </div>
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-card-foreground dark:text-card">
+                <h2 className="text-sm font-semibold mb-2 text-card">
                   {'運動類別'}
                 </h2>
                 <Select value={sportId} onValueChange={setSportId}>
@@ -231,7 +231,7 @@ export default function CreateTeamPage() {
                 </Select>
               </div>
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-card-foreground dark:text-card">
+                <h2 className="text-sm font-semibold mb-2 text-card">
                   {'出沒場地'}
                 </h2>
                 <Select value={centerId} onValueChange={setCenterId}>
@@ -248,7 +248,7 @@ export default function CreateTeamPage() {
                 </Select>
               </div>
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-card-foreground dark:text-card">
+                <h2 className="text-sm font-semibold mb-2 text-card">
                   {'階級程度'}
                 </h2>
                 <Select value={levelId} onValueChange={setLevelId}>
@@ -267,7 +267,7 @@ export default function CreateTeamPage() {
 
               {/* 團隊練習時段 */}
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-card-foreground dark:text-card">
+                <h2 className="text-sm font-semibold mb-2 text-card">
                   {'團隊練習時段'}
                 </h2>
                 <div className="space-y-4">
@@ -278,7 +278,7 @@ export default function CreateTeamPage() {
                         {dayOptions.map((day) => (
                           <div
                             key={day.value}
-                            className="flex items-center space-x-2 text-card-foreground dark:text-card"
+                            className="flex items-center space-x-2 text-card"
                           >
                             <Checkbox
                               id={`day-${index}-${day.value}`}
