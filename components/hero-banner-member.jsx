@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/auth-context'
 import { Camera, Upload } from 'lucide-react'
 import ImageCropDialog from '@/components/ui/image-crop-dialog'
+import { getAvatarUrl } from '@/api/member/user'
 
 export default function HeroBanner({
   backgroundImage = '/banner/member-banner.jpg',
@@ -56,43 +57,37 @@ export default function HeroBanner({
   }, [user])
 
   // 獲取用戶頭像 URL
-  const getAvatarUrl = () => {
-    console.log('getAvatarUrl 被調用')
+  /* const getAvatarUrlForDisplay = () => {
+    console.log('getAvatarUrlForDisplay 被調用')
     console.log('當前用戶資料:', user)
     console.log('用戶頭像:', user?.avatar)
     console.log('本地頭像 URL:', localAvatarUrl)
-    console.log('用戶資料的所有欄位:', Object.keys(user || {}))
 
     // 優先使用本地頭像 URL（用於即時更新）
     if (localAvatarUrl) {
       console.log('使用本地頭像 URL:', localAvatarUrl)
-      // 如果頭像 URL 是相對路徑，加上 API 伺服器基礎 URL
-      if (localAvatarUrl.startsWith('/')) {
-        return `http://localhost:3005${localAvatarUrl}`
-      }
       // 如果已經是完整 URL，直接使用
       if (localAvatarUrl.startsWith('http')) {
         return localAvatarUrl
       }
-      // 如果是檔案名稱，加上完整路徑
-      return `http://localhost:3005/avatars/${localAvatarUrl}`
+      // 如果是檔案名稱，使用 getAvatarUrl 函數
+      return getAvatarUrl(localAvatarUrl)
     }
 
     // 其次使用用戶資料中的頭像
     if (user?.avatar) {
       console.log('使用用戶資料中的頭像:', user.avatar)
-      if (user.avatar.startsWith('/')) {
-        return `http://localhost:3005${user.avatar}`
-      }
+      // 如果已經是完整 URL，直接使用
       if (user.avatar.startsWith('http')) {
         return user.avatar
       }
-      return `http://localhost:3005/avatars/${user.avatar}`
+      // 如果是檔案名稱，使用 getAvatarUrl 函數
+      return getAvatarUrl(user.avatar)
     }
 
     console.log('使用預設頭像')
-    return 'https://placehold.co/120x120'
-  }
+    return getAvatarUrl(null)
+  } */
 
   // 獲取用戶名稱
   const getUserName = () => {
@@ -172,8 +167,7 @@ export default function HeroBanner({
           setLocalAvatarUrl(result.user.avatar)
         } else {
           // 如果後端沒有回傳 avatar 欄位，使用檔案名稱
-          const avatarUrl = `http://localhost:3005/avatars/${croppedFile.name}`
-          setLocalAvatarUrl(avatarUrl)
+          setLocalAvatarUrl(croppedFile.name)
         }
 
         alert('頭像更新成功！')
@@ -224,7 +218,7 @@ export default function HeroBanner({
             <div className="relative group">
               <img
                 className="w-28 h-28 rounded-full cursor-pointer transition-opacity group-hover:opacity-80"
-                src={getAvatarUrl()}
+                src={getAvatarUrl(user?.avatar)}
                 alt="用戶頭像"
                 onClick={handleAvatarClick}
                 style={{ pointerEvents: 'auto' }}
