@@ -40,5 +40,45 @@ export const teamService = {
     const res = await apiClient.get(`/team/teams/ourteam?${query}`)
     return res.data
   },
-  // ------------------------------------------
+  /**
+   * 審核加入隊伍的申請 (限隊長)
+   * 對應後端 PUT /api/team/join-requests/:id
+   * @param {string} requestId - 申請紀錄的 ID
+   * @param {object} data - 包含狀態的物件, e.g., { status: 'APPROVED' }
+   */
+  reviewRequest: async (requestId, data) => {
+    const res = await apiClient.put(`/team/join-requests/${requestId}`, data)
+    return res.data
+  },
+
+  /**
+   * 從隊伍中踢除成員 (限隊長)
+   * 對應後端 DELETE /api/team/members/:memberId
+   * @param {string} teamMemberId - "TeamMember" 紀錄的 ID
+   */
+  kickMember: async (teamId, memberId) => {
+    // --- 【修改這裡的函式】 ---
+    // 現在需要傳入 teamId 和 memberId
+    const res = await apiClient.delete(`/team/members/${teamId}/${memberId}`)
+    return res.data
+  },
+  /**
+   * 儲存或更新日曆記事
+   * 對應後端 POST /api/team/calendar-marks
+   * @param {object} data - e.g., { teamId, date, note }
+   */
+  saveCalendarMark: async (data) => {
+    const res = await apiClient.post('/team/calendar-marks', data);
+    return res.data;
+  },
+  /**
+   * 刪除日曆記事
+   * 對應後端 DELETE /api/team/calendar-marks/:markId
+   * @param {string} markId - TeamCalendarMark 的 ID
+   */
+  deleteCalendarMark: async (markId) => {
+    const res = await apiClient.delete(`/team/calendar-marks/${markId}`);
+    return res.data;
+  },
+
 }

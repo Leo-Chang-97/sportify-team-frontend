@@ -9,11 +9,15 @@ export const fetchCourtTimeSlots = async (params = {}) => {
 export const fetchAvailableTimeSlotsDate = async (
   centerId,
   sportId,
-  date = null
+  date = null,
+  excludeReservationId = null
 ) => {
   let url = `/venue/court-time-slot/date?centerId=${centerId}&sportId=${sportId}`
   if (date) {
     url += `&date=${date}`
+  }
+  if (excludeReservationId) {
+    url += `&excludeReservationId=${excludeReservationId}`
   }
   const res = await apiClient.get(url)
   return res.data

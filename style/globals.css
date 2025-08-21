@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* 添加 line-clamp 樣式 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-background-dark: var(--background-dark);
@@ -27,6 +36,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-custom-blue: var(--custom-blue);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -77,6 +87,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --custom-blue: oklch(54.6% 0.245 262.881);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -112,6 +123,7 @@
   --accent: oklch(0.371 0.0678 269.33);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --custom-blue: oklch(68.491% 0.16538 263.894);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

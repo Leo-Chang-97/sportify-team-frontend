@@ -255,7 +255,7 @@ export default function VenueListPage() {
   ]
   // #endregion 資料顯示選項
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <>
       <Navbar />

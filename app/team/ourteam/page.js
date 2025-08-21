@@ -82,7 +82,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="text-white font-semibold">
+      <span className="text-foreground font-semibold">
         第 {currentPage} 頁 / 共 {totalPages} 頁
       </span>
       <Button
@@ -135,16 +135,16 @@ export default function OurTeamPage() {
       <BreadcrumbAuto />
       <HeroBanner
         backgroundImage="/banner/team-banner.jpg"
-        title="馬上加入團隊"
+        title=""
         overlayOpacity="bg-primary/10"
       ></HeroBanner>
       <div className="container mx-auto max-w-screen-xl px-4 gap-8">
         <div className="w-full min-h-[814px] max-w-[1140px] py-20 flex flex-col justify-start items-center gap-8">
-          <h1 className="text-3xl font-bold mb-6 text-center text-popover dark:text-popover-foreground">
+          <h1 className="text-3xl font-bold mb-6 text-center text-card-foreground">
             你隸屬的隊伍資訊
           </h1>
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-card">
               <TableRow>
                 <TableHead className="w-[200px]">隊伍名稱</TableHead>
                 <TableHead>隊伍成立時間</TableHead>
@@ -154,12 +154,12 @@ export default function OurTeamPage() {
                 <TableHead>隊伍專頁</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="bg-card">
               {isLoading ? (
                 <TableRow>
                   <TableCell
                     colSpan="6"
-                    className="h-24 text-center text-muted-foreground"
+                    className="h-24 text-center text-card-foreground"
                   >
                     資料載入中...
                   </TableCell>
@@ -177,7 +177,7 @@ export default function OurTeamPage() {
                 <TableRow>
                   <TableCell
                     colSpan="6"
-                    className="h-24 text-center text-muted-foreground"
+                    className="h-24 text-center text-card-foreground"
                   >
                     您尚未加入任何隊伍。
                   </TableCell>
@@ -185,19 +185,19 @@ export default function OurTeamPage() {
               ) : (
                 teams.map((team) => (
                   <TableRow key={team.id}>
-                    <TableCell className="font-medium text-lg text-blue-600 dark:text-blue-400">
+                    <TableCell className="font-medium text-lg text-card-foreground">
                       {team.name}
                     </TableCell>
-                    <TableCell className="text-muted-foreground dark:text-ring">
+                    <TableCell className="text-card-foreground">
                       {new Date(team.createdAt).toLocaleDateString('zh-TW')}
                     </TableCell>
                     <TableCell className="text-center font-mono">
                       {team.memberCount}
                     </TableCell>
-                    <TableCell className="text-muted-foreground dark:text-ring">
+                    <TableCell className="text-card-foreground">
                       {team.court?.sport?.name || '未知'}
                     </TableCell>
-                    <TableCell className="text-muted-foreground dark:text-ring">
+                    <TableCell className="text-card-foreground">
                       {team.court?.center?.name || '未知'}
                     </TableCell>
                     <TableCell>
@@ -205,10 +205,10 @@ export default function OurTeamPage() {
                         <Button
                           variant="default"
                           size="lg"
-                          className="bg-gradient-to-r from-highlight to-primary relative group"
+                          className="bg-highlight relative group"
                         >
                           <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
-                          <span className="justify-start text-popover font-bold leading-7 z-10">
+                          <span className="justify-start text-popover leading-7 z-10">
                             點擊
                           </span>
                         </Button>
@@ -230,7 +230,7 @@ export default function OurTeamPage() {
               <Button
                 variant="default"
                 size="lg"
-                className="bg-gradient-to-r from-highlight to-primary relative group"
+                className="bg-muted-foreground relative group"
               >
                 <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
                 <span className="justify-start text-popover font-bold leading-7 z-10">
@@ -238,17 +238,6 @@ export default function OurTeamPage() {
                 </span>
               </Button>
             </Link>
-
-            <Button
-              variant="default"
-              size="lg"
-              className="bg-gradient-to-r from-highlight to-primary relative group"
-            >
-              <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
-              <span className="justify-start text-popover font-bold leading-7 z-10">
-                儲存
-              </span>
-            </Button>
           </div>
         </div>
       </div>

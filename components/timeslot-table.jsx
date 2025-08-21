@@ -184,7 +184,7 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
     }, 0)
   }
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <div className="relative flex flex-col bg-card border rounded-lg p-6 gap-4">
       {courts.length === 0 || timeSlots.length === 0 ? (
@@ -239,7 +239,9 @@ export function TimeSlotTable({ courtTimeSlots = [], onSelectionChange }) {
                                 toggleTimeSlot(court.id, timeSlot.id)
                               }
                               className={cn(
-                                'w-full hover:bg-muted-foreground',
+                                'w-full',
+                                'hover:bg-primary/20',
+                                'dark:hover:bg-primary/50',
                                 selected &&
                                   'bg-primary text-primary-foreground hover:bg-primary/90'
                               )}

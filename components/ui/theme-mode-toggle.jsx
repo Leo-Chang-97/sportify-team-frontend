@@ -5,52 +5,35 @@ import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Toggle } from '@/components/ui/toggle'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 export function ModeToggle() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  // 在未 mount 時避免使用 client-only 值，防止 hydration mismatch
-  const isDark = mounted ? resolvedTheme === 'dark' : false
-  const handleToggle = () => {
-    if (!mounted) return
-    setTheme(isDark ? 'light' : 'dark')
-  }
+  const current = mounted ? (resolvedTheme ?? theme) : undefined
+  const isDark = current === 'dark'
 
   return (
-    <Button variant="secondary" asChild>
-      <Toggle
-        aria-label={isDark ? '切換為亮色模式' : '切換為暗色模式'}
-        title={isDark ? '切換為亮色模式' : '切換為暗色模式'}
-        onClick={handleToggle}
-        className="relative inline-flex items-center justify-center w-9 h-9 p-0"
-      >
+    <Toggle
+      aria-label="Toggle theme"
+      aria-pressed={isDark}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="relative"
+      asChild
+    >
+      <Button variant="outline" size="icon">
         <Sun
-          className={`h-[1.1rem] w-[1.1rem] transition-transform ${
-            isDark
-              ? 'scale-0 -rotate-90 opacity-0'
-              : 'scale-100 rotate-0 opacity-100'
-          }`}
+          className={`h-[1.2rem] w-[1.2rem] transition-all ${isDark ? 'scale-0 -rotate-90' : 'scale-100 rotate-0'}`}
         />
         <Moon
-          className={`absolute h-[1.1rem] w-[1.1rem] transition-transform ${
-            isDark
-              ? 'scale-100 rotate-0 opacity-100'
-              : 'scale-0 rotate-90 opacity-0'
-          }`}
+          className={`absolute h-[1.2rem] w-[1.2rem] transition-all ${isDark ? 'scale-100 rotate-0' : 'scale-0 rotate-90'}`}
         />
         <span className="sr-only">Toggle theme</span>
-      </Toggle>
-    </Button>
+      </Button>
+    </Toggle>
   )
 }

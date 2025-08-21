@@ -26,10 +26,11 @@ import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
 import Step from '@/components/step'
 import { LoadingState, ErrorState } from '@/components/loading-states'
+// hooks
+import { useAuth } from '@/contexts/auth-context'
 // api
 import { getProductImageUrl } from '@/api/admin/shop/image'
 import { getCarts, updateCarts, removeCart } from '@/api'
-import { useAuth } from '@/contexts/auth-context'
 
 const steps = [
   { id: 1, title: '確認購物車', active: true },
@@ -328,7 +329,7 @@ export default function CartListPage() {
                     </TableRow>
                   </TableBody>
                 </Table>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <Link href="/shop">
                     <Button variant="default" className="w-[120px]">
                       繼續購物
