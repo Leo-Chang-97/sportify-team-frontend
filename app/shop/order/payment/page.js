@@ -272,7 +272,7 @@ export default function ProductPaymentPage() {
         },
       }
       // Debug 用
-      console.log('送出前的 orderData', orderData)
+      // console.log('送出前的 orderData', orderData)
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
