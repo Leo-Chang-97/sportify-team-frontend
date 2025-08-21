@@ -41,17 +41,19 @@ export default function ScrollAreaMember() {
                   className="flex flex-col items-center min-w-[120px] shrink-0 py-4 rounded-lg hover:bg-foreground/10 transition-colors cursor-pointer"
                 >
                   <div
-                    className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
-                      isActive ? 'bg-orange-500' : 'bg-white/10'
+                    className={`w-16 h-16 bg-foreground/10 rounded-full flex items-center justify-center mb-3 ${
+                      isActive ? 'bg-orange-500' : 'bg-foreground/10'
                     }`}
                   >
                     <IconComponent
-                      className={`!w-10 !h-10 ${isActive ? 'text-white' : ''}`}
+                      className={`!w-10 !h-10 ${
+                        isActive ? 'text-white' : 'text-foreground'
+                      }`}
                     />
                   </div>
                   <span
                     className={`text-sm text-center ${
-                      isActive ? 'text-orange-500' : 'text-white'
+                      isActive ? 'text-orange-500' : 'text-foreground'
                     }`}
                   >
                     {item.label}

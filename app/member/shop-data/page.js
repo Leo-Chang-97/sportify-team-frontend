@@ -209,7 +209,8 @@ export default function ShopDataPage() {
       <ScrollAreaMember />
       <section className="py-10">
         <div className="container flex justify-center mx-auto max-w-screen-xl px-4">
-          <div className="bg-card rounded-lg p-6 w-full">
+          <div className="bg-card rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm rounded-lg p-6 w-full">
             <div className="mb-6">
               <div className="flex justify-between items-center">
                 <div>
@@ -370,7 +371,7 @@ export default function ShopDataPage() {
                                   </div>
                                 )} */}
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-semibold line-clamp-2 leading-tight">
+                                  <div className="font-base line-clamp-2 leading-tight">
                                     {order?.id || '訂單編號'}
                                   </div>
                                   {/* 後端沒有回傳 description，所以這裡不顯示 */}
@@ -415,7 +416,7 @@ export default function ShopDataPage() {
         </div>
 
         {/* 分頁組件 - 移到卡片外面 */}
-        {!isLoading && !error && allOrders.length > 0 && totalPages > 0 && (
+        {!isLoading && !error && allOrders.length > 0 && totalPages > 1 && (
           <div className="mt-6 flex justify-center">
             <PaginationBar
               page={currentPage}

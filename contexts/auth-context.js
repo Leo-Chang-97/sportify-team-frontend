@@ -279,6 +279,40 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Google 登入函數
+  const googleLogin = async (idToken) => {
+    try {
+      const res = await fetch(`${API_SERVER}/auth/firebase-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
+      })
+
+      const result = await res.json()
+      console.log('Google 登入 API 回應:', result)
+
+      if (res.ok && result.success) {
+        localStorage.setItem(storageKey, result.token)
+        console.log('Google 登入 Token 已儲存:', result.token)
+        setUser(result.user)
+        return { success: true, user: result.user }
+      } else {
+        return {
+          success: false,
+          message: result.message || 'Google 登入失敗',
+        }
+      }
+    } catch (error) {
+      console.error('Google 登入發生錯誤:', error)
+      return {
+        success: false,
+        message: '網路錯誤，請稍後再試',
+      }
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -288,6 +322,8 @@ export function AuthProvider({ children }) {
         logout,
         updateUserProfile,
         uploadAvatar,
+        googleLogin,
+        setUser,
         isAuthenticated: !!user,
         isLoading,
       }}

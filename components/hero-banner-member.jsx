@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/auth-context'
 import { Camera, Upload } from 'lucide-react'
+import ImageCropDialog from '@/components/ui/image-crop-dialog'
 
 export default function HeroBanner({
   backgroundImage = '/banner/member-banner.jpg',
@@ -21,6 +22,8 @@ export default function HeroBanner({
   const fileInputRef = useRef(null)
   const [isUploading, setIsUploading] = useState(false)
   const [localAvatarUrl, setLocalAvatarUrl] = useState(null)
+  const [showCropDialog, setShowCropDialog] = useState(false)
+  const [selectedImageSrc, setSelectedImageSrc] = useState(null)
 
   // 當用戶資料載入時，同步更新本地頭像 URL
   useEffect(() => {
@@ -99,9 +102,18 @@ export default function HeroBanner({
     return 'GUEST'
   }
 
-  // 處理頭像上傳
-  const handleAvatarUpload = async (event) => {
-    console.log('handleAvatarUpload 被觸發', event.target.files)
+  // 讀取檔案為 base64
+  const readFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.addEventListener('load', () => resolve(reader.result), false)
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // 處理檔案選擇
+  const handleFileSelect = async (event) => {
+    console.log('handleFileSelect 被觸發', event.target.files)
     const file = event.target.files[0]
     if (!file) {
       console.log('沒有選擇檔案')
@@ -113,19 +125,45 @@ export default function HeroBanner({
     // 驗證檔案類型
     if (!file.type.startsWith('image/')) {
       alert('請選擇圖片檔案')
+      // 清空 input 值以允許重新選擇相同檔案
+      event.target.value = ''
       return
     }
+
 
     // 驗證檔案大小 (限制為 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('圖片大小不能超過 5MB')
+      // 清空 input 值以允許重新選擇相同檔案
+      event.target.value = ''
       return
     }
 
+    try {
+      // 讀取檔案為 base64
+      const imageSrc = await readFile(file)
+      setSelectedImageSrc(imageSrc)
+      setShowCropDialog(true)
+    } catch (error) {
+      console.error('讀取檔案錯誤:', error)
+      alert('讀取檔案失敗，請稍後再試')
+      // 清空 input 值以允許重新選擇相同檔案
+      event.target.value = ''
+    }
+  }
+
+  // 處理裁切完成
+  const handleCropComplete = async (croppedFile) => {
     setIsUploading(true)
     try {
-      console.log('開始上傳檔案...')
-      const result = await uploadAvatar(file)
+      console.log('開始上傳裁切後的檔案...')
+      console.log('檔案資訊:', {
+        name: croppedFile.name,
+        type: croppedFile.type,
+        size: croppedFile.size,
+      })
+
+      const result = await uploadAvatar(croppedFile)
       console.log('上傳結果:', result)
       if (result.success) {
         console.log('更新後的用戶資料:', result.user)
@@ -135,13 +173,11 @@ export default function HeroBanner({
           setLocalAvatarUrl(result.user.avatar)
         } else {
           // 如果後端沒有回傳 avatar 欄位，使用檔案名稱
-          const fileName = file.name
-          const avatarUrl = `http://localhost:3005/avatars/${fileName}`
+          const avatarUrl = `http://localhost:3005/avatars/${croppedFile.name}`
           setLocalAvatarUrl(avatarUrl)
         }
 
         alert('頭像更新成功！')
-        // 不再重新載入頁面
       } else {
         alert(result.message || '上傳失敗')
       }
@@ -151,6 +187,11 @@ export default function HeroBanner({
     } finally {
       setIsUploading(false)
     }
+  }
+
+  // 處理頭像上傳 (保留原有函數以向後兼容)
+  const handleAvatarUpload = async (event) => {
+    await handleFileSelect(event)
   }
 
   // 點擊頭像觸發檔案選擇
@@ -172,7 +213,7 @@ export default function HeroBanner({
         {...props}
       >
         <div className={`absolute inset-0 ${overlayOpacity}`}></div>
-        <div className="relative container mx-auto flex flex-col self-stretch h-70 max-w-screen-xl gap-16 justify-between items-center ">
+        <div className="relative container mx-auto flex flex-col self-stretch h-70 max-w-screen-xl gap-8 justify-between items-center ">
           <div className="w-full h-32 max-w-[1140px] pb-2.5 flex flex-col justify-center items-center gap-4 mt-8">
             <div className="self-stretch inline-flex justify-center items-center gap-1">
               <div className="text-center justify-center">
@@ -206,13 +247,32 @@ export default function HeroBanner({
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleAvatarUpload}
+              onChange={handleFileSelect}
               className="hidden"
               style={{ display: 'none' }}
             />
 
+            {/* 裁切對話框 */}
+            <ImageCropDialog
+              isOpen={showCropDialog}
+              onClose={() => {
+                setShowCropDialog(false)
+                setSelectedImageSrc(null)
+              }}
+              onDialogClose={() => {
+                // 清空檔案輸入以允許重新選擇相同檔案
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = ''
+                }
+              }}
+              imageSrc={selectedImageSrc}
+              onCropComplete={handleCropComplete}
+              aspect={1}
+              cropShape="round"
+            />
+
             <div className="inline-flex justify-center items-center gap-1">
-              <div className="text-center justify-center text-white text-xl font-medium font-['Montserrat'] leading-[48px]">
+              <div className="text-center justify-center text-background text-xl font-medium font-['Montserrat'] leading-[48px]">
                 {getUserName()}
               </div>
             </div>

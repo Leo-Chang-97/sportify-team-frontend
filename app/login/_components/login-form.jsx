@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState, useEffect } from 'react'
-
+import GoogleLoginButton from './google-login'
 
 // ===== 組件參數定義 =====
 export function LoginForm({
@@ -65,7 +65,7 @@ export function LoginForm({
             <div
               className="relative w-1/2 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: `url('/login/login.png')`,
+                backgroundImage: `url('/login/login2.jpg')`,
                 backgroundPosition: 'left center',
                 backgroundSize: 'cover',
               }}
@@ -171,6 +171,7 @@ export function LoginForm({
                       {isLoading ? 'Quick Logging in...' : 'Quick Login user'}
                     </Button>
                   </div>
+                  <GoogleLoginButton />
                 </div>
                 <div className="mt-4 text-center text-sm">
                   沒有帳號?{' '}
