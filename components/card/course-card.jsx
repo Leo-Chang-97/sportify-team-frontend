@@ -195,7 +195,9 @@ const CourseCard = ({ course }) => {
               <Button
                 variant="secondary"
                 onClick={handleBooking}
-                className={cn('w-full hover:bg-secondary/80')}
+                className={cn(
+                  'w-full hover:bg-highlight hover:text-highlight-foreground'
+                )}
                 disabled={isFullyBooked}
               >
                 {isFullyBooked ? '課程額滿' : '立即報名'}

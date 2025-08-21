@@ -13,6 +13,7 @@ import {
   VolleyballIcon,
   SoccerIcon,
   BaseballBatIcon,
+  TennisRacketIcon,
 } from '../icons/sport-icons'
 import {
   ChevronDownIcon,
@@ -35,7 +36,7 @@ export function TeamCard({
   location = '地點',
   time = '時間未定',
   skillLevel = '等級',
-  isNews = false,
+  isFeatured = false,
   imageUrl,
   // --- 修改開始 (1/3): 新增 props 來接收真實資料 ---
   description = '暫無描述', // 接收隊伍描述
@@ -54,12 +55,13 @@ export function TeamCard({
 
   const SportIcons = {
     籃球: BasketballIcon,
-    羽毛球: BadmintonIcon,
+    羽球: BadmintonIcon,
     桌球: TableTennisIcon,
     網球: TennisIcon,
     排球: VolleyballIcon,
     足球: SoccerIcon,
     棒球: BaseballBatIcon,
+    壁球: TennisRacketIcon,
   }
   const CurrentSportIcon = SportIcons[sportType] || null
 
@@ -67,7 +69,7 @@ export function TeamCard({
     <div data-name="team-card-container" className="relative w-full">
       <div
         className={cn(
-          'w-full flex flex-col shadow-md overflow-hidden bg-card transition-all duration-300',
+          'w-full p-2 flex flex-col shadow-md overflow-hidden bg-card transition-all duration-300',
           isExpanded ? 'rounded-t-lg' : 'rounded-lg'
         )}
       >
@@ -115,11 +117,11 @@ export function TeamCard({
 
           <div className="w-full lg:w-auto flex flex-col justify-between items-stretch lg:items-end mt-4 lg:mt-0 gap-2">
             <div className="flex justify-end items-start gap-2.5">
-              {isNews && (
+              {isFeatured && (
                 <Badge
                   variant="default"
                   size="lg"
-                  className="bg-gradient-to-r bg-highlight text-base"
+                  className="bg-highlight text-highlight-foreground text-sm"
                 >
                   News
                 </Badge>
@@ -127,7 +129,7 @@ export function TeamCard({
               <Badge
                 variant="outline"
                 size="lg"
-                className="bg-gradient-to-r text-base text-card-foreground"
+                className="text-sm text-card-foreground"
               >
                 {skillLevel}
               </Badge>
@@ -150,7 +152,7 @@ export function TeamCard({
 
       <div
         className={cn(
-          'absolute top-full left-0 right-0 z-10 w-full bg-sidebar-border overflow-hidden transition-all duration-300 ease-in-out rounded-b-lg shadow-lg bg-secondary',
+          'absolute top-full left-0 right-0 z-10 w-full overflow-hidden transition-all duration-300 ease-in-out rounded-b-lg shadow-lg bg-secondary/70 backdrop-blur-lg',
           isExpanded ? 'max-h-[30rem] opacity-100' : 'max-h-0 opacity-0'
         )}
       >
@@ -170,8 +172,9 @@ export function TeamCard({
             // 載入完成後顯示真實資料
             <>
               <div>
-                <div className="text-lg font-bold text-sidebar-primary mb-2 flex items-center gap-2">
+                <div className="flex justify-between text-lg font-bold text-highlight mb-2 gap-2">
                   隊伍簡述
+                  <Button>加入</Button>
                 </div>
                 <p className="text-card-foreground text-sm">
                   {details?.description || description}
@@ -180,11 +183,8 @@ export function TeamCard({
 
               <div>
                 <div className="flex w-full justify-between items-center mb-2">
-                  <div className="text-lg font-bold text-sidebar-primary">
+                  <div className="text-lg font-bold text-highlight">
                     隊伍成員
-                  </div>
-                  <div className="flex justify-end">
-                    <Button className="bg-highlight">加入</Button>
                   </div>
                 </div>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -19,7 +19,7 @@ const cn = (...inputs) => {
   return twMerge(clsx(inputs))
 }
 const Table = ({ className, ...props }) => (
-  <div className="relative w-full overflow-x-auto rounded-lg shadow-lg border-2 border-secondary-foreground">
+  <div className="relative w-full overflow-x-auto rounded-lg shadow-lg border-1">
     <table
       className={cn(
         'w-full caption-bottom text-sm bg-card dark:bg-card-foreground',
@@ -139,8 +139,8 @@ export default function OurTeamPage() {
         overlayOpacity="bg-primary/10"
       ></HeroBanner>
       <div className="container mx-auto max-w-screen-xl px-4 gap-8">
-        <div className="w-full min-h-[814px] max-w-[1140px] py-20 flex flex-col justify-start items-center gap-8">
-          <h1 className="text-3xl font-bold mb-6 text-center text-card-foreground">
+        <div className="w-full min-h-[814px] max-w-[1140px] py-20 flex flex-col justify-start items-center gap-6">
+          <h1 className="text-2xl font-bold text-center text-card-foreground">
             你隸屬的隊伍資訊
           </h1>
           <Table>
@@ -185,7 +185,7 @@ export default function OurTeamPage() {
               ) : (
                 teams.map((team) => (
                   <TableRow key={team.id}>
-                    <TableCell className="font-medium text-lg text-card-foreground">
+                    <TableCell className="font-medium text-card-foreground">
                       {team.name}
                     </TableCell>
                     <TableCell className="text-card-foreground">
@@ -201,17 +201,8 @@ export default function OurTeamPage() {
                       {team.court?.center?.name || '未知'}
                     </TableCell>
                     <TableCell>
-                      <Link href={`/team/ourteam/teampage/${team.id}`} passHref>
-                        <Button
-                          variant="default"
-                          size="lg"
-                          className="bg-highlight relative group"
-                        >
-                          <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
-                          <span className="justify-start text-popover leading-7 z-10">
-                            點擊
-                          </span>
-                        </Button>
+                      <Link href={`/team/ourteam/${team.id}`} passHref>
+                        <Button variant="highlight">點擊</Button>
                       </Link>
                     </TableCell>
                   </TableRow>
@@ -227,15 +218,8 @@ export default function OurTeamPage() {
 
           <div className="self-stretch inline-flex justify-between items-start">
             <Link href="/team" passHref>
-              <Button
-                variant="default"
-                size="lg"
-                className="bg-muted-foreground relative group"
-              >
-                <div className="absolute inset-0 bg-popover-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-30 pointer-events-none z-0"></div>
-                <span className="justify-start text-popover font-bold leading-7 z-10">
-                  返回上一頁
-                </span>
+              <Button variant="default" size="lg">
+                返回上一頁
               </Button>
             </Link>
           </div>
