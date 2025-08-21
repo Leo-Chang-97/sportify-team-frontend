@@ -261,17 +261,21 @@ export default function FormCard() {
   // 如果還沒載入用戶資料，顯示載入中
   if (!user) {
     return (
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] rounded-xl border bg-card py-6
-          text-card-foreground shadow-sm p-4 sm:p-6 md:p-8">
+      <div
+        className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm p-4 sm:p-6 md:p-8"
+      >
         <div className="text-lg">載入中...</div>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] rounded-xl border bg-card py-6
-          text-card-foreground shadow-sm p-4 sm:p-6 md:p-8">
-      <div className="flex flex-col gap-3 sm:gap-4">
+    <div
+      className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-[800px] h-auto min-h-[600px] sm:min-h-[800px] md:min-h-[1000px] lg:min-h-[1000px] rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm p-4 sm:p-6 md:p-8"
+    >
+      <div className="flex flex-col gap-3 md:gap-6">
         <div className="self-stretch py-2 sm:py-3 border-b-2 border-foreground inline-flex justify-center items-center gap-2.5">
           <div className="flex-1 justify-start text-foreground text-lg sm:text-xl font-bold leading-normal">
             帳號設定
@@ -285,7 +289,7 @@ export default function FormCard() {
           </div>
         )}
 
-        <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+        <div className="self-stretch flex flex-col justify-start items-start gap-4">
           <div className="w-full flex flex-col justify-start items-start gap-2">
             <Label className="text-accent-foreground text-base sm:text-base">
               email帳號
@@ -323,7 +327,7 @@ export default function FormCard() {
             個人檔案
           </div>
         </div>
-        <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+        <div className="self-stretch flex flex-col justify-start items-start gap-4">
           <div className="w-full flex flex-col justify-start items-start gap-2">
             <Label className="text-accent-foreground text-base sm:text-base">
               姓名
@@ -445,12 +449,12 @@ export default function FormCard() {
             </div>
           </div>
         </div>
-        <div className="w-full py-4 sm:py-6 md:py-8">
+        <div className="w-full">
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
             variant="default"
-            className="w-full px-6 sm:px-8 md:px-12 py-3 sm:py-4 text-base sm:text-base md:text-base font-base "
+            className="w-full md:w-auto"
           >
             {isLoading ? '儲存中...' : '儲存'}
           </Button>

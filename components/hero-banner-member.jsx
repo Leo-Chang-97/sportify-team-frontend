@@ -10,7 +10,7 @@ import ImageCropDialog from '@/components/ui/image-crop-dialog'
 export default function HeroBanner({
   backgroundImage = '/banner/member-banner.jpg',
   title = '會員中心',
-  overlayOpacity = 'bg-primary/50',
+  overlayOpacity = 'bg-black/50',
   children,
   onSearch,
   className = '',
@@ -129,7 +129,6 @@ export default function HeroBanner({
       event.target.value = ''
       return
     }
-
 
     // 驗證檔案大小 (限制為 5MB)
     if (file.size > 5 * 1024 * 1024) {
@@ -272,7 +271,7 @@ export default function HeroBanner({
             />
 
             <div className="inline-flex justify-center items-center gap-1">
-              <div className="text-center justify-center text-background text-xl font-medium font-['Montserrat'] leading-[48px]">
+              <div className="text-center justify-center text-white text-xl font-medium font-['Montserrat'] leading-[48px]">
                 {getUserName()}
               </div>
             </div>

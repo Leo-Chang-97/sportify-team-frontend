@@ -13,6 +13,7 @@ import { getLessonImageUrl } from '@/api/course/image'
 // next 元件
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 // UI 元件
 import { Button } from '@/components/ui/button'
@@ -75,10 +76,10 @@ export default function CourseDetailPage() {
 
   // #region 資料顯示選項
   const courseImages = [
-    { id: 1, src: '/course-pic/class-img/class1.png', alt: '桌球教學 1' },
-    { id: 2, src: '/course-pic/class-img/class2.png', alt: '桌球教學 2' },
-    { id: 3, src: '/course-pic/class-img/class3.png', alt: '桌球教學 3' },
-    { id: 4, src: '/course-pic/class-img/class4.png', alt: '桌球教學 4' },
+    { id: 1, src: getLessonImageUrl(data.images[1]), alt: '桌球教學 1' },
+    { id: 2, src: getLessonImageUrl(data.images[2]), alt: '桌球教學 2' },
+    { id: 3, src: getLessonImageUrl(data.images[3]), alt: '桌球教學 3' },
+    { id: 4, src: getLessonImageUrl(data.images[4]), alt: '桌球教學 4' },
   ]
 
   return (
@@ -164,7 +165,25 @@ export default function CourseDetailPage() {
 
       {/* 圖片區域 */}
       <div className="px-4 sm:px-20 flex w-full justify-center pb-8">
-        <CourseImg imgs={courseImages} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 lg:gap-6 w-full max-w-[1148px] mx-auto px-4 sm:px-0">
+          {courseImages.map((img, index) => {
+            return (
+              <div
+                key={img.id}
+                className="w-full overflow-hidden rounded-lg shadow-lg sm:shadow-none"
+              >
+                <Image
+                  width={540}
+                  height={350}
+                  src={img.src}
+                  alt={img.alt}
+                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 640px) 100vw, 540px"
+                />
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className="flex justify-center pb-16">

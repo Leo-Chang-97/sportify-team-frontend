@@ -13,6 +13,7 @@ import {
   InfoIcon,
   Link,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Navbar } from '@/components/navbar'
 import Footer from '@/components/footer'
 import BreadcrumbAuto from '@/components/breadcrumb-auto'
@@ -299,7 +300,7 @@ const TeamDetailPage = () => {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto teamName={teamData?.name} />
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <header className="py-8 text-center border-b border-gray-700">
@@ -308,75 +309,64 @@ const TeamDetailPage = () => {
             </h2>
           </header>
 
-          <section className="bg-white border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-gray-600">
+          <section className="bg-card border border-gray-300 rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
               隊伍成員資訊
             </h2>
-            <div className="overflow-y-auto h-[300px] border border-gray-300 rounded-lg p-2">
-              <div className="flex flex-col gap-4">
-                {teamData.TeamMember?.map((teamMember, index) => (
-                  <div
-                    key={teamMember.member.id} // 改用 teamMember.member.id
-                    ref={(el) =>
-                      memberRefs.current.set(teamMember.member.id, el)
+            <div className="flex flex-col gap-4 p-4 overflow-y-auto h-[300px]">
+              {teamData.TeamMember?.map((teamMember, index) => (
+                <div
+                  key={teamMember.member.id} // 改用 teamMember.member.id
+                  ref={(el) => memberRefs.current.set(teamMember.member.id, el)}
+                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-background"
+                >
+                  <img
+                    src={
+                      teamMember.member.avatar || // 改用 teamMember.member.avatar
+                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
                     }
-                    className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-gray-50"
-                  >
-                    <img
-                      src={
-                        teamMember.member.avatar || // 改用 teamMember.member.avatar
-                        'https://placehold.co/48x48/E0E0E0/333333?text=user'
-                      }
-                      alt={teamMember.member.name} // 改用 teamMember.member.name
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg text-gray-800">
-                          {teamMember.member.name}{' '}
-                          {/* 改用 teamMember.member.name */}
-                        </span>
-                        {/* 隊長判斷邏輯也需要修正，直接使用 isCaptain 欄位 */}
-                        {teamMember.isCaptain && (
-                          <span
-                            className="flex items-center gap-1 text-yellow-500 bg-yellow-100 px-2 py-0.5 rounded-full text-xs"
-                            title="隊長"
-                          >
-                            <Crown className="w-3 h-3" /> 隊長
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {teamMember.member.email}
-                      </p>{' '}
-                      {/* 改用 teamMember.member.email */}
-                      <p className="text-sm text-gray-500">
-                        {teamMember.member.phone}
-                      </p>{' '}
-                      {/* 改用 teamMember.member.phone */}
+                    alt={teamMember.member.name} // 改用 teamMember.member.name
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-lg">
+                        {teamMember.member.name}{' '}
+                        {/* 改用 teamMember.member.name */}
+                      </span>
+                      {/* 隊長判斷邏輯也需要修正，直接使用 isCaptain 欄位 */}
+                      {teamMember.isCaptain && (
+                        <Badge className="bg-highlight text-highlight-foreground">
+                          <Crown className="w-3 h-3" /> 隊長
+                        </Badge>
+                      )}
                     </div>
-                    {/* 踢除按鈕邏輯 */}
-                    {isCaptain && currentUser?.id !== teamMember.member.id && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-ring hover:bg-destructive hover:text-chart-5 mr-6"
-                        onClick={() => handleKickMember(teamMember.member.id)} // 改用 teamMember.member.id
-                      >
-                        <Trash2 className="w-5 h-5" />
-                        踢除隊員
-                      </Button>
-                    )}
+                    <p className="text-sm">{teamMember.member.email}</p>{' '}
+                    {/* 改用 teamMember.member.email */}
+                    <p className="text-sm">{teamMember.member.phone}</p>{' '}
+                    {/* 改用 teamMember.member.phone */}
                   </div>
-                ))}
-              </div>
+                  {/* 踢除按鈕邏輯 */}
+                  {isCaptain && currentUser?.id !== teamMember.member.id && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-ring hover:bg-destructive hover:text-chart-5 mr-6"
+                      onClick={() => handleKickMember(teamMember.member.id)} // 改用 teamMember.member.id
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      踢除隊員
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
 
           {/* --- 【新增】整個申請審核區塊，只有隊長看得到 --- */}
           {isCaptain && ( // 只有隊長看得到這個區塊
-            <section className="bg-white border border-gray-300 rounded-lg p-6">
-              <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-gray-600">
+            <section className="bg-card border border-gray-300 rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
                 待審核的加入申請
               </h2>
               {/* 判斷 joinRequests 是否為空 */}
@@ -386,7 +376,7 @@ const TeamDetailPage = () => {
                     {joinRequests.map(({ member, id: requestId }) => (
                       <div
                         key={requestId}
-                        className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-gray-50"
+                        className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-background"
                       >
                         <img
                           src={
@@ -436,8 +426,8 @@ const TeamDetailPage = () => {
             </section>
           )}
 
-          <section className="bg-white border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-gray-600">
+          <section className="bg-card border border-gray-300 rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
               團 · 練 · 時 · 間
             </h2>
             <div className="flex justify-between items-center mb-4">
@@ -446,7 +436,7 @@ const TeamDetailPage = () => {
                 className="p-2 rounded-full hover:bg-gray-200"
                 aria-label="上一個月"
               >
-                <ChevronLeft className="w-6 h-6 text-gray-600" />
+                <ChevronLeft className="w-6 h-6 text-foreground" />
               </button>
               <div className="text-2xl font-bold text-gray-900">
                 {displayDate.toLocaleDateString('zh-TW', {
@@ -459,26 +449,26 @@ const TeamDetailPage = () => {
                 className="p-2 rounded-full hover:bg-gray-200"
                 aria-label="下一個月"
               >
-                <ChevronRight className="w-6 h-6 text-gray-600" />
+                <ChevronRight className="w-6 h-6 text-foreground" />
               </button>
             </div>
             {isCaptain && (
               <div className="flex justify-end gap-2 mb-4">
                 <button
                   onClick={handleSelectMode}
-                  className={`flex items-center gap-1 text-sm rounded-lg px-2 py-1 ${currentMode === 'select' ? 'bg-green-100 text-green-600' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`flex items-center gap-1 text-sm rounded-lg px-2 py-1 ${currentMode === 'select' ? 'bg-green-100 text-green-600' : 'text-foreground hover:bg-gray-200'}`}
                 >
                   <CheckCircle className="w-4 h-4" /> 圈選
                 </button>
                 <button
                   onClick={handleClearMode}
-                  className={`flex items-center gap-1 text-sm rounded-lg px-2 py-1 ${currentMode === 'clear' ? 'bg-red-100 text-red-500' : 'text-gray-600 hover:bg-gray-200'}`}
+                  className={`flex items-center gap-1 text-sm rounded-lg px-2 py-1 ${currentMode === 'clear' ? 'bg-red-100 text-red-500' : 'text-foreground hover:bg-gray-200'}`}
                 >
                   <XCircle className="w-4 h-4" /> 清除
                 </button>
               </div>
             )}
-            <div className="grid grid-cols-7 gap-1 text-center font-bold text-gray-600 mb-2">
+            <div className="grid grid-cols-7 gap-1 text-center font-bold text-foreground mb-2">
               <div>一</div>
               <div>二</div>
               <div>三</div>
@@ -498,7 +488,7 @@ const TeamDetailPage = () => {
                     key={index}
                     onClick={() => handleDayClick(day)}
                     className={`p-2 rounded-full transition-colors duration-200 text-center relative 
-          ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'} 
+          ${day.isCurrentMonth ? 'text-foreground' : 'text-foreground/30'} 
           ${isSelected ? 'bg-red-500 text-white' : ''} 
           ${isEditing ? 'ring-2 ring-blue-500' : ''} 
           ${isToday && !isSelected ? 'border-2 border-blue-500' : ''}
@@ -539,7 +529,9 @@ const TeamDetailPage = () => {
                       <span className="font-semibold text-gray-800 bg-gray-200 px-2 py-1 rounded">
                         {event.dateObj.getDate()}日
                       </span>
-                      <p className="flex-1 text-gray-600 pt-1">{event.note}</p>
+                      <p className="flex-1 text-foreground pt-1">
+                        {event.note}
+                      </p>
 
                       {/* --- 【新增】只有隊長能看到的修改和刪除按鈕 --- */}
                       {isCaptain && (
@@ -571,8 +563,8 @@ const TeamDetailPage = () => {
             </div>
           </section>
 
-          <section className="bg-white border border-gray-300 rounded-lg p-6 flex flex-col h-[450px]">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300  text-gray-600">
+          <section className="bg-card border border-gray-300 rounded-lg p-6 flex flex-col h-[450px]">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300  text-foreground">
               {teamData.name} 留言板
             </h2>
             <div className="flex justify-center -space-x-2 mb-4">
@@ -600,7 +592,7 @@ const TeamDetailPage = () => {
                     />
                     <div>
                       <p className="font-bold text-card-foreground">匿名成員</p>
-                      <p className="text-sm text-gray-600">{msg.content}</p>
+                      <p className="text-sm text-foreground">{msg.content}</p>
                     </div>
                   </div>
                 ))}
@@ -616,26 +608,17 @@ const TeamDetailPage = () => {
                 <input
                   type="text"
                   placeholder="請輸入訊息內容"
-                  className="flex-1 p-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg"
+                  className="flex-1 p-2 bg-input text-muted-foreground rounded-lg"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSendMessage()
                   }}
                 />
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
-                >
-                  發送
-                </button>
+                <Button onClick={handleSendMessage}>發送</Button>
               </div>
             </div>
           </section>
-          <h2 className="text-2xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-white">
-            更 · 多 · 可 · 能
-          </h2>
-          <TeamLink />
         </div>
       </main>
       <Footer />

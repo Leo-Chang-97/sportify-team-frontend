@@ -16,7 +16,6 @@ export default function TeamDataPage() {
       <HeroBannerMember
         backgroundImage="/banner/member-banner.jpg"
         title="會員中心"
-        overlayOpacity="bg-primary/50"
       ></HeroBannerMember>
       <ScrollAreaMember />
       <section className="py-10">
