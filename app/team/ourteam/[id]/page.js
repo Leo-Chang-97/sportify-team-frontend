@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { jwtDecode } from 'jwt-decode'
 import TeamLink from '@/components/card/team-link'
+import { getAvatarUrl } from '@/api/member/user'
 
 // 保持這個不受時區影響的日期格式化函式
 const toYYYYMMDD = (date) => {
@@ -294,7 +295,7 @@ const TeamDetailPage = () => {
                 >
                   <img
                     src={
-                      teamMember.member.avatar || // 改用 teamMember.member.avatar
+                      getAvatarUrl(teamMember.member.avatar) ||
                       'https://placehold.co/48x48/E0E0E0/333333?text=user'
                     }
                     alt={teamMember.member.name} // 改用 teamMember.member.name

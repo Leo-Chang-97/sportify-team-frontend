@@ -255,10 +255,9 @@ export function AuthProvider({ children }) {
         if (!updatedUser.avatar) {
           // 假設後端將圖片存儲為檔案名稱
           const fileName = file.name
-          const avatarUrl = `http://localhost:3005/avatars/${fileName}`
           updatedUser = {
             ...result.user,
-            avatar: avatarUrl,
+            avatar: fileName,
           }
         }
 
