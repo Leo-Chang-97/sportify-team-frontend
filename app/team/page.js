@@ -345,7 +345,7 @@ export default function TeamPage() {
                     location={team.court?.center?.name || '未知地點'}
                     time={formatSchedules(team.schedules)}
                     skillLevel={team.level?.name || '未知等級'}
-                    isNews={team.isFeatured}
+                    isFeatured={team.isFeatured}
                     imageUrl={team.coverImageUrl}
                     // --- 修改開始: 傳遞 description 和詳細資料 ---
                     description={team.description} // 將隊伍描述傳入

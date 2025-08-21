@@ -25,8 +25,9 @@ export const teamService = {
    * 對應後端 POST /api/team/teams
    */
   create: async (data) => {
-    const res = await apiClient.post('/team/teams', data)
-    return res.data
+    // 修正：POST 請求的網址是資源的根路徑
+    const res = await apiClient.post('/team/teams', data);
+    return res.data;
   },
 
   // --- 請確認這一段 fetchMyTeams 函式存在 ---
@@ -81,4 +82,13 @@ export const teamService = {
     return res.data;
   },
 
+   /**
+   * 新增一則隊伍留言
+   * 對應後端 POST /api/team/messages
+   * @param {object} data - e.g., { teamId, content }
+   */
+  addMessage: async (data) => {
+    const res = await apiClient.post('/team/messages', data);
+    return res.data;
+  },
 }

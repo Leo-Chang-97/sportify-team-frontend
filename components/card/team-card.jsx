@@ -36,7 +36,7 @@ export function TeamCard({
   location = '地點',
   time = '時間未定',
   skillLevel = '等級',
-  isNews = false,
+  isFeatured = false,
   imageUrl,
   // --- 修改開始 (1/3): 新增 props 來接收真實資料 ---
   description = '暫無描述', // 接收隊伍描述
@@ -117,7 +117,7 @@ export function TeamCard({
 
           <div className="w-full lg:w-auto flex flex-col justify-between items-stretch lg:items-end mt-4 lg:mt-0 gap-2">
             <div className="flex justify-end items-start gap-2.5">
-              {isNews && (
+              {isFeatured && (
                 <Badge
                   variant="default"
                   size="lg"
