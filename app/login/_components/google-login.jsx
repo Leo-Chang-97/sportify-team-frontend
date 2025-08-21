@@ -1,46 +1,28 @@
 import { auth, googleProvider } from '@/app/firebase'
+import { Button } from '@/components/ui/button'
 import { signInWithPopup } from 'firebase/auth'
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-
+import { GoogleIcon } from '@/components/icons/member-icons'
 export default function GoogleLoginButton() {
   const { googleLogin, user, isAuthenticated } = useAuth()
   const router = useRouter()
 
   const handleGoogleLogin = async () => {
     try {
-      console.log('開始 Google 登入流程...')
-      console.log('Auth 狀態:', auth)
-      console.log('Google Provider:', googleProvider)
-
       const result = await signInWithPopup(auth, googleProvider)
-      console.log('Google 登入成功:', result)
-
       const user = result.user
-      console.log('用戶資訊:', {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-      })
-
       const idToken = await user.getIdToken() // Firebase ID Token
-      console.log('ID Token 獲取成功')
 
       // 使用認證上下文中的 Google 登入函數
-      console.log('準備發送請求到後端 API')
       const response = await googleLogin(idToken)
 
-      console.log('後端回應:', response)
-
       if (response.success) {
-        console.log('後端驗證成功:', response)
         alert('Google 登入成功！歡迎回來！')
 
         // 等待一下讓認證狀態更新
         setTimeout(() => {
-          console.log('當前認證狀態:', { user, isAuthenticated })
           // 重新導向到會員中心或首頁
           router.push('/member')
         }, 100)
@@ -49,6 +31,11 @@ export default function GoogleLoginButton() {
         alert(`後端驗證失敗: ${response.message || '未知錯誤'}`)
       }
     } catch (error) {
+      // 如果是用戶主動關閉視窗，直接返回，不顯示任何錯誤訊息
+      if (error.code === 'auth/popup-closed-by-user') {
+        return
+      }
+
       console.error('Google 登入失敗:', error)
       console.error('錯誤代碼:', error.code)
       console.error('錯誤訊息:', error.message)
@@ -75,9 +62,6 @@ export default function GoogleLoginButton() {
       let errorMessage = '登入失敗'
 
       switch (error.code) {
-        case 'auth/popup-closed-by-user':
-          errorMessage = '登入視窗被關閉'
-          break
         case 'auth/popup-blocked':
           errorMessage = '登入視窗被瀏覽器阻擋，請允許彈出視窗'
           break
@@ -103,15 +87,20 @@ export default function GoogleLoginButton() {
 
   // 監聽認證狀態變化
   useEffect(() => {
-    console.log('認證狀態變化:', { user, isAuthenticated })
+    // 移除認證狀態變化的日誌
   }, [user, isAuthenticated])
 
   return (
-    <button
+    <Button
       onClick={handleGoogleLogin}
-      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+      className="px-4 py-2 transition-colors w-full"
     >
-      使用 Google 登入
-    </button>
+      <div className="flex items-center justify-center">
+        <div className="py-0.25 w-4 h-4 items-center justify-center">
+          <GoogleIcon className="w-6 h-6" />
+        </div>
+        <div className="ml-2 text-center">使用 Google 登入</div>
+      </div>
+    </Button>
   )
 }

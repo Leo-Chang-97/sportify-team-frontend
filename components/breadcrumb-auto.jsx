@@ -24,7 +24,7 @@ const pageNameMap = {
   ourteam: '我的隊伍',
   course: '課程報名',
   member: '會員中心',
-  'member-data': '帳號設定',
+  'member-data': '個人資料',
   'venue-data': '場地預訂紀錄',
   'class-data': '課程報名紀錄',
   'shop-data': '商品訂單紀錄',
