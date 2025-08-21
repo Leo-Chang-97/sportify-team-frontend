@@ -1,41 +1,28 @@
 // app/admin/venue/center/page.js
 'use client'
 
-// ===== 依賴項匯入 =====
-import { useState, useEffect, useMemo } from 'react'
+// hooks
+import { useState, useMemo } from 'react'
+
+// Icon
+import { IconTrash } from '@tabler/icons-react'
+
+// 資料請求函式庫
+import useSWR from 'swr'
+
+// next 元件
 import { useSearchParams, useRouter } from 'next/navigation'
+
+// API 請求
+import { fetchCenters, deleteCenter, deleteMultipleCenters } from '@/api'
+
+// UI 元件
+
 import { AppSidebar } from '@/components/admin/app-sidebar'
 import { SiteHeader } from '@/components/admin/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
 import { centerColumns } from './columns'
-import useSWR from 'swr'
-import {
-  fetchCenters,
-  createCenter,
-  updateCenter,
-  deleteCenter,
-  deleteMultipleCenters,
-  fetchLocationOptions,
-} from '@/api'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,41 +32,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { useAuth } from '@/contexts/auth-context'
 
 export default function CenterPage() {
-  // ===== 路由和搜尋參數處理 =====
+  // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
-
-  // ===== 組件狀態管理 =====
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [locations, setLocations] = useState([])
-  const [errors, setErrors] = useState({})
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [editingCenter, setEditingCenter] = useState(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [centerToDelete, setCenterToDelete] = useState(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
-  const [centersToDelete, setCentersToDelete] = useState([])
-  const [formData, setFormData] = useState({
-    name: '',
-    locationId: '',
-  })
-
-  // ===== URL 參數處理 =====
   const queryParams = useMemo(() => {
     const entries = Object.fromEntries(searchParams.entries())
     return entries
   }, [searchParams])
 
-  // ===== 數據獲取 =====
+  // #region 狀態管理
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [centerToDelete, setCenterToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  const [centersToDelete, setCentersToDelete] = useState([])
+
+  // #region 數據獲取
   const {
     data,
     isLoading: isDataLoading,
@@ -89,21 +61,7 @@ export default function CenterPage() {
     fetchCenters(params)
   )
 
-  // ===== 副作用處理 =====
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const data = await fetchLocationOptions()
-        setLocations(data.rows || [])
-      } catch (error) {
-        console.error('載入地點失敗:', error)
-        toast.error('載入地點失敗')
-      }
-    }
-    loadLocations()
-  }, [])
-
-  // ===== 事件處理函數 =====
+  // #region 事件處理函數
   const handlePaginationChange = (paginationState) => {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(paginationState.pageIndex + 1))
@@ -135,114 +93,11 @@ export default function CenterPage() {
   }
 
   const handleAddNew = () => {
-    setIsEditMode(false)
-    setEditingCenter(null)
-    setFormData({ name: '', locationId: '' })
-    setErrors({})
-    setIsSheetOpen(true)
-  }
-
-  const handleInputChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    // Debug: 送出前 log formData
-    console.log('送出前 formData:', formData)
-
-    // 清除之前的錯誤訊息
-    setErrors({})
-
-    setIsLoading(true)
-
-    try {
-      let result
-
-      if (isEditMode && editingCenter) {
-        // 編輯模式
-        result = await updateCenter(editingCenter.id, formData)
-      } else {
-        // 新增模式
-        result = await createCenter(formData)
-      }
-
-      console.log('API 回應:', result) // Debug 用
-
-      if (result.success) {
-        toast.success(isEditMode ? '編輯中心成功！' : '新增中心成功！')
-        setIsSheetOpen(false)
-        setFormData({ name: '', locationId: '' })
-        setIsEditMode(false)
-        setEditingCenter(null)
-        mutate()
-      }
-    } catch (error) {
-      // axios 400 驗證錯誤處理
-      if (
-        error.response &&
-        error.response.status === 400 &&
-        error.response.data
-      ) {
-        const result = error.response.data
-        const errs = {}
-        const shown = {}
-        result.issues?.forEach((issue) => {
-          const field = issue.path[0]
-          if (shown[field]) return
-          errs[field] = issue.message
-          shown[field] = true
-        })
-        setErrors(errs)
-        if (Object.keys(errs).length === 0) {
-          toast.error(result.message || '輸入資料有誤')
-        }
-        return
-      }
-      console.error(isEditMode ? '編輯中心失敗:' : '新增中心失敗:', error)
-      // 根據不同的錯誤類型顯示不同的訊息
-      if (
-        error.message.includes('network') ||
-        error.message.includes('fetch')
-      ) {
-        toast.error('網路連線錯誤，請檢查網路狀態')
-      } else if (error.message.includes('400')) {
-        toast.error('輸入資料有誤，請檢查後重試')
-      } else if (error.message.includes('500')) {
-        toast.error('伺服器錯誤，請稍後再試')
-      } else {
-        toast.error(
-          (isEditMode ? '編輯中心失敗：' : '新增中心失敗：') +
-            (error.message || '未知錯誤')
-        )
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleCancel = () => {
-    setIsSheetOpen(false)
-    setFormData({ name: '', locationId: '' })
-    setErrors({}) // 清除錯誤訊息
-    setIsEditMode(false)
-    setEditingCenter(null)
+    router.push('/admin/venue/center/add')
   }
 
   const handleEdit = (center) => {
-    console.log('編輯中心 - 完整資料:', center)
-    setIsEditMode(true)
-    setEditingCenter(center)
-    setFormData({
-      name: center.name,
-      locationId:
-        center.location?.id?.toString() || center.locationId?.toString() || '',
-    })
-    setIsSheetOpen(true)
+    router.push(`/admin/venue/center/edit/${center.id}`)
   }
 
   const handleDelete = (center) => {
@@ -311,19 +166,11 @@ export default function CenterPage() {
     setCenterToDelete(null)
   }
 
-  // ===== 載入和錯誤狀態處理 =====
+  //  #region 載入和錯誤狀態處理
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
 
-  // ===== Debug 資料格式 =====
-  /* console.log('完整資料:', data)
-  console.log('資料結構:', JSON.stringify(data, null, 2))
-  if (data?.rows && data.rows.length > 0) {
-    console.log('第一筆資料:', data.rows[0])
-    console.log('第一筆資料的 keys:', Object.keys(data.rows[0]))
-  } */
-
-  // ===== 頁面渲染 =====
+  // #region 頁面渲染
   return (
     <SidebarProvider
       style={{
@@ -358,96 +205,6 @@ export default function CenterPage() {
           </div>
         </div>
       </SidebarInset>
-
-      {/* ===== 新增/編輯中心表單 ===== */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent>
-          <SheetHeader className="p-6 border-b">
-            <SheetTitle className="text-xl text-primary">
-              {isEditMode ? '編輯運動中心' : '新增運動中心'}
-            </SheetTitle>
-            <SheetDescription className="text-gray-500">
-              請填寫以下資訊
-            </SheetDescription>
-          </SheetHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-6 mt-1 px-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">
-                  中心名稱
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="請輸入中心名稱"
-                  className={errors.name ? 'border-red-500' : ''}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500 mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="locationId">
-                  地點
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.locationId}
-                  onValueChange={(value) =>
-                    handleInputChange('locationId', value)
-                  }
-                >
-                  <SelectTrigger
-                    className={errors.locationId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="請選擇地點" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                      >
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.locationId && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.locationId}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
-              >
-                取消
-              </Button>
-              <Button type="submit" variant="default" disabled={isLoading}>
-                {isLoading
-                  ? isEditMode
-                    ? '編輯中...'
-                    : '新增中...'
-                  : isEditMode
-                    ? '編輯中心'
-                    : '新增中心'}
-              </Button>
-            </div>
-          </form>
-        </SheetContent>
-      </Sheet>
 
       {/* ===== 刪除確認對話框 ===== */}
       <AlertDialog

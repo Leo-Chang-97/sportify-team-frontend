@@ -194,18 +194,16 @@ export default function CreateTeamPage() {
         title="馬上加入團隊"
         overlayOpacity="bg-primary/10"
       />
-      <section className="py-20 bg-background">
-        <div className="container mx-auto max-w-screen-xl px-4 bg-background">
-          <div className="w-full max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-            <h1 className="text-background-dark text-2xl font-bold mb-8 text-center">
+      <section className="py-20">
+        <div className="container mx-auto max-w-screen-xl">
+          <div className="w-full max-w-3xl mx-auto p-8 bg-card rounded-lg shadow-lg">
+            <h1 className=" text-2xl font-bold mb-8 text-center ">
               {'創立您的隊伍'}
             </h1>
             <div className="flex flex-col gap-6">
               {/* 基本資訊欄位... */}
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-background-dark">
-                  {'隊伍名稱'}
-                </h2>
+                <h2 className="text-sm font-semibold mb-2  ">{'隊伍名稱'}</h2>
                 <Input
                   className="text-popover-foreground"
                   placeholder="請輸入隊伍名稱"
@@ -214,9 +212,7 @@ export default function CreateTeamPage() {
                 />
               </div>
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-background-dark">
-                  {'運動類別'}
-                </h2>
+                <h2 className="text-sm font-semibold mb-2  ">{'運動類別'}</h2>
                 <Select value={sportId} onValueChange={setSportId}>
                   <SelectTrigger className="text-popover-foreground">
                     <SelectValue placeholder="請選擇運動類別" />
@@ -231,9 +227,7 @@ export default function CreateTeamPage() {
                 </Select>
               </div>
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-background-dark">
-                  {'出沒場地'}
-                </h2>
+                <h2 className="text-sm font-semibold mb-2  ">{'出沒場地'}</h2>
                 <Select value={centerId} onValueChange={setCenterId}>
                   <SelectTrigger className="text-popover-foreground">
                     <SelectValue placeholder={'請選擇出沒場地'} />
@@ -248,9 +242,7 @@ export default function CreateTeamPage() {
                 </Select>
               </div>
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-background-dark">
-                  {'階級程度'}
-                </h2>
+                <h2 className="text-sm font-semibold mb-2  ">{'階級程度'}</h2>
                 <Select value={levelId} onValueChange={setLevelId}>
                   <SelectTrigger className="text-popover-foreground">
                     <SelectValue placeholder="請選擇階級程度" />
@@ -267,18 +259,16 @@ export default function CreateTeamPage() {
 
               {/* 團隊練習時段 */}
               <div>
-                <h2 className="text-sm font-semibold mb-2 text-background">
-                  {'團隊練習時段'}
-                </h2>
+                <h2 className="text-sm font-semibold mb-2">{'團隊練習時段'}</h2>
                 <div className="space-y-4">
                   {schedules.map((schedule, index) => (
-                    <div key={index} className="p-3 rounded-md space-y-3">
+                    <div key={index} className="rounded-md space-y-3">
                       {/* 星期複選 */}
                       <div className="flex items-center gap-4 flex-wrap">
                         {dayOptions.map((day) => (
                           <div
                             key={day.value}
-                            className="flex items-center space-x-2 text-background-dark"
+                            className="flex items-center space-x-2  "
                           >
                             <Checkbox
                               id={`day-${index}-${day.value}`}
@@ -360,14 +350,10 @@ export default function CreateTeamPage() {
               </div>
             )}
             <div className="flex justify-between items-center mt-8">
-              <Button
-                variant="outline"
-                asChild
-                className="border-gray-300 text-gray-500 bg-gray-100 hover:bg-gray-500 hover:text-gray-900"
-              >
+              <Button variant="outline" asChild>
                 <Link href="/team" aria-label="返回上一頁">
                   <ChevronLeftIcon className="h-4 w-4" />
-                  <span className="ml-2">{'返回上一頁'}</span>
+                  <span>{'返回上一頁'}</span>
                 </Link>
               </Button>
               <Button onClick={handleSave} disabled={isSubmitting} size="lg">

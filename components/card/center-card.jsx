@@ -245,19 +245,6 @@ export function CenterCard({
             </Button>
           </CardFooter>
         )}
-
-        {/* {!data.inStock && (
-          <div
-            className={`
-                absolute inset-0 flex items-center justify-center
-                bg-background/80 backdrop-blur-sm
-              `}
-          >
-            <Badge className="px-3 py-1 text-sm" variant="destructive">
-              Out of Stock
-            </Badge>
-          </div>
-        )} */}
       </Card>
     </div>
   )

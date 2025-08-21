@@ -191,10 +191,10 @@ export default function TeamPage() {
 
   const searchFields = [
     {
-      label: '地區',
+      label: '級別',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-foreground !h-10">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -218,7 +218,7 @@ export default function TeamPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full bg-accent text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -248,7 +248,7 @@ export default function TeamPage() {
           />
           <Input
             type="search"
-            className="w-full bg-accent text-accent-foreground !h-10 pl-10"
+            className="w-full !bg-card text-accent-foreground !h-10 pl-10"
             placeholder="請輸入關鍵字"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -268,7 +268,6 @@ export default function TeamPage() {
       <HeroBanner
         backgroundImage="/banner/team-banner.jpg"
         title="馬上加入團隊"
-        overlayOpacity="bg-primary/50"
       >
         <SearchField
           fields={searchFields}
@@ -289,38 +288,30 @@ export default function TeamPage() {
             推·薦·隊·伍
           </div>
 
-          <div className="self-stretch flex justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="self-stretch flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="w-full md:w-auto flex items-center gap-2">
               <Link href="/team/create" passHref>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
-                >
+                <Button variant="highlight" size="lg">
                   創建隊伍 <ArrowRight />
                 </Button>
               </Link>
               <Link href="/team/ourteam" passHref>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
-                >
+                <Button variant="secondary" size="lg">
                   我的隊伍 <ArrowRight />
                 </Button>
               </Link>
             </div>
-            <div className="w-48">
+            <div className="w-full md:w-48">
               <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-full bg-card text-card-foreground">
                   <SelectValue placeholder="排序方式" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">由新到舊 (時間)</SelectItem>
-                  <SelectItem value="oldest">由舊到新 (時間)</SelectItem>
-                  <SelectItem value="members_desc">人數由多到少</SelectItem>
-                  <SelectItem value="members_asc">人數由少到多</SelectItem>
-                  <SelectItem value="level_desc">等級由高到低</SelectItem>
+                  <SelectItem value="newest">時間:由新到舊</SelectItem>
+                  <SelectItem value="oldest">時間:由舊到新</SelectItem>
+                  <SelectItem value="members_desc">人數:由多到少</SelectItem>
+                  <SelectItem value="members_asc">人數:由少到多</SelectItem>
+                  <SelectItem value="level_desc">等級:由高到低</SelectItem>
                   <SelectItem value="level_asc">等級由低到高</SelectItem>
                 </SelectContent>
               </Select>
@@ -354,7 +345,7 @@ export default function TeamPage() {
                     location={team.court?.center?.name || '未知地點'}
                     time={formatSchedules(team.schedules)}
                     skillLevel={team.level?.name || '未知等級'}
-                    isNews={team.isFeatured}
+                    isFeatured={team.isFeatured}
                     imageUrl={team.coverImageUrl}
                     // --- 修改開始: 傳遞 description 和詳細資料 ---
                     description={team.description} // 將隊伍描述傳入

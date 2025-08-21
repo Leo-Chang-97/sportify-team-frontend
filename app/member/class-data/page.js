@@ -186,13 +186,14 @@ export default function ClassDataPage() {
       <HeroBannerMember
         backgroundImage="/banner/member-banner.jpg"
         title="會員中心"
-        overlayOpacity="bg-primary/50"
       ></HeroBannerMember>
       <ScrollAreaMember />
       <section className="py-10">
         <div className="container flex justify-center mx-auto max-w-screen-xl px-4">
-          <div className="bg-card rounded-xl border bg-card py-6
-          text-card-foreground shadow-sm rounded-lg p-6 w-full">
+          <div
+            className="bg-card rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm rounded-lg p-6 w-full"
+          >
             <div className="mb-6">
               <div className="flex justify-between items-center">
                 <div>
@@ -342,14 +343,12 @@ export default function ClassDataPage() {
                                       {booking.lesson.title || '課程名稱'}
                                     </span>
                                     <br />
-
                                   </div>
                                 )}
                               </div>
                             </TableCell>
                             <TableCell className="text-base py-4 text-accent-foreground text-center">
                               <span className="font-semibold">
-                                
                                 NTD ${(booking?.price || 0).toLocaleString()}
                               </span>
                             </TableCell>

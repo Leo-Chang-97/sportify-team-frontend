@@ -43,6 +43,7 @@ import {
   LineShareButton,
   TwitterShareButton,
   ThreadsShareButton,
+  FacebookIcon,
   LineIcon,
   XIcon,
   ThreadsIcon,
@@ -459,12 +460,15 @@ export default function CenterDetailPage() {
     星期日: '休館',
   }
   // 使用 API 資料的位置，如果沒有則使用預設位置
-  const position = [data.latitude, data.longitude] || [
-    25.116592439309592, 121.50983159645816,
-  ]
+  const position =
+    data &&
+    typeof data.latitude === 'number' &&
+    typeof data.longitude === 'number'
+      ? [data.latitude, data.longitude]
+      : [25.034053953650112, 121.54344508654384]
   // #endregion 資料顯示選項
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <>
       <Navbar />
@@ -528,7 +532,8 @@ export default function CenterDetailPage() {
                   <PopoverContent className="w-fit px-2 py-2">
                     <div className="flex flex-row gap-2 w-full sm:w-auto">
                       <FacebookShareButton url={window.location.href}>
-                        <FaFacebook size={30} color="#1f7bf2" />
+                        {/* <FaFacebook size={30} color="#1f7bf2" /> */}
+                        <FacebookIcon size={32} round />
                       </FacebookShareButton>
                       <LineShareButton url={window.location.href}>
                         <LineIcon size={32} round />
@@ -569,7 +574,7 @@ export default function CenterDetailPage() {
                   src={
                     data.images && data.images[0]
                       ? getCenterImageUrl(data.images[0])
-                      : 'https://images.unsplash.com/photo-1494199505258-5f95387f933c?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                      : 'https://images.unsplash.com/photo-1626158610593-687879be50b7?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
                   }
                 />
               </AspectRatio>
