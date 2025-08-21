@@ -12,7 +12,7 @@ import { fetchCoachOptions, fetchSportOptions } from '@/api'
 import { fetchLessons } from '@/api/course/lesson'
 
 // Icon
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, BrushCleaning } from 'lucide-react'
 
 // UI 元件
 import { Button } from '@/components/ui/button'
@@ -237,7 +237,7 @@ export default function VenueListPage() {
     },
   ]
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <>
       <Navbar />
@@ -265,18 +265,18 @@ export default function VenueListPage() {
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex justify-between items-center mb-6">
             {/* 篩選結果資訊 */}
-            <div>
-              <p className="text-sm mt-2">
-                {keyword.trim() && (
-                  <>
-                    <span>關鍵字</span>
-                    <span className="text-highlight">「{keyword}」</span>
-                  </>
-                )}
-                共 {courses.length} 門課程
-              </p>
-            </div>
-
+            <p className="text-sm mt-2 hidden lg:inline">
+              {keyword.trim() && (
+                <>
+                  <span>關鍵字</span>
+                  <span className="text-highlight">「{keyword}」</span>
+                </>
+              )}
+              共 {courses.length} 門課程
+            </p>
+            <h3 className="text-center text-base md:text-lg font-normal md:tracking-[24px]">
+              精·選·課·程
+            </h3>
             {/* 重設篩選按鈕 */}
             <Button
               variant="outline"
@@ -284,7 +284,8 @@ export default function VenueListPage() {
               className="text-sm"
               disabled={!coachId && !sportId && !keyword.trim()}
             >
-              清除篩選
+              <BrushCleaning />
+              <span className="hidden lg:inline">清除篩選</span>
             </Button>
           </div>
 
