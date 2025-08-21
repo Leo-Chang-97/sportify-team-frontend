@@ -34,20 +34,20 @@ const memberItems = [
 const MemberSubCard = () => {
   return (
     <div className="inline-flex flex-col justify-start items-start w-full max-w-[1012px]">
-      <div className="w-full px-8 py-4 border-b-4 border-white inline-flex justify-between items-center">
+      <div className="w-full px-8 py-4 border-b-4 border-primary inline-flex justify-between items-center">
         <div className="flex-1 flex justify-start items-center gap-4">
-          <div className="justify-start text-white text-base font-bold font-['Noto_Sans_TC'] leading-9">
+          <div className="justify-start text-foreground text-base font-bold font-['Noto_Sans_TC'] leading-9">
             服務與支援
           </div>
         </div>
       </div>
       <div className="flex flex-col justify-start items-start w-full">
-        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+        <div className="w-full px-8 py-4 border-b border-primary inline-flex justify-between items-center">
           <div className="flex-1 flex justify-start items-center gap-4">
             <div className="w-6 h-6 relative">
               <PackageCarIcon />
             </div>
-            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+            <div className="justify-start text-foreground text-base font-normal font-['Noto_Sans_TC'] leading-9">
               退貨/退款程序說明{' '}
             </div>
           </div>
@@ -55,12 +55,12 @@ const MemberSubCard = () => {
             <ArrowRightIcon />
           </div>
         </div>
-        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+        <div className="w-full px-8 py-4 border-b border-primary inline-flex justify-between items-center">
           <div className="flex-1 flex justify-start items-center gap-4">
             <div className="w-6 h-6 relative">
               <QuestionIcon />
             </div>
-            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+            <div className="justify-start text-foreground text-base font-normal font-['Noto_Sans_TC'] leading-9">
               會員常見問題{' '}
             </div>
           </div>
@@ -68,12 +68,12 @@ const MemberSubCard = () => {
             <ArrowRightIcon />
           </div>
         </div>
-        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+        <div className="w-full px-8 py-4 border-b border-primary inline-flex justify-between items-center">
           <div className="flex-1 flex justify-start items-center gap-4">
             <div className="w-6 h-6 relative">
               <FileDockIcon />
             </div>
-            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+            <div className="justify-start text-foreground text-base font-normal font-['Noto_Sans_TC'] leading-9">
               客服聯絡紀錄
             </div>
           </div>
@@ -81,12 +81,12 @@ const MemberSubCard = () => {
             <ArrowRightIcon />
           </div>
         </div>
-        <div className="w-full px-8 py-4 border-b border-white inline-flex justify-between items-center">
+        <div className="w-full px-8 py-4 border-b border-primary inline-flex justify-between items-center">
           <div className="flex-1 flex justify-start items-center gap-4">
             <div className="w-6 h-6 relative">
               <PhoneIcon />
             </div>
-            <div className="justify-start text-white text-base font-normal font-['Noto_Sans_TC'] leading-9">
+            <div className="justify-start text-foreground text-base font-normal font-['Noto_Sans_TC'] leading-9">
               聯繫客服
             </div>
           </div>
