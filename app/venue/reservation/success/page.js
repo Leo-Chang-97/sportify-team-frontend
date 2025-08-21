@@ -208,7 +208,7 @@ export default function SuccessPage() {
     },
   ]
 
-  // #region Markup
+  // #region 頁面渲染
   return (
     <>
       <Navbar />
