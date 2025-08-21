@@ -610,11 +610,11 @@ export default function ProductPaymentPage() {
               </Card>
               <Card>
                 <CardContent className="flex flex-col gap-6">
-                  {/* 收件人資料 */}
+                  {/* 收件人資訊 */}
                   <div className="space-y-3">
                     <div className="flex items-center mb-2 gap-4">
                       <Label className="text-lg font-bold mb-0">
-                        收件人資料
+                        付款資訊
                       </Label>
                       <div className="flex items-center">
                         <input
