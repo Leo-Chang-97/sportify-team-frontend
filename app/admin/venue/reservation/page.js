@@ -253,9 +253,11 @@ export default function ReservationPage() {
   const handleDateChange = (selectedDate) => {
     setDate(selectedDate)
     setOpen(false)
-    
+
     // 格式化日期為 YYYY-MM-DD 格式
-    const formattedDate = selectedDate ? formatDate(selectedDate, 'yyyy-MM-dd') : ''
+    const formattedDate = selectedDate
+      ? formatDate(selectedDate, 'yyyy-MM-dd')
+      : ''
     handleFilterChange('date', formattedDate)
   }
 
