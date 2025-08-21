@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { getAvatarUrl } from '@/api/member/user'
 
 // Combined logo component using your SVG files
 const Logo = (props) => {
@@ -374,7 +375,7 @@ export const Navbar = React.forwardRef(
               <UserMenu
                 userName={user?.name || '使用者'}
                 userEmail={user?.email || 'user@example.com'}
-                userAvatar={user?.avatar}
+                userAvatar={getAvatarUrl(user?.avatar)}
                 userRole={user?.role}
                 onItemClick={handleUserItemClick}
                 onLogout={handleLogout}

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { UserRound, UserRoundCog } from 'lucide-react'
 
 export function RegisterForm({
   className,
@@ -65,31 +66,56 @@ export function RegisterForm({
             <div
               className="relative w-1/2 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: `url('/login/login.png')`,
+                backgroundImage: `url('/login/reg.jpg')`,
                 backgroundPosition: 'left center',
                 backgroundSize: 'cover',
               }}
             ></div>
           )}
-          <div className={`p-6 ${isLargeScreen ? 'w-1/2' : 'w-full'}`}>
-            <div className="mb-6">
+          <div
+            className={`p-6  ${isLargeScreen ? 'w-1/2' : 'w-full'}`}
+          >
+            <div className="mb-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">註冊帳號</h2>
+              <Button
+                  variant="outline"
+                  className="text-center"
+                  disabled={isLoading}
+                  type="icon"
+                  size="sm"
+                  onClick={() => {
+                    setFormData({
+                      email: '123455@gmail.com',
+                      name: '宋夯塔',
+                      phone: '0912345678',
+                      password: '123456',
+                      confirmPassword: '123456',
+
+                    })
+                  }}
+                >
+                  <UserRound />
+                  {/* {isLoading ? 'Quick Logging in...' : 'Quick Login user'} */}
+                </Button>
             </div>
+
             <div>
               <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6">
                   {/* 一般錯誤訊息 */}
                   {errors.general && (
-                    <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
+                    <div className="text-destructive text-sm text-center bg-red-50 p-2 rounded">
                       {errors.general}
                     </div>
                   )}
 
                   {/* Email 欄位 */}
                   <div className="h-[94px] flex flex-col justify-start gap-2">
-                    <Label htmlFor="email">Email帳號</Label>
+                    <Label htmlFor="email">
+                      Email帳號<span className="text-destructive">*</span>
+                    </Label>
                     <Input
-                      className={errors.email ? 'border-red-500' : ''}
+                      className={errors.email ? 'border-destructive' : ''}
                       id="email"
                       type="email"
                       placeholder="m@example.com"
@@ -101,7 +127,7 @@ export function RegisterForm({
                     />
                     <div className="h-4 flex items-center">
                       {errors.email && (
-                        <div className="text-red-500 text-sm">
+                        <div className="text-destructive text-sm">
                           {errors.email}
                         </div>
                       )}
@@ -110,9 +136,11 @@ export function RegisterForm({
 
                   {/* 姓名欄位 */}
                   <div className="h-[94px] flex flex-col justify-start gap-2">
-                    <Label htmlFor="name">姓名</Label>
+                    <Label htmlFor="name">
+                      姓名<span className="text-destructive">*</span>
+                    </Label>
                     <Input
-                      className={errors.name ? 'border-red-500' : ''}
+                      className={errors.name ? 'border-destructive' : ''}
                       id="name"
                       type="text"
                       placeholder="請輸入您的姓名"
@@ -124,7 +152,7 @@ export function RegisterForm({
                     />
                     <div className="h-4 flex items-center">
                       {errors.name && (
-                        <div className="text-red-500 text-sm">
+                        <div className="text-destructive text-sm">
                           {errors.name}
                         </div>
                       )}
@@ -135,7 +163,7 @@ export function RegisterForm({
                   <div className="h-[94px] flex flex-col justify-start gap-2">
                     <Label htmlFor="phone">手機號碼</Label>
                     <Input
-                      className={errors.phone ? 'border-red-500' : ''}
+                      className={errors.phone ? 'border-destructive' : ''}
                       id="phone"
                       type="tel"
                       placeholder="請輸入手機號碼"
@@ -147,7 +175,7 @@ export function RegisterForm({
                     />
                     <div className="h-4 flex items-center">
                       {errors.phone && (
-                        <div className="text-red-500 text-sm">
+                        <div className="text-destructive text-sm">
                           {errors.phone}
                         </div>
                       )}
@@ -156,9 +184,11 @@ export function RegisterForm({
 
                   {/* 密碼欄位 */}
                   <div className="h-[94px] flex flex-col justify-start gap-2">
-                    <Label htmlFor="password">密碼</Label>
+                    <Label htmlFor="password">
+                      密碼<span className="text-destructive">*</span>
+                    </Label>
                     <Input
-                      className={errors.password ? 'border-red-500' : ''}
+                      className={errors.password ? 'border-destructive' : ''}
                       id="password"
                       type="password"
                       placeholder="請輸入密碼"
@@ -170,7 +200,7 @@ export function RegisterForm({
                     />
                     <div className="h-4 flex items-center">
                       {errors.password && (
-                        <div className="text-red-500 text-sm">
+                        <div className="text-destructive text-sm">
                           {errors.password}
                         </div>
                       )}
@@ -179,9 +209,13 @@ export function RegisterForm({
 
                   {/* 確認密碼欄位 */}
                   <div className="h-[94px] flex flex-col justify-start gap-2">
-                    <Label htmlFor="confirmPassword">確認密碼</Label>
+                    <Label htmlFor="confirmPassword">
+                      確認密碼<span className="text-destructive">*</span>
+                    </Label>
                     <Input
-                      className={errors.confirmPassword ? 'border-red-500' : ''}
+                      className={
+                        errors.confirmPassword ? 'border-destructive' : ''
+                      }
                       id="confirmPassword"
                       type="password"
                       placeholder="請再次輸入密碼"
@@ -193,7 +227,7 @@ export function RegisterForm({
                     />
                     <div className="h-4 flex items-center">
                       {errors.confirmPassword && (
-                        <div className="text-red-500 text-sm">
+                        <div className="text-destructive text-sm">
                           {errors.confirmPassword}
                         </div>
                       )}

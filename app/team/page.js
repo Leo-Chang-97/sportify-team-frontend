@@ -288,28 +288,20 @@ export default function TeamPage() {
             推·薦·隊·伍
           </div>
 
-          <div className="self-stretch flex justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="self-stretch flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="w-full md:w-auto flex items-center gap-2">
               <Link href="/team/create" passHref>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
-                >
+                <Button variant="highlight" size="lg">
                   創建隊伍 <ArrowRight />
                 </Button>
               </Link>
               <Link href="/team/ourteam" passHref>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="bg-highlight transition-all duration-300 bg-[size:200%_auto] hover:bg-[position:right_center]"
-                >
+                <Button variant="secondary" size="lg">
                   我的隊伍 <ArrowRight />
                 </Button>
               </Link>
             </div>
-            <div className="w-48">
+            <div className="w-full md:w-48">
               <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-full bg-card text-card-foreground">
                   <SelectValue placeholder="排序方式" />
@@ -353,7 +345,7 @@ export default function TeamPage() {
                     location={team.court?.center?.name || '未知地點'}
                     time={formatSchedules(team.schedules)}
                     skillLevel={team.level?.name || '未知等級'}
-                    isNews={team.isFeatured}
+                    isFeatured={team.isFeatured}
                     imageUrl={team.coverImageUrl}
                     // --- 修改開始: 傳遞 description 和詳細資料 ---
                     description={team.description} // 將隊伍描述傳入
