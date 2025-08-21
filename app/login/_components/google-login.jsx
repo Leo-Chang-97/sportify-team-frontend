@@ -1,9 +1,10 @@
 import { auth, googleProvider } from '@/app/firebase'
+import { Button } from '@/components/ui/button'
 import { signInWithPopup } from 'firebase/auth'
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-
+import { GoogleIcon } from '@/components/icons/member-icons'
 export default function GoogleLoginButton() {
   const { googleLogin, user, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -90,11 +91,16 @@ export default function GoogleLoginButton() {
   }, [user, isAuthenticated])
 
   return (
-    <button
+    <Button
       onClick={handleGoogleLogin}
-      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+      className="px-4 py-2 transition-colors w-full"
     >
-      使用 Google 登入
-    </button>
+      <div className="flex items-center justify-center">
+        <div className="py-0.25 w-4 h-4 items-center justify-center">
+          <GoogleIcon className="w-6 h-6" />
+        </div>
+        <div className="ml-2 text-center">使用 Google 登入</div>
+      </div>
+    </Button>
   )
 }

@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { UserRound, UserRoundCog } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -72,8 +73,46 @@ export function LoginForm({
             ></div>
           )}
           <div className={`p-6 ${isLargeScreen ? 'w-1/2' : 'w-full'}`}>
-            <div className="mb-6">
+            <div className="mb-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">登入帳號</h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="text-center"
+                  disabled={isLoading}
+                  type="icon"
+                  size="sm"
+                  onClick={() => {
+                    if (onSubmit) {
+                      onSubmit({
+                        email: 'admin@gmail.com',
+                        password: '123456',
+                      })
+                    }
+                  }}
+                >
+                  <UserRoundCog />
+                  {/* {isLoading ? 'Quick Logging in...' : 'Quick Login admin'} */}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-center"
+                  disabled={isLoading}
+                  type="icon"
+                  size="sm"
+                  onClick={() => {
+                    if (onSubmit) {
+                      onSubmit({
+                        email: 'user@gmail.com',
+                        password: '123456',
+                      })
+                    }
+                  }}
+                >
+                  <UserRound />
+                  {/* {isLoading ? 'Quick Logging in...' : 'Quick Login user'} */}
+                </Button>
+              </div>
             </div>
             <div>
               <form onSubmit={handleSubmit}>
@@ -132,46 +171,15 @@ export function LoginForm({
 
                   <div className="flex flex-col gap-3">
                     <Button
+                      variant="highlight"
                       type="submit"
                       className="w-full"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Logging in...' : 'Login'}
+                      {isLoading ? '正在登入...' : '登入'}
                     </Button>
-                    <Button
-                      variant="secondary"
-                      className="w-full"
-                      disabled={isLoading}
-                      type="button"
-                      onClick={() => {
-                        if (onSubmit) {
-                          onSubmit({
-                            email: 'admin@gmail.com',
-                            password: '123456',
-                          })
-                        }
-                      }}
-                    >
-                      {isLoading ? 'Quick Logging in...' : 'Quick Login admin'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="w-full"
-                      disabled={isLoading}
-                      type="button"
-                      onClick={() => {
-                        if (onSubmit) {
-                          onSubmit({
-                            email: 'user@gmail.com',
-                            password: '123456',
-                          })
-                        }
-                      }}
-                    >
-                      {isLoading ? 'Quick Logging in...' : 'Quick Login user'}
-                    </Button>
+                    <GoogleLoginButton />
                   </div>
-                  <GoogleLoginButton />
                 </div>
                 <div className="mt-4 text-center text-sm">
                   沒有帳號?{' '}
