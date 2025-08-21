@@ -151,13 +151,13 @@ export default function VenueListPage() {
   // 評分系統選項
   const ratingOptions = [
     { label: <>全部</>, value: 'all' },
-    ...[2, 3, 4, 5].map((num) => ({
+    ...[2, 3, 4].map((num) => ({
       label: (
         <>
           {Array.from({ length: num }).map((_, i) => (
             <Star key={i} className="text-yellow-400 fill-yellow-400" />
           ))}
-          {num === 5 ? '5星' : `${num}星以上`}
+          {`${num}星以上`}
         </>
       ),
       value: String(num),

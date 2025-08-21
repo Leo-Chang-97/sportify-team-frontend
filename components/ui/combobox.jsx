@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
-const MIN_WIDTH = 200
+const MIN_WIDTH = 140
 
 const ComboboxContext = createContext({
   data: [],

@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 // icons
 
-import { ArrowLeft, IconUpload, IconX } from '@tabler/icons-react'
+import { IconUpload, IconX } from '@tabler/icons-react'
 
 // next 元件
 import { useRouter } from 'next/navigation'
@@ -472,7 +472,7 @@ export default function CenterForm({
           </div>
 
           {/* 按鈕區域 */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
+          <div className="flex justify-end space-x-4">
             <Button
               type="button"
               variant="outline"
