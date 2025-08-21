@@ -188,8 +188,8 @@ export default function ReservationForm({
         const invoiceData = await fetchInvoiceOptions()
         setInvoices(invoiceData.rows || [])
       } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
+        console.error('載入選項資料失敗:', error)
+        toast.error('載入選項資料失敗')
       }
     }
     loadData()
@@ -574,7 +574,7 @@ export default function ReservationForm({
                   onValueChange={(newValue) => setMemberId(newValue)}
                   type="會員"
                 >
-                  <ComboboxTrigger />
+                  <ComboboxTrigger className="w-full" />
                   <ComboboxContent>
                     <ComboboxInput />
                     <ComboboxEmpty />
@@ -655,106 +655,108 @@ export default function ReservationForm({
                 </div>
               </div>
 
-              {/* 運動 */}
-              <div className="space-y-2">
-                <Label>運動</Label>
-                <Select
-                  value={sportId}
-                  onValueChange={setSportId}
-                  disabled={!centerId}
-                >
-                  <SelectTrigger
-                    className={cn(
-                      'w-full !bg-card text-accent-foreground !h-10',
-                      errors.sport &&
-                        'border-destructive focus:border-destructive focus:ring-destructive',
-                      !centerId && 'cursor-not-allowed'
-                    )}
-                    data-testid="sport-select"
-                    style={!centerId ? { opacity: 0.9 } : undefined}
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* 運動 */}
+                <div className="flex-1 space-y-2">
+                  <Label>運動</Label>
+                  <Select
+                    value={sportId}
+                    onValueChange={setSportId}
+                    disabled={!centerId}
                   >
-                    <SelectValue
-                      placeholder={!centerId ? '請先選擇中心' : '請選擇運動'}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {!centerId ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        請先選擇中心
-                      </div>
-                    ) : centerData &&
-                      centerData.centerSports &&
-                      centerData.centerSports.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      centerData &&
-                      centerData.centerSports &&
-                      centerData.centerSports.map((cs) => (
-                        <SelectItem
-                          key={cs.sportId}
-                          value={cs.sportId.toString()}
-                        >
-                          {cs.sport.name || cs.sport.id}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.sport && (
-                  <span className="text-destructive text-sm">
-                    {errors.sport}
-                  </span>
-                )}
-              </div>
-
-              {/* 日期 */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="date">
-                  日期
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      id="date"
-                      className={`w-48 justify-between font-normal${
-                        !date ? ' text-gray-500' : ''
-                      }`}
+                    <SelectTrigger
+                      className={cn(
+                        'w-full !bg-card text-accent-foreground !h-10',
+                        errors.sport &&
+                          'border-destructive focus:border-destructive focus:ring-destructive',
+                        !centerId && 'cursor-not-allowed'
+                      )}
+                      data-testid="sport-select"
+                      style={!centerId ? { opacity: 0.9 } : undefined}
                     >
-                      {date ? date.toLocaleDateString() : '請選擇預訂日期'}
-                      <ChevronDownIcon />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto overflow-hidden p-0"
-                    align="start"
-                  >
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      captionLayout="dropdown"
-                      onSelect={(date) => {
-                        setDate(date)
-                        setOpen(false)
-                      }}
-                      disabled={(date) => {
-                        // 禁用今天之前的日期
-                        const today = new Date()
-                        today.setHours(0, 0, 0, 0)
-                        return date < today
-                      }}
-                      className={
-                        errors.date ? 'border border-red-500 rounded-md' : ''
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-                {errors.date && (
-                  <p className="text-sm text-red-500 mt-1">{errors.date}</p>
-                )}
+                      <SelectValue
+                        placeholder={!centerId ? '請先選擇中心' : '請選擇運動'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {!centerId ? (
+                        <div className="px-3 py-2 text-gray-400">
+                          請先選擇中心
+                        </div>
+                      ) : centerData &&
+                        centerData.centerSports &&
+                        centerData.centerSports.length === 0 ? (
+                        <div className="px-3 py-2 text-gray-400">
+                          沒有符合資料
+                        </div>
+                      ) : (
+                        centerData &&
+                        centerData.centerSports &&
+                        centerData.centerSports.map((cs) => (
+                          <SelectItem
+                            key={cs.sportId}
+                            value={cs.sportId.toString()}
+                          >
+                            {cs.sport.name || cs.sport.id}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {errors.sport && (
+                    <span className="text-destructive text-sm">
+                      {errors.sport}
+                    </span>
+                  )}
+                </div>
+
+                {/* 日期 */}
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="date">
+                    日期
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        id="date"
+                        className={`w-full justify-between font-normal${
+                          !date ? ' text-gray-500' : ''
+                        }`}
+                      >
+                        {date ? date.toLocaleDateString() : '請選擇預訂日期'}
+                        <ChevronDownIcon />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="start"
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          setDate(date)
+                          setOpen(false)
+                        }}
+                        disabled={(date) => {
+                          // 禁用今天之前的日期
+                          const today = new Date()
+                          today.setHours(0, 0, 0, 0)
+                          return date < today
+                        }}
+                        className={
+                          errors.date ? 'border border-red-500 rounded-md' : ''
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.date && (
+                    <p className="text-sm text-red-500 mt-1">{errors.date}</p>
+                  )}
+                </div>
               </div>
 
               {/* 球場、時間、價格 */}
@@ -915,44 +917,75 @@ export default function ReservationForm({
                 )}
               </div>
 
-              {/* 付款方式 */}
-              <div className="space-y-2">
-                <Label htmlFor="payment">
-                  付款方式<span className="text-red-500">*</span>
-                </Label>
-                <Select value={paymentId} onValueChange={setPaymentId}>
-                  <SelectTrigger
-                    className={cn(
-                      'w-full',
-                      errors.paymentId && 'border-red-500'
-                    )}
-                  >
-                    <SelectValue placeholder="請選擇付款方式" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {payments.length === 0 ? (
-                      <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
-                      </div>
-                    ) : (
-                      payments
-                        .filter((item) => item.id && item.id !== '')
-                        .map((item, idx) => (
-                          <SelectItem
-                            key={`payment-${item.id}-${idx}`}
-                            value={item.id.toString()}
-                          >
-                            {item.name}
-                          </SelectItem>
-                        ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.paymentId && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.paymentId}
-                  </p>
-                )}
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* 付款方式 */}
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="payment">
+                    付款方式<span className="text-red-500">*</span>
+                  </Label>
+                  <Select value={paymentId} onValueChange={setPaymentId}>
+                    <SelectTrigger
+                      className={cn(
+                        'w-full',
+                        errors.paymentId && 'border-red-500'
+                      )}
+                    >
+                      <SelectValue placeholder="請選擇付款方式" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {payments.length === 0 ? (
+                        <div className="px-3 py-2 text-gray-400">
+                          沒有符合資料
+                        </div>
+                      ) : (
+                        payments
+                          .filter((item) => item.id && item.id !== '')
+                          .map((item, idx) => (
+                            <SelectItem
+                              key={`payment-${item.id}-${idx}`}
+                              value={item.id.toString()}
+                            >
+                              {item.name}
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {errors.paymentId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.paymentId}
+                    </p>
+                  )}
+                </div>
+                {/* 狀態 */}
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="status">
+                    狀態
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Select value={statusId} onValueChange={setStatusId}>
+                    <SelectTrigger
+                      className={cn(
+                        'w-full',
+                        errors.statusId && 'border-red-500'
+                      )}
+                    >
+                      <SelectValue placeholder="請選擇狀態" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {status.map((sta) => (
+                        <SelectItem key={sta.id} value={sta.id.toString()}>
+                          {sta.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.statusId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.statusId}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* 發票類型 */}
@@ -1049,34 +1082,6 @@ export default function ReservationForm({
                   />
                 </div>
               )}
-
-              {/* 狀態 */}
-              <div className="space-y-2">
-                <Label htmlFor="status">
-                  狀態
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Select value={statusId} onValueChange={setStatusId}>
-                  <SelectTrigger
-                    className={cn(
-                      'w-full',
-                      errors.statusId && 'border-red-500'
-                    )}
-                  >
-                    <SelectValue placeholder="請選擇狀態" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {status.map((sta) => (
-                      <SelectItem key={sta.id} value={sta.id.toString()}>
-                        {sta.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.statusId && (
-                  <p className="text-sm text-red-500 mt-1">{errors.statusId}</p>
-                )}
-              </div>
             </div>
 
             {/* 按鈕區域 */}

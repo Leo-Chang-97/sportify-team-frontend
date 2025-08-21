@@ -1,16 +1,28 @@
 // app/admin/venue/center/page.js
 'use client'
 
-// ===== 依賴項匯入 =====
+// hooks
 import { useState, useMemo } from 'react'
+
+// Icon
+import { IconTrash } from '@tabler/icons-react'
+
+// 資料請求函式庫
+import useSWR from 'swr'
+
+// next 元件
 import { useSearchParams, useRouter } from 'next/navigation'
+
+// API 請求
+import { fetchCenters, deleteCenter, deleteMultipleCenters } from '@/api'
+
+// UI 元件
+
 import { AppSidebar } from '@/components/admin/app-sidebar'
 import { SiteHeader } from '@/components/admin/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { DataTable } from '@/components/admin/data-table'
 import { centerColumns } from './columns'
-import useSWR from 'swr'
-import { fetchCenters, deleteCenter, deleteMultipleCenters } from '@/api'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,28 +33,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 
 export default function CenterPage() {
-  // ===== 路由和搜尋參數處理 =====
+  // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
+  const queryParams = useMemo(() => {
+    const entries = Object.fromEntries(searchParams.entries())
+    return entries
+  }, [searchParams])
 
-  // ===== 組件狀態管理 =====
+  // #region 狀態管理
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [centerToDelete, setCenterToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [centersToDelete, setCentersToDelete] = useState([])
 
-  // ===== URL 參數處理 =====
-  const queryParams = useMemo(() => {
-    const entries = Object.fromEntries(searchParams.entries())
-    return entries
-  }, [searchParams])
-
-  // ===== 數據獲取 =====
+  // #region 數據獲取
   const {
     data,
     isLoading: isDataLoading,
@@ -52,7 +61,7 @@ export default function CenterPage() {
     fetchCenters(params)
   )
 
-  // ===== 事件處理函數 =====
+  // #region 事件處理函數
   const handlePaginationChange = (paginationState) => {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(paginationState.pageIndex + 1))
@@ -157,11 +166,11 @@ export default function CenterPage() {
     setCenterToDelete(null)
   }
 
-  // ===== 載入和錯誤狀態處理 =====
+  //  #region 載入和錯誤狀態處理
   if (isDataLoading) return <p>載入中...</p>
   if (error) return <p>載入錯誤：{error.message}</p>
 
-  // ===== 頁面渲染 =====
+  // #region 頁面渲染
   return (
     <SidebarProvider
       style={{

@@ -133,20 +133,6 @@ export default function CourtTimeSlotPage() {
   )
 
   // #region 副作用處理
-  // 同步篩選狀態與 URL 參數
-  useEffect(() => {
-    setFilters({
-      locationId: queryParams.locationId || '',
-      centerId: queryParams.centerId || '',
-      sportId: queryParams.sportId || '',
-      timePeriodId: queryParams.timePeriodId || '',
-    })
-  }, [
-    queryParams.locationId,
-    queryParams.centerId,
-    queryParams.sportId,
-    queryParams.timePeriodId,
-  ])
 
   useEffect(() => {
     const loadData = async () => {
@@ -166,6 +152,21 @@ export default function CourtTimeSlotPage() {
     }
     loadData()
   }, [])
+
+  // 同步篩選狀態與 URL 參數
+  useEffect(() => {
+    setFilters({
+      locationId: queryParams.locationId || '',
+      centerId: queryParams.centerId || '',
+      sportId: queryParams.sportId || '',
+      timePeriodId: queryParams.timePeriodId || '',
+    })
+  }, [
+    queryParams.locationId,
+    queryParams.centerId,
+    queryParams.sportId,
+    queryParams.timePeriodId,
+  ])
 
   useEffect(() => {
     const loadData = async () => {
@@ -264,6 +265,7 @@ export default function CourtTimeSlotPage() {
     }
     router.push(`?${newParams.toString()}`)
   }
+
   // 處理篩選變更
   const handleFilterChange = (filterName, value) => {
     setFilters((prev) => {
@@ -333,6 +335,7 @@ export default function CourtTimeSlotPage() {
     // 更新 URL
     router.push(`?${newParams.toString()}`)
   }
+
   const handleOrderBy = (orderby) => {
     const newParams = new URLSearchParams(searchParams.toString())
     if (orderby) {
@@ -534,12 +537,12 @@ export default function CourtTimeSlotPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Court Time Slot" />
+        <SiteHeader title="場地價格管理" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             {/* 篩選表單 */}
             <div className="flex flex-col gap-4 px-4 md:px-6 py-4 md:gap-6 md:py-6">
-              <Card>
+              <Card className="shadow-none">
                 {/* <CardHeader>
                   <CardTitle>篩選條件</CardTitle>
                 </CardHeader> */}
@@ -585,7 +588,6 @@ export default function CourtTimeSlotPage() {
                             value === 'all' ? '' : value
                           )
                         }
-                        disabled={!filters.locationId}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="選擇場館" />
@@ -668,22 +670,28 @@ export default function CourtTimeSlotPage() {
                       </Select>
                     </div>
                   </div>
-
+                </CardContent>
+                <CardFooter>
                   {/* 篩選按鈕 */}
-                  <div className="flex flex-col md:flex-row justify-end gap-4 mt-4">
+                  <div className="flex flex-col md:flex-row w-full justify-end gap-4">
                     <Button
                       onClick={() => handleApplyFilters()}
                       variant="default"
+                      className="w-full md:w-auto"
                     >
                       <IconSearch />
                       套用篩選
                     </Button>
-                    <Button onClick={handleClearFilters} variant="outline">
+                    <Button
+                      onClick={handleClearFilters}
+                      variant="outline"
+                      className="w-full md:w-auto"
+                    >
                       <IconX />
                       清除篩選
                     </Button>
                   </div>
-                </CardContent>
+                </CardFooter>
               </Card>
             </div>
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
