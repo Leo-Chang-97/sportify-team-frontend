@@ -83,12 +83,10 @@ export function LoginForm({
                   type="icon"
                   size="sm"
                   onClick={() => {
-                    if (onSubmit) {
-                      onSubmit({
-                        email: 'admin@gmail.com',
-                        password: '123456',
-                      })
-                    }
+                    setFormData({
+                      email: 'admin@gmail.com',
+                      password: '123456',
+                    })
                   }}
                 >
                   <UserRoundCog />
@@ -101,12 +99,10 @@ export function LoginForm({
                   type="icon"
                   size="sm"
                   onClick={() => {
-                    if (onSubmit) {
-                      onSubmit({
-                        email: 'user@gmail.com',
-                        password: '123456',
-                      })
-                    }
+                    setFormData({
+                      email: 'user@gmail.com',
+                      password: '123456',
+                    })
                   }}
                 >
                   <UserRound />
