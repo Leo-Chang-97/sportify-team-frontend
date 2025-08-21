@@ -67,8 +67,6 @@ const MobileSidebar = ({
   selectedBrands,
   priceRange,
   clearAllFilters,
-  queryParams,
-  selectedCategory,
   onApplyFilters,
 }) => {
   const [localSports, setLocalSports] = useState(selectedSports)
@@ -218,7 +216,6 @@ export default function ProductListPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sports, setSports] = useState([])
   const [brands, setBrands] = useState([])
-  const [products, setProducts] = useState([])
   const [searchKeyword, setSearchKeyword] = useState('')
   const [selectedCategory, setSelectedCategory] = useState({
     name: '',
@@ -246,16 +243,19 @@ export default function ProductListPage() {
   }, [queryParams.sort])
 
   // ===== 數據獲取 =====
-  const {
-    data,
-    isLoading: isDataLoading,
-    error,
-    mutate,
-  } = useSWR(['products', queryParams], async ([, params]) => {
-    const result = await getProducts(params)
-    // console.log('Products API response:', result) // Debug用
-    return result
-  })
+  const { data, error, mutate } = useSWR(
+    ['products', queryParams],
+    async ([, params]) => {
+      const result = await getProducts(params)
+      // console.log('Products API response:', result) // Debug用
+      return result
+    },
+    {
+      keepPreviousData: true, // 換參數時保留舊的資料
+      revalidateOnFocus: false, // 切回頁面不會自動刷新
+    }
+  )
+  const products = data?.data ?? []
 
   // ===== 副作用處理 =====
   useEffect(() => {
@@ -282,44 +282,6 @@ export default function ProductListPage() {
     loadData()
   }, [])
 
-  useEffect(() => {
-    if (data && data.data) {
-      setProducts(data.data)
-      // console.log('Products loaded:', data.data)
-
-      // 更新選中分類的商品數量、名稱
-      const sportId = queryParams.sportId
-      const brandId = queryParams.brandId
-      const keyword = queryParams.keyword
-
-      if (sportId) {
-        const sport = sports.find((s) => s.id === parseInt(sportId))
-        if (sport) {
-          setSelectedCategory({
-            name: sport.sport_name || sport.name,
-            count: data.totalRows || 0,
-          })
-        }
-      } else if (brandId) {
-        const brand = brands.find((b) => b.id === parseInt(brandId))
-        if (brand) {
-          setSelectedCategory({
-            name: brand.name,
-            count: data.totalRows || 0,
-          })
-        }
-      } else if (keyword) {
-        setSelectedCategory({
-          name: keyword,
-          count: data.totalRows || 0,
-        })
-      } else {
-        // 如果沒有篩選條件，清空選中分類
-        setSelectedCategory({ name: '', count: data.totalRows || 0 })
-      }
-    }
-  }, [data, queryParams, sports, brands])
-
   // ===== 事件處理函數 =====
   const handleSearch = (event) => {
     if (event.key === 'Enter') {
@@ -332,7 +294,7 @@ export default function ProductListPage() {
         newParams.set('keyword', keyword)
       }
       newParams.set('page', '1')
-      router.push(`?${newParams.toString()}`)
+      router.push(`?${newParams.toString()}`, { scroll: false })
     }
   }
 
@@ -346,7 +308,7 @@ export default function ProductListPage() {
       newParams.set('keyword', keyword)
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const handleSortChange = (sortValue) => {
@@ -357,7 +319,7 @@ export default function ProductListPage() {
       newParams.delete('sort')
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const handlePagination = (targetPage) => {
@@ -365,7 +327,7 @@ export default function ProductListPage() {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(targetPage))
     newParams.set('perPage', String(perPage))
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const handleAddToWishlist = async (productId) => {
@@ -436,7 +398,7 @@ export default function ProductListPage() {
       newParams.delete('sportId')
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
   const handleBrandChange = (id, checked) => {
     const updated = checked
@@ -450,7 +412,7 @@ export default function ProductListPage() {
       newParams.delete('brandId')
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   // 手機版套用篩選
@@ -464,7 +426,7 @@ export default function ProductListPage() {
     if (price[0] !== 0) newParams.set('minPrice', price[0])
     if (price[1] !== 3500) newParams.set('maxPrice', price[1])
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const clearAllFilters = () => {
@@ -474,24 +436,24 @@ export default function ProductListPage() {
     setPriceRange([0, 3500])
     // 清空 URL 參數
     const newParams = new URLSearchParams()
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   // ===== 載入和錯誤狀態處理 =====
-  if (isDataLoading) {
-    return <LoadingState message="載入商品資料中..." />
-  }
-  if (error) {
-    return (
-      <ErrorState
-        title="商品資料載入失敗"
-        message={`載入錯誤：${error.message}` || '找不到您要看的商品資料'}
-        onRetry={mutate}
-        backUrl="/shop"
-        backLabel="重新載入"
-      />
-    )
-  }
+  // if (isDataLoading) {
+  //   return <LoadingState message="載入商品資料中..." />
+  // }
+  // if (error) {
+  //   return (
+  //     <ErrorState
+  //       title="商品資料載入失敗"
+  //       message={`載入錯誤：${error.message}` || '找不到您要看的商品資料'}
+  //       onRetry={mutate}
+  //       backUrl="/shop"
+  //       backLabel="重新載入"
+  //     />
+  //   )
+  // }
 
   return (
     <>
@@ -559,7 +521,7 @@ export default function ProductListPage() {
                   newParams.set('minPrice', minPrice)
                   newParams.set('maxPrice', maxPrice)
                   newParams.set('page', '1') // 篩選後回到第一頁
-                  router.push(`?${newParams.toString()}`)
+                  router.push(`?${newParams.toString()}`, { scroll: false })
                 }}
               />
               <div className="flex justify-between text-sm">
@@ -647,7 +609,7 @@ export default function ProductListPage() {
             </div>
             {/* 商品列表 */}
             <div className="flex flex-col gap-6">
-              {isDataLoading ? (
+              {!data && !error ? (
                 <LoadingState message="載入商品資料中..." />
               ) : error ? (
                 <ErrorState
