@@ -37,13 +37,13 @@ const MemberHomeButtons = () => {
             type="button"
             data-state={item.label.toLowerCase().replace(/\s+/g, '-')}
             data-type="default"
-            className="w-32 h-32 md:w-40 md:h-40 py-2 outline outline-1 outline-offset-[-1px] outline-white flex flex-col justify-center items-center gap-2 hover:bg-white/10 transition rounded-lg cursor-pointer"
+            className="w-32 h-32 md:w-40 md:h-40 py-2 outline outline-1 outline-offset-[-1px] outline-primary flex flex-col justify-center items-center gap-2 hover:bg-primary/10 transition rounded-lg cursor-pointer"
             onClick={() => handleButtonClick(item.path)}
           >
             <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center">
               <item.icon className="w-full h-full" />
             </div>
-            <div className="w-full px-1 text-center text-white text-sm md:text-base font-bold leading-tight md:leading-10">
+            <div className="w-full px-1 text-center text-foreground text-sm md:text-base font-bold leading-tight md:leading-10">
               {item.label}
             </div>
           </button>

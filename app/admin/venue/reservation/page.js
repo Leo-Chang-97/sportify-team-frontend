@@ -142,16 +142,44 @@ export default function ReservationPage() {
 
         const centerData = await fetchCenterOptions()
         setCenters(centerData.rows || [])
-
-        const sportData = await fetchSportOptions()
-        setSports(sportData.rows || [])
       } catch (error) {
-        console.error('載入選項資料失敗:', error)
-        toast.error('載入選項資料失敗')
+        console.error('載入基礎資料失敗:', error)
+        toast.error('載入基礎資料失敗')
       }
     }
     loadData()
   }, [])
+
+  // 載入運動項目選項（依場館篩選）
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let sportData
+        if (filters.centerId) {
+          sportData = await fetchSportOptions({
+            centerId: Number(filters.centerId),
+          })
+        } else {
+          sportData = await fetchSportOptions()
+        }
+        setSports(sportData.rows || [])
+
+        // 如果當前選擇的運動項目不在新的運動清單中，清空選擇
+        if (filters.sportId && sportData.rows && sportData.rows.length > 0) {
+          const sportExists = sportData.rows.some(
+            (sport) => sport.id.toString() === filters.sportId
+          )
+          if (!sportExists) {
+            setFilters((prev) => ({ ...prev, sportId: '' }))
+          }
+        }
+      } catch (error) {
+        console.error('載入運動項目失敗:', error)
+        setSports([])
+      }
+    }
+    loadData()
+  }, [filters.centerId])
 
   // 同步篩選狀態與 URL 參數
   useEffect(() => {
@@ -243,6 +271,12 @@ export default function ReservationPage() {
       // 如果變更地區，清空場館選擇
       if (filterName === 'locationId') {
         newFilters.centerId = ''
+        newFilters.sportId = '' // 同時清空運動項目選擇
+      }
+
+      // 如果變更場館，清空運動項目選擇（會由 useEffect 重新載入適合的運動項目）
+      if (filterName === 'centerId') {
+        newFilters.sportId = ''
       }
 
       return newFilters
@@ -615,14 +649,22 @@ export default function ReservationPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">全部運動</SelectItem>
-                          {sports.map((sport) => (
-                            <SelectItem
-                              key={sport.id}
-                              value={sport.id.toString()}
-                            >
-                              {sport.name}
-                            </SelectItem>
-                          ))}
+                          {sports.length === 0 ? (
+                            <div className="px-3 py-2 text-gray-400 text-center">
+                              {filters.centerId
+                                ? '此場館沒有支援的運動項目'
+                                : '載入中...'}
+                            </div>
+                          ) : (
+                            sports.map((sport) => (
+                              <SelectItem
+                                key={sport.id}
+                                value={sport.id.toString()}
+                              >
+                                {sport.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

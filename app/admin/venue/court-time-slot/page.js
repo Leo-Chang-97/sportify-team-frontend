@@ -140,18 +140,46 @@ export default function CourtTimeSlotPage() {
         const locationData = await fetchLocationOptions()
         setLocations(locationData.rows || [])
 
-        const sportData = await fetchSportOptions()
-        setSports(sportData.rows || [])
-
         const timePeriodData = await fetchTimePeriodOptions()
         setTimePeriods(timePeriodData.rows || [])
       } catch (error) {
-        console.error('載入球場/時段失敗:', error)
-        toast.error('載入球場/時段失敗')
+        console.error('載入基礎資料失敗:', error)
+        toast.error('載入基礎資料失敗')
       }
     }
     loadData()
   }, [])
+
+  // 載入運動項目選項（依場館篩選）
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let sportData
+        if (filters.centerId) {
+          sportData = await fetchSportOptions({
+            centerId: Number(filters.centerId),
+          })
+        } else {
+          sportData = await fetchSportOptions()
+        }
+        setSports(sportData.rows || [])
+
+        // 如果當前選擇的運動項目不在新的運動清單中，清空選擇
+        if (filters.sportId && sportData.rows && sportData.rows.length > 0) {
+          const sportExists = sportData.rows.some(
+            (sport) => sport.id.toString() === filters.sportId
+          )
+          if (!sportExists) {
+            setFilters((prev) => ({ ...prev, sportId: '' }))
+          }
+        }
+      } catch (error) {
+        console.error('載入運動項目失敗:', error)
+        setSports([])
+      }
+    }
+    loadData()
+  }, [filters.centerId])
 
   // 同步篩選狀態與 URL 參數
   useEffect(() => {
@@ -246,6 +274,36 @@ export default function CourtTimeSlotPage() {
     loadData()
   }, [timePeriodId])
 
+  // 載入表單中的運動項目（依場館篩選）
+  useEffect(() => {
+    const loadFormSports = async () => {
+      try {
+        let sportData
+        if (centerId) {
+          sportData = await fetchSportOptions({ centerId: Number(centerId) })
+        } else {
+          sportData = await fetchSportOptions()
+        }
+
+        // 更新運動項目清單（這會影響表單中的運動選擇）
+        const formSports = sportData.rows || []
+
+        // 如果當前選擇的運動項目不在新清單中，清空選擇
+        if (sportId && formSports.length > 0) {
+          const sportExists = formSports.some(
+            (sport) => sport.id.toString() === sportId
+          )
+          if (!sportExists) {
+            setSportId('')
+          }
+        }
+      } catch (error) {
+        console.error('載入表單運動項目失敗:', error)
+      }
+    }
+    loadFormSports()
+  }, [centerId])
+
   // #region 事件處理函數
   const handlePaginationChange = (paginationState) => {
     const newParams = new URLSearchParams(searchParams.toString())
@@ -274,6 +332,12 @@ export default function CourtTimeSlotPage() {
       // 如果變更地區，清空場館選擇
       if (filterName === 'locationId') {
         newFilters.centerId = ''
+        newFilters.sportId = '' // 同時清空運動項目選擇
+      }
+
+      // 如果變更場館，清空運動項目選擇（會由 useEffect 重新載入適合的運動項目）
+      if (filterName === 'centerId') {
+        newFilters.sportId = ''
       }
 
       return newFilters
@@ -783,16 +847,31 @@ export default function CourtTimeSlotPage() {
                     <SelectValue placeholder="全部運動" />
                   </SelectTrigger>
                   <SelectContent>
-                    {sports.length === 0 ? (
+                    {sports.filter(
+                      (sport) =>
+                        !centerId ||
+                        // 運動項目已經由 API 根據 centerId 篩選過了
+                        true
+                    ).length === 0 ? (
                       <div className="px-3 py-2 text-gray-400">
-                        沒有符合資料
+                        {centerId ? '此場館沒有支援的運動項目' : '沒有符合資料'}
                       </div>
                     ) : (
-                      sports.map((sport) => (
-                        <SelectItem key={sport.id} value={sport.id.toString()}>
-                          {sport.name}
-                        </SelectItem>
-                      ))
+                      sports
+                        .filter(
+                          (sport) =>
+                            !centerId ||
+                            // 運動項目已經由 API 根據 centerId 篩選過了
+                            true
+                        )
+                        .map((sport) => (
+                          <SelectItem
+                            key={sport.id}
+                            value={sport.id.toString()}
+                          >
+                            {sport.name}
+                          </SelectItem>
+                        ))
                     )}
                   </SelectContent>
                 </Select>

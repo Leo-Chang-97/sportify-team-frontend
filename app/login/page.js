@@ -60,7 +60,7 @@ export default function Page() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-svh w-full flex items-center justify-center p-6 md:p-10 overflow-hidden">
+      <div className="relative min-h-svh w-full flex items-center justify-center overflow-hidden">
         {/* 背景影片 */}
         <div className="absolute inset-0 w-full h-full">
           <video

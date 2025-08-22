@@ -59,7 +59,7 @@ export function LoginForm({
   return (
     <div className={cn('flex justify-center', className)} {...props}>
       <Card
-        className={`overflow-hidden p-0 w-full ${isLargeScreen ? 'max-w-4xl' : 'max-w-sm'}`}
+        className={`overflow-hidden p-0 w-85 md:w-full ${isLargeScreen ? 'max-w-4xl' : 'max-w-sm'}`}
       >
         <div className="flex flex-row">
           {isLargeScreen && (
@@ -74,7 +74,7 @@ export function LoginForm({
           )}
           <div className={`p-6 ${isLargeScreen ? 'w-1/2' : 'w-full'}`}>
             <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold">登入帳號</h2>
+              <h2 className="text-xl font-bold">登入帳號</h2>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -115,7 +115,7 @@ export function LoginForm({
                 <div className="flex flex-col gap-6">
                   {/* 一般錯誤訊息 */}
                   {errors.general && (
-                    <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
+                    <div className="text-destructive text-sm text-center bg-red-50 p-2 rounded">
                       {errors.general}
                     </div>
                   )}
@@ -123,7 +123,7 @@ export function LoginForm({
                   <div className="grid gap-3">
                     <Label htmlFor="email">Email</Label>
                     <Input
-                      className={errors.email ? 'border-red-500' : ''}
+                      className={errors.email ? 'border-destructive' : ''}
                       id="email"
                       type="email"
                       placeholder="m@example.com"
@@ -133,11 +133,14 @@ export function LoginForm({
                       }
                       disabled={isLoading}
                     />
-                    {errors.email && (
-                      <div className="text-red-500 text-sm">{errors.email}</div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.email && (
+                        <div className="text-destructive text-sm">
+                          {errors.email}
+                        </div>
+                      )}
+                    </div>
                   </div>
-
                   <div className="grid gap-3">
                     <div className="flex items-center">
                       <Label htmlFor="password">Password</Label>
@@ -149,20 +152,23 @@ export function LoginForm({
                       </a>
                     </div>
                     <Input
-                      className={errors.password ? 'border-red-500' : ''}
+                      className={errors.password ? 'border-destructive' : ''}
                       id="password"
                       type="password"
                       value={formData.password}
+                      placeholder="請輸入密碼"
                       onChange={(e) =>
                         handleInputChange('password', e.target.value)
                       }
                       disabled={isLoading}
                     />
-                    {errors.password && (
-                      <div className="text-red-500 text-sm">
-                        {errors.password}
-                      </div>
-                    )}
+                    <div className="h-4 flex items-center">
+                      {errors.password && (
+                        <div className="text-destructive text-sm">
+                          {errors.password}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-3">

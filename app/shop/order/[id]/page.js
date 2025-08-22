@@ -68,7 +68,7 @@ export default function OrderDetailPage() {
   let summaries = []
   if (order) {
     summaries = [
-      { key: '訂單編號', value: order.id || '未知' },
+      { key: '訂單編號', value: order.order_number || '未知' },
       { key: '收件人', value: order.recipient || '未知' },
       { key: '手機號碼', value: order.phone || '未知' },
     ]

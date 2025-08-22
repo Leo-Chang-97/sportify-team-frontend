@@ -92,8 +92,9 @@ export default function GoogleLoginButton() {
 
   return (
     <Button
+      variant="ghost"
       onClick={handleGoogleLogin}
-      className="px-4 py-2 transition-colors w-full"
+      className="transition-colors w-full shadow-sm border border-muted"
     >
       <div className="flex items-center justify-center">
         <div className="py-0.25 w-4 h-4 items-center justify-center">
