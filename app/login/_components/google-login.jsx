@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { GoogleIcon } from '@/components/icons/member-icons'
+import { toast } from 'sonner'
 export default function GoogleLoginButton() {
   const { googleLogin, user, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -19,7 +20,7 @@ export default function GoogleLoginButton() {
       const response = await googleLogin(idToken)
 
       if (response.success) {
-        alert('Google 登入成功！歡迎回來！')
+        toast.success('Google 登入成功！歡迎回來！')
 
         // 等待一下讓認證狀態更新
         setTimeout(() => {
@@ -28,7 +29,7 @@ export default function GoogleLoginButton() {
         }, 100)
       } else {
         console.error('後端驗證失敗:', response)
-        alert(`後端驗證失敗: ${response.message || '未知錯誤'}`)
+        toast.error(`後端驗證失敗: ${response.message || '未知錯誤'}`)
       }
     } catch (error) {
       // 如果是用戶主動關閉視窗，直接返回，不顯示任何錯誤訊息

@@ -23,6 +23,7 @@ export default function Page() {
     }
   }, [isAuthenticated, user, router, redirectPath])
 
+
   // ===== 事件處理函數 =====
   const handleSubmit = async (formData) => {
     setErrors({})

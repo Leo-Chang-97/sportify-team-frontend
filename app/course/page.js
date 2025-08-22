@@ -138,6 +138,7 @@ export default function VenueListPage() {
 
   // ===== 重設篩選功能 =====
   const handleResetFilter = () => {
+    setCoachId('')
     setSportId('')
     setKeyword('')
     setCurrentPage(1)
@@ -186,7 +187,7 @@ export default function VenueListPage() {
       label: '教練',
       component: (
         <Select value={coachId} onValueChange={setCoachId}>
-          <SelectTrigger className="w-full !bg-accent !h-10 shadow-md border-muted-foreground text-black ">
+          <SelectTrigger className="w-full !bg-accent !h-10 shadow-md border-muted-foreground text-accent-foreground">
             <SelectValue placeholder="請選擇教練" />
           </SelectTrigger>
           <SelectContent>

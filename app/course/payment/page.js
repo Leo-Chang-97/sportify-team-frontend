@@ -635,7 +635,7 @@ export default function CoursePaymentPage() {
                         {isLoadingLesson ? (
                           <div className="h-6 bg-muted animate-pulse rounded w-16" />
                         ) : (
-                          `NT$ ${lessonData?.price || 0}`
+                          `NT$ ${lessonData?.price.toLocaleString() || 0}`
                         )}
                       </span>
                     </div>

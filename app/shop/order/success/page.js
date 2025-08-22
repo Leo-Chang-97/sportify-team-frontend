@@ -260,7 +260,7 @@ export default function ProductSuccessPage() {
                 <Button variant="outline">查看訂單</Button>
               </Link>
               <Link href="/shop">
-                <Button variant="highlight">瀏覽新商品</Button>
+                <Button variant="highlight">返回列表頁</Button>
               </Link>
             </div>
           </div>
