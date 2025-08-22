@@ -130,22 +130,22 @@ export default function ProductPaymentPage() {
   }, [cartData])
 
   // 接收 7-11 選擇門市後的資料
-  useEffect(() => {
-    const handleStoreMessage = (event) => {
-      if (event.data?.storename) {
-        setFormData((prev) => ({
-          ...prev,
-          storeName: event.data.storename,
-        }))
-      }
-    }
+  // useEffect(() => {
+  //   const handleStoreMessage = (event) => {
+  //     if (event.data?.storename) {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         storeName: event.data.storename,
+  //       }))
+  //     }
+  //   }
 
-    window.addEventListener('message', handleStoreMessage)
+  //   window.addEventListener('message', handleStoreMessage)
 
-    return () => {
-      window.removeEventListener('message', handleStoreMessage)
-    }
-  }, [])
+  //   return () => {
+  //     window.removeEventListener('message', handleStoreMessage)
+  //   }
+  // }, [])
 
   // ===== 事件處理函數 =====
   const handleInputChange = (field, value) => {
