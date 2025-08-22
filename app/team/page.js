@@ -194,7 +194,7 @@ export default function TeamPage() {
       label: '級別',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full !bg-card text-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -218,7 +218,7 @@ export default function TeamPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -248,7 +248,7 @@ export default function TeamPage() {
           />
           <Input
             type="search"
-            className="w-full !bg-card text-accent-foreground !h-10 pl-10"
+            className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground pl-10"
             placeholder="請輸入關鍵字"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -278,7 +278,7 @@ export default function TeamPage() {
       <ScrollAreaSport
         sportItems={sports}
         onSportSelect={(id) => {
-          setSportId(id)
+          setSportId(id.toString())
           handleSearch(keyword, id)
         }}
       />
