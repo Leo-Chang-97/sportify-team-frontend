@@ -22,6 +22,7 @@ import {
   InfoIcon,
 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getTeamImageUrl } from '@/api/team/image'
 
 const FALLBACK_IMAGE_URL =
   "data:image/svg+xml,%3Csvg width='256' height='192' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='16' fill='%23333' text-anchor='middle' dominant-baseline='middle'%3E無圖片%3C/text%3E%3C/svg%3E"
@@ -31,6 +32,7 @@ export function TeamCard({
   onToggleExpand,
   teamName = '隊伍名稱',
   sportType = '運動類型',
+  sportIconKey, // <-- 1. 新增 sportIconKey prop
   currentMembers = 0,
   maxMembers = 0,
   location = '地點',
@@ -66,6 +68,10 @@ export function TeamCard({
   }
   const CurrentSportIcon = SportIcons[sportType] || null
 
+  const defaultSportImage = sportIconKey
+    ? `/team-imgs/${sportIconKey}.jpg`
+    : FALLBACK_IMAGE_URL
+
   return (
     <div data-name="team-card-container" className="relative w-full">
       <div
@@ -77,7 +83,7 @@ export function TeamCard({
         <div className="w-full p-4 flex flex-col lg:flex-row justify-start lg:items-stretch gap-4">
           <div className="w-full lg:w-64 flex-shrink-0">
             <img
-              src={imageUrl || FALLBACK_IMAGE_URL}
+              src={getTeamImageUrl(imageUrl) || defaultSportImage} // <-- 改用新的預設圖片
               alt={teamName || '隊伍圖片'}
               className="w-full h-full rounded-lg object-cover aspect-[4/3] lg:aspect-auto"
               onError={(e) => {

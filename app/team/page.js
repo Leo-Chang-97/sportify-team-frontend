@@ -362,6 +362,7 @@ export default function TeamPage() {
                     onToggleExpand={() => handleToggleExpand(index, team.id)}
                     teamName={team.name}
                     sportType={team.court?.sport?.name || '未知運動'}
+                    sportIconKey={team.court?.sport?.iconKey} // <-- 將 iconKey 傳入
                     currentMembers={team._count?.TeamMember || 0}
                     maxMembers={team.capacity || 12}
                     location={team.court?.center?.name || '未知地點'}

@@ -26,6 +26,12 @@ const nextConfig = {
         port: '3005',
         pathname: '/course-imgs/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3005',
+        pathname: '/team-imgs/**',
+      },
       // {
       //   protocol: 'http',
       //   hostname: 'localhost',
