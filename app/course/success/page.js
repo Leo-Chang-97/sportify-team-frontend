@@ -387,7 +387,7 @@ export default function CourseSuccessPage() {
                   返回總覽
                 </Button>
               </Link>
-              <Link href="/member/orders">
+              <Link href="/member/class-data">
                 <Button
                   size="lg"
                   className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white"
