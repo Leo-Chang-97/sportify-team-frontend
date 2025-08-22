@@ -107,7 +107,7 @@ const MobileSidebar = ({
   const handleClear = () => {
     setLocalSports([])
     setLocalBrands([])
-    setLocalPrice([0, 3500])
+    setLocalPrice([0, 1000])
     clearAllFilters()
     onClose(false)
   }
@@ -182,7 +182,7 @@ const MobileSidebar = ({
                 value={localPrice}
                 onValueChange={setLocalPrice}
                 min={0}
-                max={3500}
+                max={1000}
                 step={10}
               />
               <div className="flex justify-between text-sm">
@@ -221,7 +221,7 @@ export default function ProductListPage() {
     name: '',
     count: 0,
   })
-  const [priceRange, setPriceRange] = useState([0, 3500])
+  const [priceRange, setPriceRange] = useState([0, 1000])
   const [selectedSports, setSelectedSports] = useState([])
   const [selectedBrands, setSelectedBrands] = useState([])
 
@@ -298,7 +298,7 @@ export default function ProductListPage() {
       queryParams.sportId ||
       queryParams.brandId ||
       (queryParams.minPrice && Number(queryParams.minPrice) > 0) ||
-      (queryParams.maxPrice && Number(queryParams.maxPrice) < 3500) ||
+      (queryParams.maxPrice && Number(queryParams.maxPrice) < 1000) ||
       queryParams.sort
   )
 
@@ -459,7 +459,7 @@ export default function ProductListPage() {
     if (sports.length > 0) newParams.set('sportId', sports.join(','))
     if (brands.length > 0) newParams.set('brandId', brands.join(','))
     if (price[0] !== 0) newParams.set('minPrice', price[0])
-    if (price[1] !== 3500) newParams.set('maxPrice', price[1])
+    if (price[1] !== 1000) newParams.set('maxPrice', price[1])
     newParams.set('page', '1')
     router.push(`?${newParams.toString()}`, { scroll: false })
   }
@@ -468,7 +468,7 @@ export default function ProductListPage() {
     // 清空本地狀態
     setSelectedSports([])
     setSelectedBrands([])
-    setPriceRange([0, 3500])
+    setPriceRange([0, 1000])
     setSearchKeyword('')
     // 清空 URL 參數
     const newParams = new URLSearchParams()
@@ -533,7 +533,7 @@ export default function ProductListPage() {
                 value={priceRange}
                 onValueChange={setPriceRange}
                 min={0}
-                max={3500}
+                max={1000}
                 step={10}
                 onValueCommit={(values) => {
                   const [minPrice, maxPrice] = values
