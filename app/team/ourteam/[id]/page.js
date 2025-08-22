@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { jwtDecode } from 'jwt-decode'
 import TeamLink from '@/components/card/team-link'
-import { getAvatarUrl } from '@/api/member/user'
+import { getAvatarUrl, getUserProfile } from '@/api/member/user'
 
 // 保持這個不受時區影響的日期格式化函式
 const toYYYYMMDD = (date) => {
@@ -100,16 +100,31 @@ const TeamDetailPage = () => {
 
   // 3. 簡潔的 useEffect，只負責初次載入
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('sportify-auth')
-      if (token) {
-        const userData = jwtDecode(token)
-        setCurrentUser(userData)
+    const loadUserData = async () => {
+      try {
+        const token = localStorage.getItem('sportify-auth')
+        if (token) {
+          // 先從 JWT 獲取基本資訊
+          const userData = jwtDecode(token)
+          setCurrentUser(userData)
+
+          // 再從後端獲取完整的用戶資訊（包括頭像）
+          try {
+            const profileData = await getUserProfile()
+            if (profileData.success && profileData.user) {
+              setCurrentUser(profileData.user)
+            }
+          } catch (profileError) {
+            console.error('獲取用戶資料失敗:', profileError)
+            // 如果獲取完整資料失敗，至少保留 JWT 中的基本資訊
+          }
+        }
+      } catch (error) {
+        console.error('從 localStorage 解碼 JWT 失敗:', error)
       }
-    } catch (error) {
-      console.error('從 localStorage 解碼 JWT 失敗:', error)
     }
 
+    loadUserData()
     fetchTeamData(true) // 呼叫獲取函式，並告知是「初次載入」
   }, [teamId, fetchTeamData])
 
@@ -577,17 +592,19 @@ const TeamDetailPage = () => {
               </div>
             </div>
             <div className="mt-auto flex items-center gap-2">
-              {teamData.messages?.map((msg) => (
-                <div key={msg.id}>
+              {currentUser && (
+                <>
                   <img
                     src={
-                      getAvatarUrl(msg.member.avatar) ||
+                      getAvatarUrl(currentUser.avatar) ||
                       'https://placehold.co/48x48/E0E0E0/333333?text=user'
                     }
                     className="w-10 h-10 rounded-full object-cover"
+                    alt={currentUser.name || '目前用戶'}
                   />
-                </div>
-              ))}
+                </>
+              )}
+
               <div className="flex-1 flex gap-2">
                 <input
                   type="text"

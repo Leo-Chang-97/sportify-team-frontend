@@ -1,5 +1,11 @@
 import { apiClient } from '@/api/axios'
 
+// 獲取用戶資料
+export const getUserProfile = async () => {
+  const res = await apiClient.get('/auth/profile')
+  return res.data
+}
+
 // 更新用戶資料
 export const updateUserProfile = async (userData) => {
   const res = await apiClient.put('/auth/profile', userData)
