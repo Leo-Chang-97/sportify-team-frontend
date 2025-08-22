@@ -67,8 +67,6 @@ const MobileSidebar = ({
   selectedBrands,
   priceRange,
   clearAllFilters,
-  queryParams,
-  selectedCategory,
   onApplyFilters,
 }) => {
   const [localSports, setLocalSports] = useState(selectedSports)
@@ -144,7 +142,7 @@ const MobileSidebar = ({
                         handleSportChange(sport.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-primary">
+                    <span className="text-base font-normal text-foreground hover:text-primary">
                       {sport.name}
                     </span>
                   </label>
@@ -168,7 +166,7 @@ const MobileSidebar = ({
                         handleBrandChange(brand.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-primary">
+                    <span className="text-base font-normal text-foreground hover:text-primary">
                       {brand.name}
                     </span>
                   </label>
@@ -218,7 +216,6 @@ export default function ProductListPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sports, setSports] = useState([])
   const [brands, setBrands] = useState([])
-  const [products, setProducts] = useState([])
   const [searchKeyword, setSearchKeyword] = useState('')
   const [selectedCategory, setSelectedCategory] = useState({
     name: '',
@@ -246,16 +243,19 @@ export default function ProductListPage() {
   }, [queryParams.sort])
 
   // ===== 數據獲取 =====
-  const {
-    data,
-    isLoading: isDataLoading,
-    error,
-    mutate,
-  } = useSWR(['products', queryParams], async ([, params]) => {
-    const result = await getProducts(params)
-    // console.log('Products API response:', result) // Debug用
-    return result
-  })
+  const { data, error, mutate } = useSWR(
+    ['products', queryParams],
+    async ([, params]) => {
+      const result = await getProducts(params)
+      // console.log('Products API response:', result) // Debug用
+      return result
+    },
+    {
+      keepPreviousData: true, // 換參數時保留舊的資料
+      revalidateOnFocus: false, // 切回頁面不會自動刷新
+    }
+  )
+  const products = data?.data ?? []
 
   // ===== 副作用處理 =====
   useEffect(() => {
@@ -282,43 +282,25 @@ export default function ProductListPage() {
     loadData()
   }, [])
 
+  // === 只同步總筆數到 selectedCategory，避免不必要 re-render ===
   useEffect(() => {
-    if (data && data.data) {
-      setProducts(data.data)
-      // console.log('Products loaded:', data.data)
+    if (!data) return
+    const count =
+      data.totalRows ??
+      data.total ??
+      (Array.isArray(products) ? products.length : 0)
+    setSelectedCategory((prev) => ({ ...prev, count }))
+  }, [data, products])
 
-      // 更新選中分類的商品數量、名稱
-      const sportId = queryParams.sportId
-      const brandId = queryParams.brandId
-      const keyword = queryParams.keyword
-
-      if (sportId) {
-        const sport = sports.find((s) => s.id === parseInt(sportId))
-        if (sport) {
-          setSelectedCategory({
-            name: sport.sport_name || sport.name,
-            count: data.totalRows || 0,
-          })
-        }
-      } else if (brandId) {
-        const brand = brands.find((b) => b.id === parseInt(brandId))
-        if (brand) {
-          setSelectedCategory({
-            name: brand.name,
-            count: data.totalRows || 0,
-          })
-        }
-      } else if (keyword) {
-        setSelectedCategory({
-          name: keyword,
-          count: data.totalRows || 0,
-        })
-      } else {
-        // 如果沒有篩選條件，清空選中分類
-        setSelectedCategory({ name: '', count: data.totalRows || 0 })
-      }
-    }
-  }, [data, queryParams, sports, brands])
+  // === 是否有啟用任何篩選/排序/關鍵字（用於顯示「清除篩選」） ===
+  const hasActiveFilters = Boolean(
+    queryParams.keyword ||
+      queryParams.sportId ||
+      queryParams.brandId ||
+      (queryParams.minPrice && Number(queryParams.minPrice) > 0) ||
+      (queryParams.maxPrice && Number(queryParams.maxPrice) < 3500) ||
+      queryParams.sort
+  )
 
   // ===== 事件處理函數 =====
   const handleSearch = (event) => {
@@ -332,7 +314,7 @@ export default function ProductListPage() {
         newParams.set('keyword', keyword)
       }
       newParams.set('page', '1')
-      router.push(`?${newParams.toString()}`)
+      router.push(`?${newParams.toString()}`, { scroll: false })
     }
   }
 
@@ -346,7 +328,7 @@ export default function ProductListPage() {
       newParams.set('keyword', keyword)
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const handleSortChange = (sortValue) => {
@@ -357,7 +339,7 @@ export default function ProductListPage() {
       newParams.delete('sort')
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const handlePagination = (targetPage) => {
@@ -365,7 +347,7 @@ export default function ProductListPage() {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(targetPage))
     newParams.set('perPage', String(perPage))
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const handleAddToWishlist = async (productId) => {
@@ -382,11 +364,21 @@ export default function ProductListPage() {
     mutate()
     if (result?.favorited) {
       toast('已加入我的收藏', {
-        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        style: {
+          backgroundColor: '#ff671e',
+          color: '#fff',
+          border: 'none',
+          width: '250px',
+        },
       })
     } else {
       toast('已從我的收藏移除', {
-        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        style: {
+          backgroundColor: '#ff671e',
+          color: '#fff',
+          border: 'none',
+          width: '250px',
+        },
       })
     }
     return result
@@ -406,7 +398,12 @@ export default function ProductListPage() {
     mutate()
     if (result?.success) {
       toast('已加入購物車', {
-        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        style: {
+          backgroundColor: '#ff671e',
+          color: '#fff',
+          border: 'none',
+          width: '250px',
+        },
         action: {
           label: '查看',
           onClick: () => router.push('/shop/order'),
@@ -436,7 +433,7 @@ export default function ProductListPage() {
       newParams.delete('sportId')
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
   const handleBrandChange = (id, checked) => {
     const updated = checked
@@ -450,7 +447,7 @@ export default function ProductListPage() {
       newParams.delete('brandId')
     }
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   // 手機版套用篩選
@@ -464,7 +461,7 @@ export default function ProductListPage() {
     if (price[0] !== 0) newParams.set('minPrice', price[0])
     if (price[1] !== 3500) newParams.set('maxPrice', price[1])
     newParams.set('page', '1')
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   const clearAllFilters = () => {
@@ -472,25 +469,10 @@ export default function ProductListPage() {
     setSelectedSports([])
     setSelectedBrands([])
     setPriceRange([0, 3500])
+    setSearchKeyword('')
     // 清空 URL 參數
     const newParams = new URLSearchParams()
-    router.push(`?${newParams.toString()}`)
-  }
-
-  // ===== 載入和錯誤狀態處理 =====
-  if (isDataLoading) {
-    return <LoadingState message="載入商品資料中..." />
-  }
-  if (error) {
-    return (
-      <ErrorState
-        title="商品資料載入失敗"
-        message={`載入錯誤：${error.message}` || '找不到您要看的商品資料'}
-        onRetry={mutate}
-        backUrl="/shop"
-        backLabel="重新載入"
-      />
-    )
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   return (
@@ -500,7 +482,7 @@ export default function ProductListPage() {
       <section className="px-4 md:px-6 py-3 md:py-10">
         <div className="flex container mx-auto max-w-screen-xl min-h-screen">
           {/* 桌機側邊欄 */}
-          <div className="flex w-50 pr-8 hidden md:block">
+          <div className="flex w-48 pr-8 hidden md:block">
             <div className="mb-8">
               <p className="text-xl font-bold mb-4 text-foreground">運動類型</p>
               <div className="space-y-2">
@@ -515,7 +497,7 @@ export default function ProductListPage() {
                         handleSportChange(sport.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-primary">
+                    <span className="text-base font-normal text-foreground hover:text-primary">
                       {sport.name}
                     </span>
                   </label>
@@ -536,7 +518,7 @@ export default function ProductListPage() {
                         handleBrandChange(brand.id, checked)
                       }
                     />
-                    <span className="text-base font-regular text-foreground hover:text-primary">
+                    <span className="text-base font-normal text-foreground hover:text-primary">
                       {brand.name}
                     </span>
                   </label>
@@ -559,7 +541,7 @@ export default function ProductListPage() {
                   newParams.set('minPrice', minPrice)
                   newParams.set('maxPrice', maxPrice)
                   newParams.set('page', '1') // 篩選後回到第一頁
-                  router.push(`?${newParams.toString()}`)
+                  router.push(`?${newParams.toString()}`, { scroll: false })
                 }}
               />
               <div className="flex justify-between text-sm">
@@ -572,7 +554,7 @@ export default function ProductListPage() {
             {/* 桌機、手機上方功能列 */}
             <div className="flex justify-between items-center gap-3 w-full">
               <div className="hidden md:block">
-                {selectedCategory.name && (
+                {data && (
                   <p className="text-base text-foreground whitespace-nowrap">
                     共有{selectedCategory.count}筆商品
                   </p>
@@ -588,16 +570,15 @@ export default function ProductListPage() {
                 </Button>
                 {/* 桌機版清除篩選 */}
                 <div className="hidden md:flex">
-                  {selectedCategory.name && (
-                    <Button
-                      variant="outline"
-                      onClick={clearAllFilters}
-                      className="text-sm"
-                    >
-                      <BrushCleaning />
-                      <span>清除篩選</span>
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="text-sm"
+                    disabled={!hasActiveFilters}
+                  >
+                    <BrushCleaning />
+                    <span>清除篩選</span>
+                  </Button>
                 </div>
                 <div className="relative flex items-center w-[200px]">
                   <Input
@@ -647,13 +628,15 @@ export default function ProductListPage() {
             </div>
             {/* 商品列表 */}
             <div className="flex flex-col gap-6">
-              {isDataLoading ? (
+              {!data && !error ? (
                 <LoadingState message="載入商品資料中..." />
               ) : error ? (
                 <ErrorState
                   title="商品資料載入失敗"
                   message={
-                    `載入錯誤：${error.message}` || '找不到您要查看的商品資料'
+                    error?.message
+                      ? `載入錯誤：${error.message}`
+                      : '找不到您要查看的商品資料'
                   }
                   onRetry={mutate}
                   backUrl="/"
@@ -699,7 +682,7 @@ export default function ProductListPage() {
           {/* 手機側邊欄 */}
           <MobileSidebar
             open={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
+            onClose={setSidebarOpen}
             sports={sports}
             brands={brands}
             selectedSports={selectedSports}
