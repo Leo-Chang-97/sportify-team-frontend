@@ -119,12 +119,12 @@ export default function DeliveryMethodSelector({
               )}
               {selectedDelivery === option.id && option.id === '3' && (
                 <div className="ml-6 mt-3 space-y-2">
-                  <Label htmlFor="address">收件地址</Label>
+                  <Label htmlFor="address" className="text-sm">收件地址</Label>
                   <Input
                     type="text"
                     id="address"
                     placeholder="請填寫收件地址"
-                    className={`w-full ${errors.address ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
+                    className={`w-full text-sm ${errors.address ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
                     value={formData.address || ''}
                     onChange={(e) =>
                       onInputChange && onInputChange('address', e.target.value)
