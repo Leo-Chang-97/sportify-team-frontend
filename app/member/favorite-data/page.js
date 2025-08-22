@@ -20,13 +20,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { toast } from 'sonner'
 export default function FavoriteDataPage() {
   const { user } = useAuth()
   const [favorites, setFavorites] = useState([])
   const [allFavorites, setAllFavorites] = useState([]) // 保存所有收藏資料
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showDialog, setShowDialog] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   // 分頁相關狀態
   const [currentPage, setCurrentPage] = useState(1)
@@ -140,13 +153,13 @@ export default function FavoriteDataPage() {
       return
     }
 
-    // 確認對話框
+    /* // 確認對話框
     const isConfirmed = window.confirm(
       `確定要取消收藏「${productName || '這個商品'}」嗎？`
     )
     if (!isConfirmed) {
       return
-    }
+    } */
 
     try {
       console.log('取消收藏商品 ID:', productId)
@@ -156,7 +169,7 @@ export default function FavoriteDataPage() {
       if (result.code === 200) {
         console.log('取消收藏成功，重新獲取列表')
         // 顯示成功訊息
-        alert(`已成功取消收藏「${productName || '商品'}」`)
+        toast.success(`已成功取消收藏「${productName || '商品'}」`)
         // 重新獲取收藏列表
         await fetchFavorites()
       } else {
@@ -164,7 +177,7 @@ export default function FavoriteDataPage() {
       }
     } catch (err) {
       console.error('取消收藏錯誤:', err)
-      alert(`取消收藏「${productName || '商品'}」時發生錯誤`)
+      toast.error(`取消收藏「${productName || '商品'}」時發生錯誤`)
     }
   }
 
@@ -423,15 +436,50 @@ export default function FavoriteDataPage() {
                                   variant="secondary"
                                   size="sm"
                                   className="w-full md:w-[80px] hover:bg-primary/10"
-                                  onClick={() =>
-                                    handleRemoveFavorite(
-                                      product?.id,
-                                      product?.name
-                                    )
-                                  }
+                                  onClick={() => {
+                                    setSelectedProduct(product)
+                                    setShowDialog(true)
+                                  }}
                                 >
                                   取消收藏
                                 </Button>
+                                <AlertDialog
+                                  open={showDialog}
+                                  onOpenChange={setShowDialog}
+                                >
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>取消收藏</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        確認是否取消收藏「
+                                        {selectedProduct?.name || '這個商品'}
+                                        」？
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel
+                                        onClick={() => {
+                                          setShowDialog(false)
+                                          setSelectedProduct(null)
+                                        }}
+                                      >
+                                        取消
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => {
+                                          handleRemoveFavorite(
+                                            selectedProduct?.id,
+                                            selectedProduct?.name
+                                          )
+                                          setShowDialog(false)
+                                          setSelectedProduct(null)
+                                        }}
+                                      >
+                                        確認
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                             </TableCell>
                           </TableRow>
