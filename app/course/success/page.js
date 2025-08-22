@@ -245,7 +245,7 @@ export default function CourseSuccessPage() {
       key: '訂單金額',
       value: (
         <span className="text-lg font-bold text-primary">
-          NT$ {bookingData?.price || '未知'}
+          NT$ {bookingData?.price.toLocaleString() || '未知'}
         </span>
       ),
     },
