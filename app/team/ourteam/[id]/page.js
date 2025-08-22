@@ -545,9 +545,9 @@ const TeamDetailPage = () => {
                   key={member.id}
                   className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer hover:scale-110 transition-transform"
                   src={
-                      getAvatarUrl(member.avatar) ||
-                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
-                    }
+                    getAvatarUrl(member.avatar) ||
+                    'https://placehold.co/48x48/E0E0E0/333333?text=user'
+                  }
                   alt={member.name}
                   onClick={() => scrollToMember(member.id)}
                 />
@@ -559,9 +559,9 @@ const TeamDetailPage = () => {
                   <div key={msg.id} className="flex items-start gap-4 ">
                     <img
                       src={
-                      getAvatarUrl(msg.member.avatar) ||
-                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
-                    }
+                        getAvatarUrl(msg.member.avatar) ||
+                        'https://placehold.co/48x48/E0E0E0/333333?text=user'
+                      }
                       alt={msg.member?.name} // <--- 使用 msg.member.name
                       className="w-8 h-8 rounded-full object-cover"
                     />
@@ -576,11 +576,17 @@ const TeamDetailPage = () => {
               </div>
             </div>
             <div className="mt-auto flex items-center gap-2">
-              <img
-                src={'https://placehold.co/40x40/E0E0E0/333333?text=You'}
-                alt="user avatar"
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              {teamData.messages?.map((msg) => (
+                <div key={msg.id}>
+                  <img
+                    src={
+                      getAvatarUrl(msg.member.avatar) ||
+                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
+                    }
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                </div>
+              ))}
               <div className="flex-1 flex gap-2">
                 <input
                   type="text"
