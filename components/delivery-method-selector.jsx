@@ -109,11 +109,7 @@ export default function DeliveryMethodSelector({
                   <Button variant="highlight" onClick={sevenStore}>
                     選擇門市
                   </Button>
-                  {store && (
-                    <div className="text-sm">
-                      {store.storename} - {store.storeaddress}
-                    </div>
-                  )}
+                  {store && <div className="text-sm">{store.storename}</div>}
                   {errors.storeName && (
                     <span className="text-destructive text-sm">
                       {errors.storeName}
