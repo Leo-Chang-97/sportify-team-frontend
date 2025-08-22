@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation'
 // API 請求
 import { fetchBooking } from '@/api/course/booking'
 import { fetchLesson } from '@/api/course/lesson'
+import { getLessonImageUrl } from '@/api/course/image'
 
 // 元件
 import { LoadingState, ErrorState } from '@/components/loading-states'
@@ -312,15 +313,15 @@ export default function CourseSuccessPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* 課程圖片 */}
-                  {lessonData?.image && (
-                    <div className="w-full min-w-0 flex-shrink-0 overflow-hidden rounded-lg">
+                  {lessonData?.images && (
+                    <div className="w-70 min-w-0 flex-shrink-0 overflow-hidden rounded-lg">
                       <AspectRatio ratio={16 / 9} className="bg-muted">
                         <Image
                           alt={bookingData?.lesson?.title || '課程'}
                           className="object-cover rounded"
                           fill
                           sizes="(max-width: 768px) 100vw, 50vw"
-                          src={lessonData.image}
+                          src={getLessonImageUrl(lessonData.images[0])}
                         />
                       </AspectRatio>
                     </div>
@@ -378,22 +379,11 @@ export default function CourseSuccessPage() {
 
             {/* 按鈕區域 */}
             <div className="flex justify-between gap-4 mt-8">
-              <Link href="/course">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-8 py-3 text-white border-gray-300 hover:bg-gray-50"
-                >
-                  返回總覽
-                </Button>
-              </Link>
               <Link href="/member/class-data">
-                <Button
-                  size="lg"
-                  className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  查看訂單
-                </Button>
+                <Button variant="outline">查看訂單</Button>
+              </Link>
+              <Link href="/course">
+                <Button variant="highlight">返回列表頁</Button>
               </Link>
             </div>
           </div>
