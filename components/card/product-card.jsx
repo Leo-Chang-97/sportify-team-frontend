@@ -30,6 +30,11 @@ export function ProductCard({
   const [isInWishlist, setIsInWishlist] = useState(initialIsFavorited || false) // 初始狀態從 props 傳入
   const [isMounted, setIsMounted] = useState(false)
 
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
   // ===== 副作用處理 =====
   useEffect(() => {
     setIsMounted(true)
@@ -118,7 +123,7 @@ export function ProductCard({
               <>
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className="font-medium text-base text-destructive">
-                    NTD${product?.price}
+                    NTD${formatPrice(product?.price)}
                   </span>
                 </div>
               </>
@@ -156,7 +161,7 @@ export function ProductCard({
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-base text-destructive">
-                    NTD${product?.price}
+                    NTD${formatPrice(product?.price)}
                   </span>
                 </div>
                 <div className="flex">

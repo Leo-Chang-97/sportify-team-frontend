@@ -144,7 +144,7 @@ export default function CourseDetailPage() {
                     一期十堂
                   </span>
                   <span className="text-foreground text-lg sm:text-xl font-bold">
-                    {data.price}
+                    {data.price.toLocaleString()}
                   </span>
                 </div>
                 <Link href={`/course/payment`} className="w-full sm:w-auto">

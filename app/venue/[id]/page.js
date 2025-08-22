@@ -773,7 +773,7 @@ export default function CenterDetailPage() {
                 <span>公尺</span>
               </div>
             </div>
-            <div className="w-full h-[400px] rounded-lg overflow-hidden">
+            <div className="w-full h-[400px] rounded-lg overflow-hidden relative z-0">
               <Map position={position} dataName={data.name || '場館位置'} />
             </div>
           </section>

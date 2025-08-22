@@ -51,6 +51,7 @@ import {
 } from '@/components/ui/select'
 import { Calendar } from '@/components/date-calendar'
 import { Status, StatusIndicator, StatusLabel } from '@/components/ui/status'
+import { toast } from 'sonner'
 
 // 自訂元件
 import { Navbar } from '@/components/navbar'
@@ -241,6 +242,11 @@ export default function ReservationPage() {
   }, [centerId, sportId, today])
 
   // #region 事件處理函數
+
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
 
   // 處理預訂按鈕點擊
   const handleReservation = () => {
@@ -701,7 +707,7 @@ export default function ReservationPage() {
                             <AlertDescription className="flex justify-between">
                               <span>{slot.timeRange}</span>
                               <span className="text-primary">
-                                NT$ {slot.price}
+                                NT$ {formatPrice(slot.price)}
                               </span>
                             </AlertDescription>
                           </Alert>
@@ -719,7 +725,7 @@ export default function ReservationPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground">總計</span>
                       <span className="text-lg font-bold text-primary">
-                        NT$ {venueData.totalPrice || 0}
+                        NT$ {formatPrice(venueData.totalPrice) || 0}
                       </span>
                     </div>
                   </div>
