@@ -45,10 +45,10 @@ export default function VenueListPage() {
   }, [searchParams])
 
   // #region 狀態管理
-  const [locationId, setLocationId] = useState('')
-  const [sportId, setSportId] = useState('')
-  const [minRating, setMinRating] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [locationId, setLocationId] = useState(queryParams.locationId || '')
+  const [sportId, setSportId] = useState(queryParams.sportId || '')
+  const [minRating, setMinRating] = useState(queryParams.minRating || '')
+  const [keyword, setKeyword] = useState(queryParams.keyword || '')
   const safeKeyword = typeof keyword === 'string' ? keyword.trim() : ''
 
   const [locations, setLocations] = useState([])
@@ -69,6 +69,7 @@ export default function VenueListPage() {
     {
       keepPreviousData: true, // 換參數時保留舊的資料
       revalidateOnFocus: false, // 切回頁面不會自動刷新
+      fallbackData: { rows: [], totalRows: 0, page: 1, totalPages: 0 }, // 提供初始數據
     }
   )
 
@@ -141,7 +142,10 @@ export default function VenueListPage() {
     router.push('/venue')
   }
   //  #region 載入和錯誤狀態處理
-  if (isDataLoading) return <LoadingState message="載入場館資料中..." />
+
+  // 只有在沒有任何數據時才顯示全屏載入
+  if (isDataLoading && !data)
+    return <LoadingState message="載入場館資料中..." />
   if (error)
     return (
       <ErrorState

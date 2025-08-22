@@ -70,6 +70,11 @@ export default function VenueListPage() {
     async ([, params]) => {
       // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
       return fetchLessons(params)
+    },
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      fallbackData: { rows: [], totalRows: 0, page: 1, totalPages: 0 }, // 提供初始數據
     }
   )
 
@@ -158,7 +163,8 @@ export default function VenueListPage() {
   }
 
   //  #region 載入和錯誤狀態處理
-  if (isDataLoading) return <LoadingState message="載入課程資料中..." />
+  if (isDataLoading && !data)
+    return <LoadingState message="載入課程資料中..." />
   if (error)
     return (
       <ErrorState
@@ -201,7 +207,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full !bg-card !h-10 text-black ">
+          <SelectTrigger className="w-full !bg-card !h-10 text-accent-foreground">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
