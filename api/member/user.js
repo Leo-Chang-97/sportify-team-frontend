@@ -25,7 +25,7 @@ export const uploadUserAvatar = async (file) => {
  * @returns {string} 完整的頭像 URL
  */
 export const getAvatarUrl = (avatarName) => {
-  if (!avatarName) return 'https://placehold.co/120x120' // 預設頭像
+  if (!avatarName) return 'http://localhost:3005/avatars/default.png' // 預設頭像
 
   // 如果已經是完整 URL，直接使用
   if (avatarName.startsWith('http')) {
