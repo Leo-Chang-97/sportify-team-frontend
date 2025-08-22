@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { LoginForm } from '@/app/login/_components/login-form'
+import { Navbar } from '@/components/navbar'
 
 export default function Page() {
   const { user, login, isAuthenticated } = useAuth()
@@ -57,35 +58,38 @@ export default function Page() {
   }
 
   return (
-    <div className="relative min-h-svh w-full flex items-center justify-center p-6 md:p-10 overflow-hidden">
-      {/* 背景影片 */}
-      <div className="absolute inset-0 w-full h-full">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-          style={{ filter: 'blur(4px)' }}
-        >
-          <source src="/login/loginbg.mp4" type="video/mp4" />
-          <source src="/videos/your-video.webm" type="video/webm" />
-          您的瀏覽器不支援影片播放。
-        </video>
+    <>
+      <Navbar />
+      <div className="relative min-h-svh w-full flex items-center justify-center overflow-hidden">
+        {/* 背景影片 */}
+        <div className="absolute inset-0 w-full h-full">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+            style={{ filter: 'blur(4px)' }}
+          >
+            <source src="/login/loginbg.mp4" type="video/mp4" />
+            <source src="/videos/your-video.webm" type="video/webm" />
+            您的瀏覽器不支援影片播放。
+          </video>
 
-        {/* 額外的模糊遮罩層 */}
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
-      </div>
+          {/* 額外的模糊遮罩層 */}
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+        </div>
 
-      {/* 內容層 */}
-      <div className="relative z-10 w-full max-w-4xl min-w-xl">
-        <LoginForm
-          onSubmit={handleSubmit}
-          errors={errors}
-          isLoading={isLoading}
-          login={login}
-        />
+        {/* 內容層 */}
+        <div className="relative z-10 w-full max-w-4xl min-w-xl">
+          <LoginForm
+            onSubmit={handleSubmit}
+            errors={errors}
+            isLoading={isLoading}
+            login={login}
+          />
+        </div>
       </div>
-    </div>
+    </>
   )
 }

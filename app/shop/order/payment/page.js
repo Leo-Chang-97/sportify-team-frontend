@@ -272,7 +272,7 @@ export default function ProductPaymentPage() {
         },
       }
       // Debug 用
-      console.log('送出前的 orderData', orderData)
+      // console.log('送出前的 orderData', orderData)
 
       // 呼叫後端建立訂單，傳送會員ID、訂單資料和購物車項目
       const checkoutPayload = {
@@ -610,11 +610,11 @@ export default function ProductPaymentPage() {
               </Card>
               <Card>
                 <CardContent className="flex flex-col gap-6">
-                  {/* 收件人資料 */}
+                  {/* 收件人資訊 */}
                   <div className="space-y-3">
                     <div className="flex items-center mb-2 gap-4">
                       <Label className="text-lg font-bold mb-0">
-                        收件人資料
+                        付款資訊
                       </Label>
                       <div className="flex items-center">
                         <input

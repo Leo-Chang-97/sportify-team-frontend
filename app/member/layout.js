@@ -16,7 +16,7 @@ export default function MemberLayout({ children }) {
 
       // 如果沒有用戶資料，重導向到首頁
       if (!user) {
-        router.replace('http://localhost:3004/')
+        router.replace('/')
       }
     }
   }, [user, isLoading, router])

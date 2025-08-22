@@ -401,7 +401,7 @@ export default function SuccessPage() {
             {/* 按鈕區 */}
             <section className="mt-6">
               <div className="flex justify-between">
-                <Link href="/venue/order">
+                <Link href="/member/venue-data">
                   <Button variant="outline">查看訂單</Button>
                 </Link>
                 <Link href="/venue">

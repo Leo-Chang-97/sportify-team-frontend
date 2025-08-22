@@ -17,7 +17,7 @@ export function LoginForm({
 }) {
   return (
     <>
-      <div className={cn('flex flex-col gap-6', className)} {...props}>
+      <div className={cn(className)} {...props}>
         <div
           className={`relative w-full bg-cover bg-center px-4 md:px-6 mb-60 md:mb-5 h-64 ${className}`}
           style={{ backgroundImage: `url('${backgroundImage}')` }}

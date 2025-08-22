@@ -220,16 +220,18 @@ export default function FavoriteDataPage() {
       <HeroBannerMember
         backgroundImage="/banner/member-banner.jpg"
         title="會員中心"
-        overlayOpacity="bg-primary/50"
       ></HeroBannerMember>
       <ScrollAreaMember />
       <section className="py-10">
         <div className="container flex justify-center mx-auto max-w-screen-xl px-4">
-          <div className="bg-card rounded-lg p-6 w-full">
+          <div
+            className="bg-card rounded-xl border bg-card py-6
+          text-card-foreground shadow-sm rounded-lg p-6 w-full"
+          >
             <div className="mb-6">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-accent-foreground">
+                  <h2 className="text-xl font-bold text-accent-foreground">
                     我的收藏
                   </h2>
                   <p className="text-muted-foreground mt-2">管理您收藏的商品</p>
@@ -386,7 +388,7 @@ export default function FavoriteDataPage() {
                                   </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-semibold line-clamp-2 leading-tight">
+                                  <div className="font-base line-clamp-2 leading-tight">
                                     {product?.name || '商品名稱'}
                                   </div>
                                   {/* 後端沒有回傳 description，所以這裡不顯示 */}
