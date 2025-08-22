@@ -12,6 +12,7 @@ import {
   Trash2,
   InfoIcon,
   Link,
+  ChevronLeftIcon,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Navbar } from '@/components/navbar'
@@ -277,13 +278,13 @@ const TeamDetailPage = () => {
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <header className="py-8 text-center border-b border-gray-700">
-            <h2 className="text-2xl sm:text-2xl font-bold text-white">
+            <h2 className="text-2xl sm:text-2xl font-bold text-foreground">
               {teamData.name}
             </h2>
           </header>
 
-          <section className="bg-card border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
+          <section className="bg-card border border-ring rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring text-foreground">
               隊伍成員資訊
             </h2>
             <div className="flex flex-col gap-4 p-4 overflow-y-auto h-[300px]">
@@ -291,7 +292,7 @@ const TeamDetailPage = () => {
                 <div
                   key={teamMember.member.id} // 改用 teamMember.member.id
                   ref={(el) => memberRefs.current.set(teamMember.member.id, el)}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-background"
+                  className="flex items-center gap-4 p-4 rounded-lg border border-ring bg-background"
                 >
                   <img
                     src={
@@ -337,13 +338,13 @@ const TeamDetailPage = () => {
 
           {/* --- 【新增】整個申請審核區塊，只有隊長看得到 --- */}
           {isCaptain && ( // 只有隊長看得到這個區塊
-            <section className="bg-card border border-gray-300 rounded-lg p-6">
-              <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
+            <section className="bg-card border border-ring rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring text-foreground">
                 待審核的加入申請
               </h2>
               {/* 判斷 joinRequests 是否為空 */}
               {joinRequests.length > 0 ? (
-                <div className="overflow-y-auto h-[300px] border border-gray-300 rounded-lg p-2">
+                <div className="overflow-y-auto h-[300px] border border-ring rounded-lg p-2">
                   <div className="flex flex-col gap-4">
                     {joinRequests.map(({ member, id: requestId }) => (
                       <div
@@ -398,8 +399,8 @@ const TeamDetailPage = () => {
             </section>
           )}
 
-          <section className="bg-card border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
+          <section className="bg-card border border-ring rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring text-foreground">
               團 · 練 · 時 · 間
             </h2>
             <div className="flex justify-between items-center mb-4">
@@ -483,7 +484,7 @@ const TeamDetailPage = () => {
                     value={noteInput}
                     onChange={(e) => setNoteInput(e.target.value)}
                     placeholder="輸入事件內容..."
-                    className="flex-1 p-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg"
+                    className="flex-1 p-2 bg-gray-100 text-gray-900 border border-ring rounded-lg"
                   />
                   <Button onClick={handleSaveNote}>儲存記事</Button>
                 </div>
@@ -535,8 +536,8 @@ const TeamDetailPage = () => {
             </div>
           </section>
 
-          <section className="bg-card border border-gray-300 rounded-lg p-6 flex flex-col h-[450px]">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300  text-foreground">
+          <section className="bg-card border border-ring rounded-lg p-6 flex flex-col h-[450px]">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring  text-foreground">
               {teamData.name} 留言板
             </h2>
             <div className="flex justify-center -space-x-2 mb-4">
@@ -553,7 +554,7 @@ const TeamDetailPage = () => {
                 />
               ))}
             </div>
-            <div className="flex-1 overflow-y-auto h-[200px] border border-gray-300 rounded-lg p-4 mb-4">
+            <div className="flex-1 overflow-y-auto h-[200px] border border-ring rounded-lg p-4 mb-4">
               <div className="flex flex-col gap-4">
                 {teamData.messages?.map((msg) => (
                   <div key={msg.id} className="flex items-start gap-4">
@@ -566,7 +567,7 @@ const TeamDetailPage = () => {
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                      <p className="font-bold text-card-foreground dark:text-card">
+                      <p className="font-bold text-card-foreground-50">
                         {msg.member?.name || '未知使用者'}
                       </p>
                       <p className="text-sm text-foreground">{msg.content}</p>
@@ -585,7 +586,7 @@ const TeamDetailPage = () => {
                 <input
                   type="text"
                   placeholder="請輸入訊息內容"
-                  className="flex-1 p-2 bg-input text-muted-foreground rounded-lg"
+                  className="flex-1 p-2 bg-input text-card-foreground rounded-lg"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -597,6 +598,12 @@ const TeamDetailPage = () => {
             </div>
           </section>
         </div>
+        <Button variant="outline" asChild>
+          <Link href="/team/ourteam" aria-label="返回上一頁">
+            <ChevronLeftIcon className="h-4 w-4" />
+            <span>返回上一頁</span>
+          </Link>
+        </Button>
       </main>
       <Footer />
     </>

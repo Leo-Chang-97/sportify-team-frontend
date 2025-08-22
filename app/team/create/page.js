@@ -298,7 +298,7 @@ export default function CreateTeamPage() {
                             handleScheduleChange(index, 'startTime', value)
                           }
                         >
-                          <SelectTrigger className="text-background">
+                          <SelectTrigger className="text-card-foreground">
                             <SelectValue placeholder="開始時間" />
                           </SelectTrigger>
                           <SelectContent>
@@ -309,14 +309,14 @@ export default function CreateTeamPage() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-gray-500">-</span>
+                        <span className="text-card-foreground">-</span>
                         <Select
                           value={schedule.endTime}
                           onValueChange={(value) =>
                             handleScheduleChange(index, 'endTime', value)
                           }
                         >
-                          <SelectTrigger className="text-background">
+                          <SelectTrigger className="text-card-foreground">
                             <SelectValue placeholder="結束時間" />
                           </SelectTrigger>
                           <SelectContent>

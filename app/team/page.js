@@ -189,6 +189,19 @@ export default function TeamPage() {
     }
   }
 
+  const handleJoinRequest = async (teamId) => {
+    try {
+      await teamService.createJoinRequest(teamId)
+      alert('您的加入申請已成功送出！')
+      // 可以在這裡做一些 UI 上的回饋，例如關閉展開的卡片
+      setExpandedCardIndex(null)
+    } catch (error) {
+      console.error('申請加入隊伍失敗:', error)
+      // 從後端回傳的錯誤訊息中，取得更詳細的原因
+      alert(`申請失敗：${error.response?.data?.error || error.message}`)
+    }
+  }
+
   const searchFields = [
     {
       label: '級別',
@@ -355,6 +368,7 @@ export default function TeamPage() {
                     isDetailLoading={
                       expandedCardIndex === index && isDetailLoading
                     }
+                    onJoinRequest={() => handleJoinRequest(team.id)}
                   />
                 ))}
               </div>

@@ -42,6 +42,7 @@ export function TeamCard({
   description = '暫無描述', // 接收隊伍描述
   details, // 接收展開後的詳細資料 (包含成員)
   isDetailLoading, // 接收載入狀態
+  onJoinRequest, // <-- 1. 接收新的 onJoinRequest prop
   // --- 修改結束 (1/3) ---
 }) {
   // --- 修改開始 (2/3): 決定要顯示的成員和人數 ---
@@ -174,7 +175,7 @@ export function TeamCard({
               <div>
                 <div className="flex justify-between text-lg font-bold text-highlight mb-2 gap-2">
                   隊伍簡述
-                  <Button>加入</Button>
+                  <Button onClick={onJoinRequest}>加入</Button>
                 </div>
                 <p className="text-card-foreground text-sm">
                   {details?.description || description}
