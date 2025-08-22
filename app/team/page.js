@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { ArrowRight, Search } from 'lucide-react'
 import { teamService } from '@/api/team/team'
 import { PaginationBar } from '@/components/pagination-bar'
+import { toast } from 'sonner'
 
 // --- 修改開始 (1/2): 新增格式化函式 ---
 /**
@@ -192,7 +193,15 @@ export default function TeamPage() {
   const handleJoinRequest = async (teamId) => {
     try {
       await teamService.createJoinRequest(teamId)
-      alert('您的加入申請已成功送出！')
+      toast('您的加入申請已成功送出！', {
+        style: {
+          backgroundColor: '#ff671e', // 橘色背景
+          color: '#fff', // 白色文字
+          border: 'none',
+          width: 'auto',
+          minWidth: '250px',
+        },
+      })
       // 可以在這裡做一些 UI 上的回饋，例如關閉展開的卡片
       setExpandedCardIndex(null)
     } catch (error) {

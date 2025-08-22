@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { jwtDecode } from 'jwt-decode'
 import TeamLink from '@/components/card/team-link'
 import { getAvatarUrl, getUserProfile } from '@/api/member/user'
+import { toast } from 'sonner'
 
 // 保持這個不受時區影響的日期格式化函式
 const toYYYYMMDD = (date) => {
@@ -364,7 +365,7 @@ const TeamDetailPage = () => {
                     {joinRequests.map(({ member, id: requestId }) => (
                       <div
                         key={requestId}
-                        className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-background"
+                        className="flex items-center gap-4 p-4 rounded-lg border border-ring bg-background"
                       >
                         <img
                           src={
@@ -375,7 +376,7 @@ const TeamDetailPage = () => {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                         <div className="flex-1">
-                          <span className="font-bold text-lg text-gray-800">
+                          <span className="font-bold text-lg text-card-foreground">
                             {member.name}
                           </span>
                         </div>
@@ -621,12 +622,6 @@ const TeamDetailPage = () => {
             </div>
           </section>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/team/ourteam" aria-label="返回上一頁">
-            <ChevronLeftIcon className="h-4 w-4" />
-            <span>返回上一頁</span>
-          </Link>
-        </Button>
       </main>
       <Footer />
     </>

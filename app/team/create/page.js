@@ -27,6 +27,7 @@ import {
   fetchTeamLevelOptions,
   fetchAllTeamCenterOptions,
 } from '@/api/team/common'
+import { toast } from 'sonner'
 
 export default function CreateTeamPage() {
   const router = useRouter()
@@ -145,7 +146,15 @@ export default function CreateTeamPage() {
     try {
       const response = await teamService.create(payload)
       if (response.success) {
-        alert('隊伍建立成功！')
+        toast('您成功建立了您的隊伍!！', {
+          style: {
+            backgroundColor: '#ff671e', // 橘色背景
+            color: '#fff', // 白色文字
+            border: 'none',
+            width: 'auto',
+            minWidth: '250px',
+          },
+        })
         router.push(`/team`)
       } else {
         throw new Error(response.error || '建立隊伍失敗')
