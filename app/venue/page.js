@@ -60,10 +60,17 @@ export default function VenueListPage() {
     isLoading: isDataLoading,
     error,
     mutate,
-  } = useSWR(['centers', queryParams], async ([, params]) => {
-    // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
-    return fetchCenters(params)
-  })
+  } = useSWR(
+    ['centers', queryParams],
+    async ([, params]) => {
+      // await new Promise((r) => setTimeout(r, 3000)) // 延遲測試載入動畫
+      return fetchCenters(params)
+    },
+    {
+      keepPreviousData: true, // 換參數時保留舊的資料
+      revalidateOnFocus: false, // 切回頁面不會自動刷新
+    }
+  )
 
   // #region 副作用處理
   // 載入下拉選單選項
@@ -120,7 +127,7 @@ export default function VenueListPage() {
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('page', String(targetPage))
     newParams.set('perPage', String(perPage))
-    router.push(`?${newParams.toString()}`)
+    router.push(`?${newParams.toString()}`, { scroll: false })
   }
 
   // 重設篩選功能
