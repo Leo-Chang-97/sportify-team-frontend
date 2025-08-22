@@ -545,9 +545,9 @@ const TeamDetailPage = () => {
                   key={member.id}
                   className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer hover:scale-110 transition-transform"
                   src={
-                    member.avatar ||
-                    'https://placehold.co/40x40/E0E0E0/333333?text=user'
-                  }
+                      getAvatarUrl(member.avatar) ||
+                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
+                    }
                   alt={member.name}
                   onClick={() => scrollToMember(member.id)}
                 />
@@ -556,17 +556,17 @@ const TeamDetailPage = () => {
             <div className="flex-1 overflow-y-auto h-[200px] border border-gray-300 rounded-lg p-4 mb-4">
               <div className="flex flex-col gap-4">
                 {teamData.messages?.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-4">
+                  <div key={msg.id} className="flex items-start gap-4 ">
                     <img
                       src={
-                        msg.member?.avatar || // <--- 使用 msg.member.avatar
-                        'https://placehold.co/32x32/E0E0E0/333333?text=user'
-                      }
+                      getAvatarUrl(msg.member.avatar) ||
+                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
+                    }
                       alt={msg.member?.name} // <--- 使用 msg.member.name
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                      <p className="font-bold text-card-foreground dark:text-card">
+                      <p className="font-bold text-foreground ">
                         {msg.member?.name || '未知使用者'}
                       </p>
                       <p className="text-sm text-foreground">{msg.content}</p>
