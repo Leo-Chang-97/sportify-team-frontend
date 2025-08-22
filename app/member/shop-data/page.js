@@ -373,7 +373,7 @@ export default function ShopDataPage() {
                                 )} */}
                                 <div className="flex-1 min-w-0">
                                   <div className="font-base line-clamp-2 leading-tight">
-                                    {order?.id || '訂單編號'}
+                                    {order?.order_number || '訂單編號'}
                                   </div>
                                   {/* 後端沒有回傳 description，所以這裡不顯示 */}
                                 </div>
