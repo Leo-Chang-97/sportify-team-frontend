@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react'
 import { API_SERVER } from '@/lib/api-path'
+import { toast } from 'sonner'
 
 const AuthContext = createContext()
 
@@ -46,17 +47,44 @@ export function AuthProvider({ children }) {
           if (verifyRes.ok && verifyResult.success) {
             console.log('獲取完整用戶資料成功:', verifyResult.user)
             setUser(verifyResult.user)
+            toast.success('登入成功！歡迎回來！', {
+              className: 'bg-green-500 text-white border-green-600 shadow-lg',
+              style: {
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
+                width: '250px',
+              },
+            })
             return { success: true, user: verifyResult.user }
           } else {
             console.log('獲取完整用戶資料失敗，使用登入回傳的資料')
             console.log('登入回傳的用戶資料:', result.user)
             setUser(result.user)
+            toast.success('登入成功！歡迎回來！', {
+              className: 'bg-green-500 text-white border-green-600 shadow-lg',
+              style: {
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
+                width: '250px',
+              },
+            })
             return { success: true, user: result.user }
           }
         } catch (verifyError) {
           console.error('獲取完整用戶資料時發生錯誤:', verifyError)
           console.log('使用登入回傳的資料作為備用:', result.user)
           setUser(result.user)
+          toast.success('登入成功！歡迎回來！', {
+            className: 'bg-green-500 text-white border-green-600 shadow-lg',
+            style: {
+              backgroundColor: '#ff671e',
+              color: '#fff',
+              border: 'none',
+              width: '250px',
+            },
+          })
           return { success: true, user: result.user }
         }
       } else {
@@ -109,15 +137,42 @@ export function AuthProvider({ children }) {
           if (verifyRes.ok && verifyResult.success) {
             console.log('獲取完整用戶資料成功:', verifyResult.user)
             setUser(verifyResult.user)
+            toast.success('註冊成功！歡迎加入我們！', {
+              className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
+              style: {
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
+                width: '250px',
+              },
+            })
             return { success: true, user: verifyResult.user }
           } else {
             console.log('獲取完整用戶資料失敗，使用註冊回傳的資料')
             setUser(result.user)
+            toast.success('註冊成功！歡迎加入我們！', {
+              className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
+              style: {
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
+                width: '250px',
+              },
+            })
             return { success: true, user: result.user }
           }
         } catch (verifyError) {
           console.error('獲取完整用戶資料時發生錯誤:', verifyError)
           setUser(result.user)
+          toast.success('註冊成功！歡迎加入我們！', {
+            className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
+            style: {
+              backgroundColor: '#ff671e',
+              color: '#fff',
+              border: 'none',
+              width: '250px',
+            },
+          })
           return { success: true, user: result.user }
         }
       } else {

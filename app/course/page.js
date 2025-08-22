@@ -74,7 +74,7 @@ export default function VenueListPage() {
     {
       keepPreviousData: true,
       revalidateOnFocus: false,
-      fallbackData: { rows: [], totalRows: 0, page: 1, totalPages: 0 }, // 提供初始數據
+      fallbackData: null, // 改為 null，避免誤判為沒有數據
     }
   )
 
@@ -164,7 +164,7 @@ export default function VenueListPage() {
   }
 
   //  #region 載入和錯誤狀態處理
-  if (isDataLoading && !data)
+  if (isDataLoading && data === null)
     return <LoadingState message="載入課程資料中..." />
   if (error)
     return (
@@ -187,7 +187,7 @@ export default function VenueListPage() {
       label: '教練',
       component: (
         <Select value={coachId} onValueChange={setCoachId}>
-          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent !h-10 shadow-md border-muted-foreground text-accent-foreground">
             <SelectValue placeholder="請選擇教練" />
           </SelectTrigger>
           <SelectContent>
@@ -208,7 +208,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full !bg-card !h-10 text-accent-foreground">
+          <SelectTrigger className="w-full !bg-accent !h-10 shadow-md border-muted-foreground text-accent-foreground">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -233,7 +233,7 @@ export default function VenueListPage() {
           placeholder="請輸入課程名稱或關鍵字"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="w-full h-10 !bg-card text-black"
+          className="w-full h-10 !bg-accent text-black shadow-md border-muted-foreground"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               handleSearch()
@@ -263,7 +263,7 @@ export default function VenueListPage() {
       <ScrollAreaSport
         sportItems={sports}
         onSportSelect={(id) => {
-          setSportId(id)
+          setSportId(id.toString())
           handleSearch(keyword, id)
         }}
       />

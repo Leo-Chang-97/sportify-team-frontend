@@ -12,6 +12,7 @@ import {
   Trash2,
   InfoIcon,
   Link,
+  ChevronLeftIcon,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Navbar } from '@/components/navbar'
@@ -22,7 +23,19 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { jwtDecode } from 'jwt-decode'
 import TeamLink from '@/components/card/team-link'
-import { getAvatarUrl } from '@/api/member/user'
+import { getAvatarUrl, getUserProfile } from '@/api/member/user'
+import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 // 保持這個不受時區影響的日期格式化函式
 const toYYYYMMDD = (date) => {
@@ -68,6 +81,9 @@ const TeamDetailPage = () => {
   const [noteInput, setNoteInput] = useState('')
   const memberRefs = useRef(new Map())
 
+  const [showDialog, setShowDialog] = useState(false)
+  const [selectedTeamMember, setSelectedTeamMember] = useState(null)
+
   // 2. 統一定義的資料獲取函式
   const fetchTeamData = useCallback(
     async (isInitialLoad = false) => {
@@ -99,16 +115,31 @@ const TeamDetailPage = () => {
 
   // 3. 簡潔的 useEffect，只負責初次載入
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('sportify-auth')
-      if (token) {
-        const userData = jwtDecode(token)
-        setCurrentUser(userData)
+    const loadUserData = async () => {
+      try {
+        const token = localStorage.getItem('sportify-auth')
+        if (token) {
+          // 先從 JWT 獲取基本資訊
+          const userData = jwtDecode(token)
+          setCurrentUser(userData)
+
+          // 再從後端獲取完整的用戶資訊（包括頭像）
+          try {
+            const profileData = await getUserProfile()
+            if (profileData.success && profileData.user) {
+              setCurrentUser(profileData.user)
+            }
+          } catch (profileError) {
+            console.error('獲取用戶資料失敗:', profileError)
+            // 如果獲取完整資料失敗，至少保留 JWT 中的基本資訊
+          }
+        }
+      } catch (error) {
+        console.error('從 localStorage 解碼 JWT 失敗:', error)
       }
-    } catch (error) {
-      console.error('從 localStorage 解碼 JWT 失敗:', error)
     }
 
+    loadUserData()
     fetchTeamData(true) // 呼叫獲取函式，並告知是「初次載入」
   }, [teamId, fetchTeamData])
 
@@ -118,25 +149,32 @@ const TeamDetailPage = () => {
 
   // 5. 所有 handle... 事件處理函式
   const handleKickMember = async (memberIdToKick) => {
-    if (!window.confirm('您確定要將此成員踢出隊伍嗎？')) return
+    console.log('handleKickMember called with:', memberIdToKick)
+    console.log('selectedTeamMember:', selectedTeamMember)
+
+    if (!memberIdToKick) {
+      toast.error('無法獲取成員 ID')
+      return
+    }
+
     try {
       await teamService.kickMember(teamId, memberIdToKick)
-      alert('成員已成功踢除')
+      toast.success('成員已成功踢除')
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('踢除成員時發生錯誤:', error)
-      alert(`踢除失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`踢除失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
   const handleReviewRequest = async (requestId, status) => {
     try {
       await teamService.reviewRequest(requestId, { status })
-      alert(`申請已成功 ${status === 'APPROVED' ? '批准' : '拒絕'}`)
+      toast.success(`申請已成功 ${status === 'APPROVED' ? '批准' : '拒絕'}`)
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('審核申請時發生錯誤:', error)
-      alert(`審核失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`審核失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -148,13 +186,13 @@ const TeamDetailPage = () => {
         date: editingDate,
         note: noteInput,
       })
-      alert(`已成功為 ${editingDate} 新增/更新記事！`)
+      toast.success(`已成功為 ${editingDate} 新增/更新記事！`)
       setEditingDate(null)
       setNoteInput('')
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('儲存記事失敗:', error)
-      alert(`儲存失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`儲存失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -162,11 +200,11 @@ const TeamDetailPage = () => {
     if (!window.confirm('您確定要刪除這則記事嗎？')) return
     try {
       await teamService.deleteCalendarMark(markId)
-      alert('記事已成功刪除！')
+      toast.success('記事已成功刪除！')
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('刪除記事失敗:', error)
-      alert(`刪除失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`刪除失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -181,7 +219,7 @@ const TeamDetailPage = () => {
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('發送訊息失敗:', error)
-      alert(`發送失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`發送失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -277,13 +315,13 @@ const TeamDetailPage = () => {
       <main className="px-4 md:px-6 py-10">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <header className="py-8 text-center border-b border-gray-700">
-            <h2 className="text-2xl sm:text-2xl font-bold text-white">
+            <h2 className="text-2xl sm:text-2xl font-bold text-foreground">
               {teamData.name}
             </h2>
           </header>
 
-          <section className="bg-card border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
+          <section className="bg-card border border-ring rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring text-foreground">
               隊伍成員資訊
             </h2>
             <div className="flex flex-col gap-4 p-4 overflow-y-auto h-[300px]">
@@ -291,7 +329,7 @@ const TeamDetailPage = () => {
                 <div
                   key={teamMember.member.id} // 改用 teamMember.member.id
                   ref={(el) => memberRefs.current.set(teamMember.member.id, el)}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-background"
+                  className="flex items-center gap-4 p-4 rounded-lg border border-ring bg-background"
                 >
                   <img
                     src={
@@ -323,7 +361,10 @@ const TeamDetailPage = () => {
                   {isCaptain && currentUser?.id !== teamMember.member.id && (
                     <Button
                       variant="ghost"
-                      onClick={() => handleKickMember(teamMember.member.id)} // 改用 teamMember.member.id
+                      onClick={() => {
+                        setSelectedTeamMember(teamMember.member) // 傳整個 member 物件而不是 id
+                        setShowDialog(true)
+                      }}
                       className="hover:text-destructive"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -337,18 +378,18 @@ const TeamDetailPage = () => {
 
           {/* --- 【新增】整個申請審核區塊，只有隊長看得到 --- */}
           {isCaptain && ( // 只有隊長看得到這個區塊
-            <section className="bg-card border border-gray-300 rounded-lg p-6">
-              <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
+            <section className="bg-card border border-ring rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring text-foreground">
                 待審核的加入申請
               </h2>
               {/* 判斷 joinRequests 是否為空 */}
               {joinRequests.length > 0 ? (
-                <div className="overflow-y-auto h-[300px] border border-gray-300 rounded-lg p-2">
+                <div className="overflow-y-auto h-[300px] border border-ring rounded-lg p-2">
                   <div className="flex flex-col gap-4">
                     {joinRequests.map(({ member, id: requestId }) => (
                       <div
                         key={requestId}
-                        className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 bg-background"
+                        className="flex items-center gap-4 p-4 rounded-lg border border-ring bg-background"
                       >
                         <img
                           src={
@@ -359,7 +400,7 @@ const TeamDetailPage = () => {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                         <div className="flex-1">
-                          <span className="font-bold text-lg text-gray-800">
+                          <span className="font-bold text-lg text-card-foreground">
                             {member.name}
                           </span>
                         </div>
@@ -398,8 +439,8 @@ const TeamDetailPage = () => {
             </section>
           )}
 
-          <section className="bg-card border border-gray-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300 text-foreground">
+          <section className="bg-card border border-ring rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring text-foreground">
               團 · 練 · 時 · 間
             </h2>
             <div className="flex justify-between items-center mb-4">
@@ -474,7 +515,7 @@ const TeamDetailPage = () => {
             </div>
             {isCaptain && editingDate && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h3 className="font-bold text-gray-700 mb-2">
+                <h3 className="text-muted-foreground mb-2">
                   為 {editingDate} 新增/編輯記事
                 </h3>
                 <div className="flex gap-2">
@@ -483,7 +524,7 @@ const TeamDetailPage = () => {
                     value={noteInput}
                     onChange={(e) => setNoteInput(e.target.value)}
                     placeholder="輸入事件內容..."
-                    className="flex-1 p-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg"
+                    className="flex-1 p-2 bg-input text-foreground border border-ring rounded-lg"
                   />
                   <Button onClick={handleSaveNote}>儲存記事</Button>
                 </div>
@@ -535,8 +576,8 @@ const TeamDetailPage = () => {
             </div>
           </section>
 
-          <section className="bg-card border border-gray-300 rounded-lg p-6 flex flex-col h-[450px]">
-            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-gray-300  text-foreground">
+          <section className="bg-card border border-ring rounded-lg p-6 flex flex-col h-[450px]">
+            <h2 className="text-xl font-bold mb-4 text-center border-b pb-4 border-ring  text-foreground">
               {teamData.name} 留言板
             </h2>
             <div className="flex justify-center -space-x-2 mb-4">
@@ -545,28 +586,28 @@ const TeamDetailPage = () => {
                   key={member.id}
                   className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer hover:scale-110 transition-transform"
                   src={
-                    member.avatar ||
-                    'https://placehold.co/40x40/E0E0E0/333333?text=user'
+                    getAvatarUrl(member.avatar) ||
+                    'https://placehold.co/48x48/E0E0E0/333333?text=user'
                   }
                   alt={member.name}
                   onClick={() => scrollToMember(member.id)}
                 />
               ))}
             </div>
-            <div className="flex-1 overflow-y-auto h-[200px] border border-gray-300 rounded-lg p-4 mb-4">
+            <div className="flex-1 overflow-y-auto h-[200px] border border-ring rounded-lg p-4 mb-4">
               <div className="flex flex-col gap-4">
                 {teamData.messages?.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-4">
+                  <div key={msg.id} className="flex items-start gap-4 ">
                     <img
                       src={
-                        msg.member?.avatar || // <--- 使用 msg.member.avatar
-                        'https://placehold.co/32x32/E0E0E0/333333?text=user'
+                        getAvatarUrl(msg.member.avatar) ||
+                        'https://placehold.co/48x48/E0E0E0/333333?text=user'
                       }
                       alt={msg.member?.name} // <--- 使用 msg.member.name
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                      <p className="font-bold text-card-foreground dark:text-card">
+                      <p className="font-bold text-card-foreground-50">
                         {msg.member?.name || '未知使用者'}
                       </p>
                       <p className="text-sm text-foreground">{msg.content}</p>
@@ -576,16 +617,24 @@ const TeamDetailPage = () => {
               </div>
             </div>
             <div className="mt-auto flex items-center gap-2">
-              <img
-                src={'https://placehold.co/40x40/E0E0E0/333333?text=You'}
-                alt="user avatar"
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              {currentUser && (
+                <>
+                  <img
+                    src={
+                      getAvatarUrl(currentUser.avatar) ||
+                      'https://placehold.co/48x48/E0E0E0/333333?text=user'
+                    }
+                    className="w-10 h-10 rounded-full object-cover"
+                    alt={currentUser.name || '目前用戶'}
+                  />
+                </>
+              )}
+
               <div className="flex-1 flex gap-2">
                 <input
                   type="text"
                   placeholder="請輸入訊息內容"
-                  className="flex-1 p-2 bg-input text-muted-foreground rounded-lg"
+                  className="flex-1 p-2 bg-input text-card-foreground rounded-lg"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -598,6 +647,35 @@ const TeamDetailPage = () => {
           </section>
         </div>
       </main>
+      <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認踢除</AlertDialogTitle>
+            <AlertDialogDescription>
+              您確定要將此成員踢出隊伍嗎？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDialog(false)
+                setSelectedTeamMember(null)
+              }}
+            >
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleKickMember(selectedTeamMember?.id)
+                setShowDialog(false)
+                setSelectedTeamMember(null)
+              }}
+            >
+              確認
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Footer />
     </>
   )

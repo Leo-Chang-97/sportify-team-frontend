@@ -51,9 +51,11 @@ export default function DeliveryMethodSelector({
 }) {
   // ===== 組件狀態管理 =====
   const [store, setStore] = useState(null)
+  const popupRef = React.useRef(null)
 
   const sevenStore = () => {
-    window.open(
+    // 記錄 popup window 參考，收到 message 時可檢查來源
+    popupRef.current = window.open(
       'https://emap.presco.com.tw/c2cemap.ashx?eshopid=870&&servicetype=1&url=' +
         encodeURIComponent('http://localhost:3005/api/shop/shipment'),
       '',
@@ -64,15 +66,30 @@ export default function DeliveryMethodSelector({
   // 接收後端傳回的門市資料
   useEffect(() => {
     const handleMessage = (event) => {
-      setStore(event.data)
-      if (event.data && event.data.storename && onInputChange) {
-        onInputChange('storeName', event.data.storename)
+      try {
+        // 若你知道 popup 的 origin，可驗證 event.origin 避免被其它來源覆寫
+        // const allowed = ['https://emap.presco.com.tw', window.location.origin];
+        // if (!allowed.includes(event.origin)) return;
+
+        // 若有 popupRef，優先檢查來源窗體相同
+        if (popupRef.current && event.source !== popupRef.current) return
+
+        const data = event.data
+        // 只接受物件且包含 storename 的訊息
+        if (!data || typeof data !== 'object' || !data.storename) return
+
+        setStore(data)
+        if (onInputChange) {
+          onInputChange('storeName', data.storename)
+        }
+      } catch (err) {
+        // 忽略不合法訊息
+        console.warn('unexpected postMessage', err)
       }
     }
+
     window.addEventListener('message', handleMessage)
-    return () => {
-      window.removeEventListener('message', handleMessage)
-    }
+    return () => window.removeEventListener('message', handleMessage)
   }, [onInputChange])
 
   return (
@@ -119,12 +136,14 @@ export default function DeliveryMethodSelector({
               )}
               {selectedDelivery === option.id && option.id === '3' && (
                 <div className="ml-6 mt-3 space-y-2">
-                  <Label htmlFor="address">收件地址</Label>
+                  <Label htmlFor="address" className="text-sm">
+                    收件地址
+                  </Label>
                   <Input
                     type="text"
                     id="address"
                     placeholder="請填寫收件地址"
-                    className={`w-full ${errors.address ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
+                    className={`w-full text-sm ${errors.address ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}`}
                     value={formData.address || ''}
                     onChange={(e) =>
                       onInputChange && onInputChange('address', e.target.value)

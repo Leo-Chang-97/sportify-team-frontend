@@ -133,12 +133,22 @@ export default function ProductDetailPage() {
     if (result?.favorited) {
       setIsFavorited(true)
       toast('已加入我的收藏', {
-        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        style: {
+          backgroundColor: '#ff671e',
+          color: '#fff',
+          border: 'none',
+          width: '250px',
+        },
       })
     } else {
       setIsFavorited(false)
       toast('已從我的收藏移除', {
-        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        style: {
+          backgroundColor: '#ff671e',
+          color: '#fff',
+          border: 'none',
+          width: '250px',
+        },
       })
     }
     return result
@@ -159,7 +169,12 @@ export default function ProductDetailPage() {
     if (result?.success) {
       setQuantity(1) // 重置數量為1
       toast('已加入購物車', {
-        style: { backgroundColor: '#ff671e', color: '#fff', border: 'none' },
+        style: {
+          backgroundColor: '#ff671e',
+          color: '#fff',
+          border: 'none',
+          width: '250px',
+        },
         action: {
           label: '查看',
           onClick: () => router.push('/shop/order'),
@@ -310,10 +325,10 @@ export default function ProductDetailPage() {
           <Tabs defaultValue="imgs" className="w-full">
             <div className="flex justify-center">
               <TabsList className="mb-6 md:mb-8">
-                <TabsTrigger value="imgs" className="text-sm">
+                <TabsTrigger value="imgs" className="text-sm text-muted-foreground">
                   商品圖片
                 </TabsTrigger>
-                <TabsTrigger value="spec" className="text-sm">
+                <TabsTrigger value="spec" className="text-sm text-muted-foreground">
                   詳細規格
                 </TabsTrigger>
               </TabsList>
