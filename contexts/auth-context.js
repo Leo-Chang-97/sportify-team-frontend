@@ -50,13 +50,9 @@ export function AuthProvider({ children }) {
             toast.success('登入成功！歡迎回來！', {
               className: 'bg-green-500 text-white border-green-600 shadow-lg',
               style: {
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                border: '1px solid #047857',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
                 width: '250px',
               },
             })
@@ -68,13 +64,9 @@ export function AuthProvider({ children }) {
             toast.success('登入成功！歡迎回來！', {
               className: 'bg-green-500 text-white border-green-600 shadow-lg',
               style: {
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                border: '1px solid #047857',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
                 width: '250px',
               },
             })
@@ -87,13 +79,9 @@ export function AuthProvider({ children }) {
           toast.success('登入成功！歡迎回來！', {
             className: 'bg-green-500 text-white border-green-600 shadow-lg',
             style: {
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              border: '1px solid #047857',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+              backgroundColor: '#ff671e',
+              color: '#fff',
+              border: 'none',
               width: '250px',
             },
           })
@@ -152,13 +140,9 @@ export function AuthProvider({ children }) {
             toast.success('註冊成功！歡迎加入我們！', {
               className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
               style: {
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: 'white',
-                border: '1px solid #1d4ed8',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)',
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
                 width: '250px',
               },
             })
@@ -169,13 +153,9 @@ export function AuthProvider({ children }) {
             toast.success('註冊成功！歡迎加入我們！', {
               className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
               style: {
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: 'white',
-                border: '1px solid #1d4ed8',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)',
+                backgroundColor: '#ff671e',
+                color: '#fff',
+                border: 'none',
                 width: '250px',
               },
             })
@@ -187,13 +167,9 @@ export function AuthProvider({ children }) {
           toast.success('註冊成功！歡迎加入我們！', {
             className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
             style: {
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              color: 'white',
-              border: '1px solid #1d4ed8',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)',
+              backgroundColor: '#ff671e',
+              color: '#fff',
+              border: 'none',
               width: '250px',
             },
           })
