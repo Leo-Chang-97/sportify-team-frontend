@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { ArrowRight, Search } from 'lucide-react'
 import { teamService } from '@/api/team/team'
 import { PaginationBar } from '@/components/pagination-bar'
+import { toast } from 'sonner'
 
 // --- 修改開始 (1/2): 新增格式化函式 ---
 /**
@@ -189,12 +190,33 @@ export default function TeamPage() {
     }
   }
 
+  const handleJoinRequest = async (teamId) => {
+    try {
+      await teamService.createJoinRequest(teamId)
+      toast('您的加入申請已成功送出！', {
+        style: {
+          backgroundColor: '#ff671e', // 橘色背景
+          color: '#fff', // 白色文字
+          border: 'none',
+          width: 'auto',
+          minWidth: '250px',
+        },
+      })
+      // 可以在這裡做一些 UI 上的回饋，例如關閉展開的卡片
+      setExpandedCardIndex(null)
+    } catch (error) {
+      console.error('申請加入隊伍失敗:', error)
+      // 從後端回傳的錯誤訊息中，取得更詳細的原因
+      alert(`申請失敗：${error.response?.data?.error || error.message}`)
+    }
+  }
+
   const searchFields = [
     {
       label: '級別',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full !bg-card text-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -218,7 +240,7 @@ export default function TeamPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -248,7 +270,7 @@ export default function TeamPage() {
           />
           <Input
             type="search"
-            className="w-full !bg-card text-accent-foreground !h-10 pl-10"
+            className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground pl-10"
             placeholder="請輸入關鍵字"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -278,7 +300,7 @@ export default function TeamPage() {
       <ScrollAreaSport
         sportItems={sports}
         onSportSelect={(id) => {
-          setSportId(id)
+          setSportId(id.toString())
           handleSearch(keyword, id)
         }}
       />
@@ -340,6 +362,7 @@ export default function TeamPage() {
                     onToggleExpand={() => handleToggleExpand(index, team.id)}
                     teamName={team.name}
                     sportType={team.court?.sport?.name || '未知運動'}
+                    sportIconKey={team.court?.sport?.iconKey} // <-- 將 iconKey 傳入
                     currentMembers={team._count?.TeamMember || 0}
                     maxMembers={team.capacity || 12}
                     location={team.court?.center?.name || '未知地點'}
@@ -355,6 +378,7 @@ export default function TeamPage() {
                     isDetailLoading={
                       expandedCardIndex === index && isDetailLoading
                     }
+                    onJoinRequest={() => handleJoinRequest(team.id)}
                   />
                 ))}
               </div>

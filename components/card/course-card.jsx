@@ -196,7 +196,7 @@ const CourseCard = ({ course }) => {
                 variant="secondary"
                 onClick={handleBooking}
                 className={cn(
-                  'w-full hover:bg-highlight hover:text-highlight-foreground'
+                  'w-full hover:bg-highlight hover:text-highlight-foreground dark:hover:bg-highlight dark:hover:text-highlight-foreground'
                 )}
                 disabled={isFullyBooked}
               >

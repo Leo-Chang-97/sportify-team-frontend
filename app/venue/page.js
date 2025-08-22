@@ -45,10 +45,10 @@ export default function VenueListPage() {
   }, [searchParams])
 
   // #region 狀態管理
-  const [locationId, setLocationId] = useState('')
-  const [sportId, setSportId] = useState('')
-  const [minRating, setMinRating] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [locationId, setLocationId] = useState(queryParams.locationId || '')
+  const [sportId, setSportId] = useState(queryParams.sportId || '')
+  const [minRating, setMinRating] = useState(queryParams.minRating || '')
+  const [keyword, setKeyword] = useState(queryParams.keyword || '')
   const safeKeyword = typeof keyword === 'string' ? keyword.trim() : ''
 
   const [locations, setLocations] = useState([])
@@ -69,6 +69,8 @@ export default function VenueListPage() {
     {
       keepPreviousData: true, // 換參數時保留舊的資料
       revalidateOnFocus: false, // 切回頁面不會自動刷新
+      // fallbackData: { rows: [], totalRows: 0, page: 1, totalPages: 0 }, // 提供初始數據
+      fallbackData: null, // 改為 null，避免誤判為沒有數據
     }
   )
 
@@ -141,7 +143,10 @@ export default function VenueListPage() {
     router.push('/venue')
   }
   //  #region 載入和錯誤狀態處理
-  if (isDataLoading) return <LoadingState message="載入場館資料中..." />
+
+  // 只有在沒有任何數據時才顯示全屏載入
+  if (isDataLoading && data === null)
+    return <LoadingState message="載入場館資料中..." />
   if (error)
     return (
       <ErrorState
@@ -177,7 +182,7 @@ export default function VenueListPage() {
       label: '地區',
       component: (
         <Select value={locationId} onValueChange={setLocationId}>
-          <SelectTrigger className="w-full !bg-card text-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇地區" />
           </SelectTrigger>
           <SelectContent>
@@ -201,7 +206,7 @@ export default function VenueListPage() {
       label: '運動',
       component: (
         <Select value={sportId} onValueChange={setSportId}>
-          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇運動" />
           </SelectTrigger>
           <SelectContent>
@@ -225,7 +230,7 @@ export default function VenueListPage() {
       label: '評分',
       component: (
         <Select value={minRating} onValueChange={setMinRating}>
-          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent text-accent-foreground !h-10 shadow-md border-muted-foreground">
             <SelectValue placeholder="請選擇評分星等" />
           </SelectTrigger>
           <SelectContent>
@@ -248,7 +253,7 @@ export default function VenueListPage() {
           />
           <Input
             type="search"
-            className="w-full !bg-card text-accent-foreground !h-10 pl-10"
+            className="w-full !bg-accent text-accent-foreground !h-10 pl-10 shadow-md border-muted-foreground"
             placeholder="請輸入關鍵字"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -280,7 +285,7 @@ export default function VenueListPage() {
       <ScrollAreaSport
         sportItems={sports}
         onSportSelect={(id) => {
-          setSportId(id)
+          setSportId(id.toString())
           handleSearch(keyword, id)
         }}
       />

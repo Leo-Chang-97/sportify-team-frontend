@@ -91,4 +91,14 @@ export const teamService = {
     const res = await apiClient.post('/team/messages', data);
     return res.data;
   },
+   /**
+   * 建立加入隊伍的申請
+   * 對應後端 POST /api/team/join-requests
+   * @param {string} teamId - 要申請加入的隊伍 ID
+   */
+  createJoinRequest: async (teamId) => {
+    const res = await apiClient.post('/team/join-requests', { teamId })
+    return res.data
+  },
 }
+

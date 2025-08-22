@@ -252,19 +252,19 @@ export default function TeamDataPage() {
                   <Table className="w-full">
                     <TableHeader className="border-b-2 border-card-foreground">
                       <TableRow className="text-lg">
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground">
                           隊伍名稱
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           隊伍人數
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           運動種類
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           練習場館
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           隊伍專頁
                         </TableHead>
                       </TableRow>
@@ -297,7 +297,7 @@ export default function TeamDataPage() {
                             <TableCell className="py-4 text-center">
                               <div className="flex flex-col md:flex-row justify-center gap-2">
                                 <Link
-                                  href={`/team/ourteam/teampage/${team.id}`}
+                                  href={`/team/ourteam/${team.id}`}
                                   passHref
                                 >
                                   <Button

@@ -307,7 +307,7 @@ export default function VenueDataPage() {
                         <TableHead className="font-bold w-1/4 md:w-1/4 text-accent-foreground">
                           預約編號
                         </TableHead>
-                        <TableHead className="font-bold w-1/4 md:w-1/4 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/4 md:w-1/4 text-accent-foreground text-start">
                           場地資訊
                         </TableHead>
                         <TableHead className="font-bold w-1/4 md:w-1/4 text-accent-foreground text-center">
@@ -336,12 +336,12 @@ export default function VenueDataPage() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-base py-4 text-accent-foreground text-center">
-                              <div className="flex flex-col gap-1">
+                            <TableCell className=" text-base py-4 text-accent-foreground text-start ">
+                              <div className="grid grid-cols-1 md:grid-cols-2 md:w-[200px] gap-1">
                                 {reservation?.courtTimeSlots?.map(
                                   (slot, slotIndex) => (
                                     <div key={slotIndex} className="text-sm">
-                                      <span className="font-semibold text-primary">
+                                      <span className="font-base text-primary">
                                         {slot.courtName}
                                       </span>
                                       <br />
@@ -354,7 +354,7 @@ export default function VenueDataPage() {
                               </div>
                             </TableCell>
                             <TableCell className="text-base py-4 text-accent-foreground text-center">
-                              <span className="font-semibold">
+                              <span className="font-base">
                                 {reservation?.date || '預約日期'}
                               </span>
                             </TableCell>
