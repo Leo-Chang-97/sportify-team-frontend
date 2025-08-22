@@ -187,7 +187,7 @@ export default function VenueListPage() {
       label: '教練',
       component: (
         <Select value={coachId} onValueChange={setCoachId}>
-          <SelectTrigger className="w-full !bg-card text-accent-foreground !h-10">
+          <SelectTrigger className="w-full !bg-accent !h-10 shadow-md border-muted-foreground text-accent-foreground">
             <SelectValue placeholder="請選擇教練" />
           </SelectTrigger>
           <SelectContent>
