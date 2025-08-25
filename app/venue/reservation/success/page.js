@@ -125,6 +125,12 @@ export default function SuccessPage() {
     fetchCenterData()
   }, [centerId])
 
+  // #region 事件處理函數
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
   // 計算總金額 (從 courtTimeSlots 計算或使用 price)
   const totalPrice = reservationData?.price || 0
 
@@ -202,7 +208,7 @@ export default function SuccessPage() {
       key: '訂單金額',
       value: (
         <span className="text-lg font-bold text-primary">
-          NT$ {reservationData?.price || '未知'}
+          NT$ {formatPrice(reservationData?.price) || '未知'}
         </span>
       ),
     },

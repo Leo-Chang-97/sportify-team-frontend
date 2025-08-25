@@ -25,6 +25,17 @@ import { jwtDecode } from 'jwt-decode'
 import TeamLink from '@/components/card/team-link'
 import { getAvatarUrl, getUserProfile } from '@/api/member/user'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 // 保持這個不受時區影響的日期格式化函式
 const toYYYYMMDD = (date) => {
@@ -69,6 +80,9 @@ const TeamDetailPage = () => {
   const [editingDate, setEditingDate] = useState(null)
   const [noteInput, setNoteInput] = useState('')
   const memberRefs = useRef(new Map())
+
+  const [showDialog, setShowDialog] = useState(false)
+  const [selectedTeamMember, setSelectedTeamMember] = useState(null)
 
   // 2. 統一定義的資料獲取函式
   const fetchTeamData = useCallback(
@@ -135,25 +149,32 @@ const TeamDetailPage = () => {
 
   // 5. 所有 handle... 事件處理函式
   const handleKickMember = async (memberIdToKick) => {
-    if (!window.confirm('您確定要將此成員踢出隊伍嗎？')) return
+    console.log('handleKickMember called with:', memberIdToKick)
+    console.log('selectedTeamMember:', selectedTeamMember)
+
+    if (!memberIdToKick) {
+      toast.error('無法獲取成員 ID')
+      return
+    }
+
     try {
       await teamService.kickMember(teamId, memberIdToKick)
-      alert('成員已成功踢除')
+      toast.success('成員已成功踢除')
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('踢除成員時發生錯誤:', error)
-      alert(`踢除失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`踢除失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
   const handleReviewRequest = async (requestId, status) => {
     try {
       await teamService.reviewRequest(requestId, { status })
-      alert(`申請已成功 ${status === 'APPROVED' ? '批准' : '拒絕'}`)
+      toast.success(`申請已成功 ${status === 'APPROVED' ? '批准' : '拒絕'}`)
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('審核申請時發生錯誤:', error)
-      alert(`審核失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`審核失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -165,13 +186,13 @@ const TeamDetailPage = () => {
         date: editingDate,
         note: noteInput,
       })
-      alert(`已成功為 ${editingDate} 新增/更新記事！`)
+      toast.success(`已成功為 ${editingDate} 新增/更新記事！`)
       setEditingDate(null)
       setNoteInput('')
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('儲存記事失敗:', error)
-      alert(`儲存失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`儲存失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -179,11 +200,11 @@ const TeamDetailPage = () => {
     if (!window.confirm('您確定要刪除這則記事嗎？')) return
     try {
       await teamService.deleteCalendarMark(markId)
-      alert('記事已成功刪除！')
+      toast.success('記事已成功刪除！')
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('刪除記事失敗:', error)
-      alert(`刪除失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`刪除失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -198,7 +219,7 @@ const TeamDetailPage = () => {
       await fetchTeamData() // 無刷新更新
     } catch (error) {
       console.error('發送訊息失敗:', error)
-      alert(`發送失敗：${error.response?.data?.error || error.message}`)
+      toast.error(`發送失敗：${error.response?.data?.error || error.message}`)
     }
   }
 
@@ -340,7 +361,10 @@ const TeamDetailPage = () => {
                   {isCaptain && currentUser?.id !== teamMember.member.id && (
                     <Button
                       variant="ghost"
-                      onClick={() => handleKickMember(teamMember.member.id)} // 改用 teamMember.member.id
+                      onClick={() => {
+                        setSelectedTeamMember(teamMember.member) // 傳整個 member 物件而不是 id
+                        setShowDialog(true)
+                      }}
                       className="hover:text-destructive"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -491,7 +515,7 @@ const TeamDetailPage = () => {
             </div>
             {isCaptain && editingDate && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h3 className="font-bold text-gray-700 mb-2">
+                <h3 className="text-muted-foreground mb-2">
                   為 {editingDate} 新增/編輯記事
                 </h3>
                 <div className="flex gap-2">
@@ -500,7 +524,7 @@ const TeamDetailPage = () => {
                     value={noteInput}
                     onChange={(e) => setNoteInput(e.target.value)}
                     placeholder="輸入事件內容..."
-                    className="flex-1 p-2 bg-gray-100 text-gray-900 border border-ring rounded-lg"
+                    className="flex-1 p-2 bg-input text-foreground border border-ring rounded-lg"
                   />
                   <Button onClick={handleSaveNote}>儲存記事</Button>
                 </div>
@@ -623,6 +647,35 @@ const TeamDetailPage = () => {
           </section>
         </div>
       </main>
+      <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認踢除</AlertDialogTitle>
+            <AlertDialogDescription>
+              您確定要將此成員踢出隊伍嗎？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDialog(false)
+                setSelectedTeamMember(null)
+              }}
+            >
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleKickMember(selectedTeamMember?.id)
+                setShowDialog(false)
+                setSelectedTeamMember(null)
+              }}
+            >
+              確認
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Footer />
     </>
   )

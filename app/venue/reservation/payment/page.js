@@ -120,6 +120,12 @@ export default function PaymentPage() {
   }, [centerId])
 
   // #region 事件處理函數
+
+  // 格式化價格，加上千分位逗號
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString('zh-TW')
+  }
+
   // 處理表單輸入變更
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -595,7 +601,7 @@ export default function PaymentPage() {
                             <AlertDescription className="flex justify-between">
                               <span>{slot.timeRange}</span>
                               <span className="text-primary">
-                                NT$ {slot.price}
+                                NT$ {formatPrice(slot.price)}
                               </span>
                             </AlertDescription>
                           </Alert>
@@ -613,7 +619,7 @@ export default function PaymentPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-foreground">總計</span>
                       <span className="text-lg font-bold text-primary">
-                        NT$ {venueData.totalPrice || 0}
+                        NT$ {formatPrice(venueData.totalPrice) || 0}
                       </span>
                     </div>
                   </div>

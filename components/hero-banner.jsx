@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 export default function HeroBanner({
   backgroundImage = '/banner/venue-banner.jpg',
   title = '馬上預訂動起來',
-  overlayOpacity = 'bg-black/50',
+  overlayOpacity = 'bg-slate-900/50',
   children,
   onSearch,
   className = '',
@@ -51,7 +51,7 @@ export function SearchField({
       ))}
       <Button
         variant="highlight"
-        className="w-full md:w-auto h-10"
+        className="w-full md:w-auto h-10 shadow-md"
         onClick={onSearch}
         {...searchButtonProps}
       >

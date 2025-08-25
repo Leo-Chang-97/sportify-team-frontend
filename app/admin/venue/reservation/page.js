@@ -454,10 +454,13 @@ export default function ReservationPage() {
   } */
 
   // #region資料選項
-  const comboboxData = members.map((m) => ({
-    value: m.id?.toString?.() ?? String(m.id),
-    label: `${m.id}.${m.name}` ?? `${m.id}`,
-  }))
+  const comboboxData = [
+    { value: 'all', label: '全部會員' },
+    ...members.map((m) => ({
+      value: m.id?.toString?.() ?? String(m.id),
+      label: `${m.id}.${m.name}` ?? `${m.id}`,
+    })),
+  ]
 
   // #region 頁面渲染
 
@@ -481,20 +484,18 @@ export default function ReservationPage() {
                 </CardHeader> */}
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* 使用者 */}
+                    {/* 會員 */}
                     <div className="space-y-2">
-                      <Label htmlFor="memberId">使用者</Label>
+                      <Label htmlFor="memberId">會員</Label>
                       <Combobox
                         data={comboboxData}
-                        value={filters.memberId || 'all'}
+                        value={filters.memberId || ''}
                         onValueChange={(value) =>
                           handleFilterChange(
                             'memberId',
                             value === 'all' ? '' : value
                           )
                         }
-                        // value={memberId}
-                        // onValueChange={(newValue) => setMemberId(newValue)}
                         onOpenChange={() => {}}
                         type="會員"
                       >
@@ -528,8 +529,7 @@ export default function ReservationPage() {
                           <Button
                             variant="outline"
                             id="date"
-                            className={`w-full justify-between font-normal${
-                              !date ? ' text-gray-500' : ''
+                            className={`w-full justify-between font-normal
                             }`}
                           >
                             {date

@@ -130,22 +130,22 @@ export default function ProductPaymentPage() {
   }, [cartData])
 
   // 接收 7-11 選擇門市後的資料
-  useEffect(() => {
-    const handleStoreMessage = (event) => {
-      if (event.data?.storename) {
-        setFormData((prev) => ({
-          ...prev,
-          storeName: event.data.storename,
-        }))
-      }
-    }
+  // useEffect(() => {
+  //   const handleStoreMessage = (event) => {
+  //     if (event.data?.storename) {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         storeName: event.data.storename,
+  //       }))
+  //     }
+  //   }
 
-    window.addEventListener('message', handleStoreMessage)
+  //   window.addEventListener('message', handleStoreMessage)
 
-    return () => {
-      window.removeEventListener('message', handleStoreMessage)
-    }
-  }, [])
+  //   return () => {
+  //     window.removeEventListener('message', handleStoreMessage)
+  //   }
+  // }, [])
 
   // ===== 事件處理函數 =====
   const handleInputChange = (field, value) => {
@@ -224,20 +224,31 @@ export default function ProductPaymentPage() {
     }
 
     // 如果改變配送方式，清除地址相關的錯誤和觸碰狀態（如果不是宅配）
-    if (field === 'delivery' && value !== '3') {
-      setErrors((prev) => ({
-        ...prev,
-        address: '',
-      }))
-      setTouchedFields((prev) => ({
-        ...prev,
-        address: false,
-      }))
-      // 清除地址欄位的值
-      setFormData((prev) => ({
-        ...prev,
-        address: '',
-      }))
+    if (field === 'delivery') {
+      if (value === '3') {
+        // 宅配：清空 7-11 門市，避免之後直接用到舊門市
+        setFormData((prev) => ({ ...prev, storeName: '' }))
+        setErrors((prev) => ({ ...prev, storeName: '' }))
+        setTouchedFields((prev) => ({ ...prev, storeName: false }))
+      } else if (value === '1') {
+        // 7-11：清空宅配地址，且強制重選門市（清空舊門市）
+        setFormData((prev) => ({ ...prev, address: '', storeName: '' }))
+        setErrors((prev) => ({ ...prev, address: '', storeName: '' }))
+        setTouchedFields((prev) => ({
+          ...prev,
+          address: false,
+          storeName: false,
+        }))
+      } else {
+        // 其他超商（如果有）：清宅配地址，也清空舊門市以強制重選
+        setFormData((prev) => ({ ...prev, address: '', storeName: '' }))
+        setErrors((prev) => ({ ...prev, address: '', storeName: '' }))
+        setTouchedFields((prev) => ({
+          ...prev,
+          address: false,
+          storeName: false,
+        }))
+      }
     }
   }
 
@@ -613,14 +624,12 @@ export default function ProductPaymentPage() {
                   {/* 收件人資訊 */}
                   <div className="space-y-3">
                     <div className="flex items-center mb-2 gap-4">
-                      <Label className="text-lg font-bold mb-0">
-                        付款資訊
-                      </Label>
+                      <Label className="text-lg font-bold mb-0">付款資訊</Label>
                       <div className="flex items-center">
                         <input
                           type="checkbox"
                           id="autoFillMember"
-                          className="mr-2"
+                          className="mr-2 accent-highlight"
                           onChange={(e) => {
                             if (e.target.checked && user) {
                               setFormData((prev) => ({
@@ -697,6 +706,7 @@ export default function ProductPaymentPage() {
                   {/* 物流方式 */}
                   <div data-field="delivery">
                     <DeliveryMethodSelector
+                      key={`delivery-${selectedDelivery}`}
                       selectedDelivery={selectedDelivery}
                       onDeliveryChange={(value) =>
                         handleSelectChange(
