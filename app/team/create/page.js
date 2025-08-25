@@ -200,7 +200,7 @@ export default function CreateTeamPage() {
       <BreadcrumbAuto />
       <HeroBanner
         backgroundImage="/banner/team-banner.jpg"
-        title="馬上加入團隊"
+        title="  "
         overlayOpacity="bg-primary/10"
       />
       <section className="py-20">
