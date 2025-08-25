@@ -360,6 +360,7 @@ export default function CoursePaymentPage() {
                           onChange={(e) =>
                             handleInputChange('name', e.target.value)
                           }
+                          disabled
                         />
                         {errors.name && (
                           <p className="text-sm text-red-500">{errors.name}</p>
@@ -380,6 +381,7 @@ export default function CoursePaymentPage() {
                           onChange={(e) =>
                             handleInputChange('phone', e.target.value)
                           }
+                          disabled
                         />
                         {errors.phone && (
                           <span className="text-destructive text-sm">
