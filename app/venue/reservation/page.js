@@ -343,9 +343,9 @@ export default function ReservationPage() {
             />
           </section>
 
-          <section className="flex flex-col lg:flex-row gap-6">
+          <section className="flex flex-col md:flex-row gap-6">
             {/* 訂單選擇 */}
-            <section className="flex-1 lg:flex-2 min-w-0 flex flex-col gap-6">
+            <section className="flex-1 md:flex-2 min-w-0 flex flex-col gap-6">
               {/* 選擇場館與運動 */}
               <section>
                 <h2 className="text-xl font-semibold mb-4">選擇場館與運動</h2>
@@ -549,7 +549,7 @@ export default function ReservationPage() {
                                     className="bg-background"
                                   >
                                     <StatusIndicator />
-                                    <StatusLabel className="hidden sm:inline">
+                                    <StatusLabel className="hidden lg:inline">
                                       已選擇
                                     </StatusLabel>
                                   </Status>
@@ -559,7 +559,7 @@ export default function ReservationPage() {
                                     className="bg-background"
                                   >
                                     <StatusIndicator />
-                                    <StatusLabel className="hidden sm:inline">
+                                    <StatusLabel className="hidden lg:inline">
                                       已額滿
                                     </StatusLabel>
                                   </Status>
@@ -569,7 +569,7 @@ export default function ReservationPage() {
                                     className="bg-background"
                                   >
                                     <StatusIndicator />
-                                    <StatusLabel className="hidden sm:inline">
+                                    <StatusLabel className="hidden lg:inline">
                                       {availableCount}
                                     </StatusLabel>
                                   </Status>

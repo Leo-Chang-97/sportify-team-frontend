@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 
 // utils
 import { cn } from '@/lib/utils'
-import { format as formatDate } from 'date-fns'
+import { format as formatDate, format } from 'date-fns'
 
 // icons
 import { ChevronDownIcon } from 'lucide-react'
@@ -37,7 +37,10 @@ import {
   fetchPaymentOptions,
   fetchInvoiceOptions,
 } from '@/api'
-import { fetchAvailableTimeSlotsDate } from '@/api/venue/court-time-slot'
+import {
+  fetchAvailableTimeSlotsDate,
+  fetchAvailableTimeSlotsRange,
+} from '@/api/venue/court-time-slot'
 
 // UI 元件
 import { Button } from '@/components/ui/button'
@@ -138,6 +141,10 @@ export default function ReservationForm({
 
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([])
   const [originalReservationSlots, setOriginalReservationSlots] = useState([]) // 新增：追踪原始預約時段
+  const [monthlyAvailability, setMonthlyAvailability] = useState([])
+
+  // 計算今天的日期字串 (YYYY-MM-DD) - 用於查詢可預約時段
+  const today = new Date().toISOString().split('T')[0]
 
   // #region 副作用處理
 
@@ -389,6 +396,29 @@ export default function ReservationForm({
     loadData()
   }, [centerId, sportId, date, mode, reservationId, originalReservationSlots])
 
+  // #region 獲取從今天起 30 天的可預約數據
+  useEffect(() => {
+    const loadRangeData = async () => {
+      try {
+        if (centerId && sportId && today) {
+          const rangeData = await fetchAvailableTimeSlotsRange(
+            Number(centerId),
+            Number(sportId),
+            today,
+            30 // 查詢 30 天
+          )
+          setMonthlyAvailability(rangeData.rows || [])
+        } else {
+          setMonthlyAvailability([])
+        }
+      } catch (err) {
+        console.error('載入可預約資料失敗:', err)
+        setMonthlyAvailability([])
+      }
+    }
+    loadRangeData()
+  }, [centerId, sportId, today])
+
   // #region 事件處理函數
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -415,7 +445,7 @@ export default function ReservationForm({
     const submitData = {
       memberId: Number(memberId),
       courtTimeSlotId: courtTimeSlotIds,
-      date: date ? date.toISOString().slice(0, 10) : '',
+      date: date ? formatDate(date, 'yyyy-MM-dd') : '',
       statusId: Number(statusId),
       paymentId: Number(paymentId),
       invoiceId: Number(invoiceId),
@@ -538,6 +568,15 @@ export default function ReservationForm({
       const price = Number(getPrice(courtId, timeSlotId))
       return total + (price || 0)
     }, 0)
+  }
+
+  // 獲取特定日期的可預約數量
+  const getAvailableCount = (date) => {
+    if (!date || !monthlyAvailability.length) return null
+
+    const dateStr = date ? formatDate(date, 'yyyy-MM-dd') : ''
+    const dayData = monthlyAvailability.find((day) => day.date === dateStr)
+    return dayData ? dayData.availableCount : null
   }
 
   // #region資料選項
@@ -722,7 +761,7 @@ export default function ReservationForm({
                         variant="outline"
                         id="date"
                         className={`w-full justify-between font-normal${
-                          !date ? ' text-gray-500' : ''
+                          !date ? ' text-muted-foreground' : ''
                         }`}
                       >
                         {date ? date.toLocaleDateString() : '請選擇預訂日期'}
@@ -745,7 +784,9 @@ export default function ReservationForm({
                           // 禁用今天之前的日期
                           const today = new Date()
                           today.setHours(0, 0, 0, 0)
-                          return date < today
+                          // 禁用沒有可預約時段的日期
+                          const availableCount = getAvailableCount(date)
+                          return date < today || !availableCount
                         }}
                         className={
                           errors.date ? 'border border-red-500 rounded-md' : ''
