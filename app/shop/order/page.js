@@ -106,6 +106,7 @@ export default function CartListPage() {
               backgroundColor: '#ff671e',
               color: '#fff',
               border: 'none',
+              width: '250px',
             },
           })
         } catch (error) {
