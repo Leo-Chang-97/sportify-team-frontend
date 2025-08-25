@@ -676,7 +676,7 @@ export default function CenterDetailPage() {
                           <IconComponent className="!w-6 !h-6" />
                         )}
                         {item.name}
-                        <span className="text-muted-foreground">4個場地</span>
+                        <span className="text-muted-foreground">3個場地</span>
                       </Button>
                     )
                   })}
@@ -755,9 +755,7 @@ export default function CenterDetailPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <span className="underline underline-offset-4">
-                    {data.address}
-                  </span>
+                  <span className="underline">{data.address}</span>
                 </Link>
               </div>
               <div className="flex pb-2 gap-2">
