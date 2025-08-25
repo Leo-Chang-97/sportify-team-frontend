@@ -445,9 +445,10 @@ export default function PaymentPage() {
               onStepClick={(step, index) => console.log('Clicked step:', step)}
             />
           </section>
+
           <section className="flex flex-col md:flex-row gap-6">
             {/* 付款流程 */}
-            <section className="flex-2 w-full">
+            <section className="flex-1 lg:flex-2 min-w-0 flex flex-col">
               <h2 className="text-xl font-semibold mb-4">付款方式</h2>
               <Card>
                 <CardContent className="flex flex-col gap-6">
@@ -470,6 +471,7 @@ export default function PaymentPage() {
                           onChange={(e) =>
                             handleInputChange('name', e.target.value)
                           }
+                          disabled
                         />
                         {errors.name && (
                           <span className="text-destructive text-sm">
@@ -492,6 +494,7 @@ export default function PaymentPage() {
                           onChange={(e) =>
                             handleInputChange('phone', e.target.value)
                           }
+                          disabled
                         />
                         {errors.phone && (
                           <span className="text-destructive text-sm">
@@ -528,10 +531,10 @@ export default function PaymentPage() {
                 </CardContent>
               </Card>
             </section>
-            {/* 訂單確認 */}
-            <section className="flex-1 w-full">
-              <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
 
+            {/* 訂單確認 */}
+            <section className="flex-1 lg:max-w-sm xl:max-w-md min-w-0 w-full">
+              <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
               {/* 訂單摘要卡片 */}
               <Card>
                 <CardHeader>
