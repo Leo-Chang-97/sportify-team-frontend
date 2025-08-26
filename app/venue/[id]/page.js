@@ -522,33 +522,38 @@ export default function CenterDetailPage() {
                 </Button>
               </Link>
               <div className="flex flex-row gap-2 w-full sm:w-auto">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="lg">
-                      分享
-                      <Share />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-fit px-2 py-2">
-                    <div className="flex flex-row gap-2 w-full sm:w-auto">
-                      <FacebookShareButton url={window.location.href}>
-                        {/* <FaFacebook size={30} color="#1f7bf2" /> */}
-                        <FacebookIcon size={32} round />
-                      </FacebookShareButton>
-                      <LineShareButton url={window.location.href}>
-                        <LineIcon size={32} round />
-                      </LineShareButton>
-                      <TwitterShareButton url={window.location.href}>
-                        <XIcon size={32} round />
-                      </TwitterShareButton>
-                      <ThreadsShareButton url={window.location.href}>
-                        <ThreadsIcon size={32} round />
-                      </ThreadsShareButton>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                <Link href="#" className="w-full sm:w-auto">
+                <div className="w-1/2 sm:w-auto">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full md:w-auto"
+                        size="lg"
+                      >
+                        分享
+                        <Share />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-fit px-2 py-2">
+                      <div className="flex flex-row gap-2 w-full sm:w-auto">
+                        <FacebookShareButton url={window.location.href}>
+                          {/* <FaFacebook size={30} color="#1f7bf2" /> */}
+                          <FacebookIcon size={32} round />
+                        </FacebookShareButton>
+                        <LineShareButton url={window.location.href}>
+                          <LineIcon size={32} round />
+                        </LineShareButton>
+                        <TwitterShareButton url={window.location.href}>
+                          <XIcon size={32} round />
+                        </TwitterShareButton>
+                        <ThreadsShareButton url={window.location.href}>
+                          <ThreadsIcon size={32} round />
+                        </ThreadsShareButton>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <Link href="#" className="w-1/2 sm:w-auto">
                   <Button variant="outline" size="lg" className="w-full">
                     收藏
                     <Heart />
@@ -676,7 +681,7 @@ export default function CenterDetailPage() {
                           <IconComponent className="!w-6 !h-6" />
                         )}
                         {item.name}
-                        <span className="text-muted-foreground">4個場地</span>
+                        <span className="text-muted-foreground">3個場地</span>
                       </Button>
                     )
                   })}
@@ -755,9 +760,7 @@ export default function CenterDetailPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <span className="underline underline-offset-4">
-                    {data.address}
-                  </span>
+                  <span className="underline">{data.address}</span>
                 </Link>
               </div>
               <div className="flex pb-2 gap-2">

@@ -306,8 +306,8 @@ export default function VenueListPage() {
                 </h3>
               </div>
             ) : (
-              courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+              courses.map((course,index) => (
+                <CourseCard key={index} course={course} />
               ))
             )}
           </div>
