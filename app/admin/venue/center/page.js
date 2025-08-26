@@ -2,7 +2,7 @@
 'use client'
 
 // hooks
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Suspense } from 'react'
 
 // Icon
 import { IconTrash } from '@tabler/icons-react'
@@ -35,7 +35,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 
-export default function CenterPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function CenterPageContent() {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -286,5 +287,23 @@ export default function CenterPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function CenterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入場館管理資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <CenterPageContent />
+    </Suspense>
   )
 }

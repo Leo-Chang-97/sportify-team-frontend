@@ -240,7 +240,7 @@ export default function OrderForm({
   const sevenStore = () => {
     window.open(
       'https://emap.presco.com.tw/c2cemap.ashx?eshopid=870&&servicetype=1&url=' +
-        encodeURIComponent('http://localhost:3005/api/shop/shipment'),
+        encodeURIComponent(`${API_SERVER}/shop/shipment`),
       '',
       'width=900,height=600'
     )

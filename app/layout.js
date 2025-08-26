@@ -6,7 +6,7 @@ import { VenueProvider } from '@/contexts/venue-context'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 
 const notoSansTC = Noto_Sans_TC({
-  subsets: ['traditional-chinese'],
+  subsets: ['latin'],
   weight: ['400', '700'],
   display: 'swap',
 })

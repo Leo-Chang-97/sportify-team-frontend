@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useCourse } from '@/contexts/course-context'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -64,7 +64,8 @@ const steps = [
   { id: 3, title: '完成訂單', completed: false },
 ]
 
-export default function CoursePaymentPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function CoursePaymentContent() {
   // #region 路由和URL參數
   const router = useRouter()
   const { user } = useAuth()
@@ -737,5 +738,13 @@ export default function CoursePaymentPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function CoursePaymentPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <CoursePaymentContent />
+    </Suspense>
   )
 }

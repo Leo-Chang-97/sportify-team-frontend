@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
 // 資料請求函式庫
@@ -35,7 +35,8 @@ import { PaginationBar } from '@/components/pagination-bar'
 import { CenterCard } from '@/components/card/center-card'
 import { LoadingState, ErrorState } from '@/components/loading-states'
 
-export default function VenueListPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function VenueListContent() {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -346,5 +347,14 @@ export default function VenueListPage() {
 
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function VenueListPage() {
+  return (
+    <Suspense fallback={<LoadingState message="載入場館資料中..." />}>
+      <VenueListContent />
+    </Suspense>
   )
 }
