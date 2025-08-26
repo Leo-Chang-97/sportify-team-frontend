@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 
 // utils
 import { cn } from '@/lib/utils'
@@ -22,7 +22,8 @@ import { Button } from '@/components/ui/button'
 // 自訂元件
 import { Card, CardContent, CardFooter } from '@/components/card/card'
 
-export function CoachCard({ className, data, ...props }) {
+// 抽取使用 useSearchParams 的內容組件
+function CoachCardContent({ className, data, ...props }) {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -87,5 +88,14 @@ export function CoachCard({ className, data, ...props }) {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// 主要的導出組件，包裝在 Suspense 中
+export function CoachCard({ className, data, ...props }) {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <CoachCardContent className={className} data={data} {...props} />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
@@ -32,7 +32,9 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-export default function FavoriteDataPage() {
+
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function FavoriteDataContent() {
   const { user } = useAuth()
   const [favorites, setFavorites] = useState([])
   const [allFavorites, setAllFavorites] = useState([]) // 保存所有收藏資料
@@ -449,7 +451,9 @@ export default function FavoriteDataPage() {
                                 >
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>取消收藏</AlertDialogTitle>
+                                      <AlertDialogTitle>
+                                        取消收藏
+                                      </AlertDialogTitle>
                                       <AlertDialogDescription>
                                         確認是否取消收藏「
                                         {selectedProduct?.name || '這個商品'}
@@ -509,5 +513,23 @@ export default function FavoriteDataPage() {
       </section>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function FavoriteDataPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入收藏資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <FavoriteDataContent />
+    </Suspense>
   )
 }

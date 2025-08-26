@@ -15,6 +15,7 @@ import {
   ChoiceboxItemSubtitle,
   ChoiceboxItemTitle,
 } from '@/components/ui/choicebox'
+import { API_SERVER } from '@/lib/api-path'
 
 const DeliveryOptions = [
   {
@@ -57,7 +58,7 @@ export default function DeliveryMethodSelector({
     // 記錄 popup window 參考，收到 message 時可檢查來源
     popupRef.current = window.open(
       'https://emap.presco.com.tw/c2cemap.ashx?eshopid=870&&servicetype=1&url=' +
-        encodeURIComponent('http://localhost:3005/api/shop/shipment'),
+        encodeURIComponent(`${API_SERVER}/shop/shipment`),
       '',
       'width=900,height=600'
     )

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/table'
 import { getUserOrders, getOrderDetail } from '@/api/shop/order'
 
-export default function ShopDataPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function ShopDataContent() {
   const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [allOrders, setAllOrders] = useState([])
@@ -432,5 +433,23 @@ export default function ShopDataPage() {
       </section>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function ShopDataPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入購物資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <ShopDataContent />
+    </Suspense>
   )
 }

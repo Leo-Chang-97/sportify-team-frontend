@@ -2,7 +2,7 @@
 'use client'
 
 // hooks
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 
 // utils
 import { cn } from '@/lib/utils'
@@ -82,7 +82,8 @@ import {
 } from '@/components/ui/combobox'
 import { toast } from 'sonner'
 
-export default function ReservationPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function ReservationContent() {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -799,5 +800,13 @@ export default function ReservationPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
+  )
+}
+
+export default function ReservationPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <ReservationContent />
+    </Suspense>
   )
 }

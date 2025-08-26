@@ -1,7 +1,7 @@
 'use client'
 
 // react
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import Image from 'next/image'
@@ -9,7 +9,7 @@ import Link from 'next/link'
 // icons
 import { FaXmark, FaCheck } from 'react-icons/fa6'
 import { IconLoader } from '@tabler/icons-react'
-import { FaCircle } from "react-icons/fa";
+import { FaCircle } from 'react-icons/fa'
 // ui components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -38,7 +38,8 @@ const steps = [
   { id: 3, title: '完成訂單', active: true },
 ]
 
-export default function ProductSuccessPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function ProductSuccessContent() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
@@ -78,7 +79,7 @@ export default function ProductSuccessPage() {
         key: '訂單狀態',
         value: (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
-            {!order.status_name && <IconLoader  className="mr-1" />}
+            {!order.status_name && <IconLoader className="mr-1" />}
             {(order.status_name === '待出貨' ||
               order.status_name === '已出貨' ||
               order.status_name === '已完成') && (
@@ -268,5 +269,23 @@ export default function ProductSuccessPage() {
       </section>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function ProductSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入訂單資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <ProductSuccessContent />
+    </Suspense>
   )
 }

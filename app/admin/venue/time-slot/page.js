@@ -2,7 +2,7 @@
 'use client'
 
 // ===== 依賴項匯入 =====
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppSidebar } from '@/components/admin/app-sidebar'
 import { SiteHeader } from '@/components/admin/site-header'
@@ -49,7 +49,8 @@ import {
 import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 
-export default function TimeSlotPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function TimeSlotContent() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -561,5 +562,13 @@ export default function TimeSlotPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
+  )
+}
+
+export default function TimeSlotPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <TimeSlotContent />
+    </Suspense>
   )
 }

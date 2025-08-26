@@ -1,6 +1,6 @@
 'use client'
 // hooks
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useCourse } from '@/contexts/course-context'
 
@@ -34,7 +34,8 @@ import ScrollAreaSport from '@/components/scroll-area-sport'
 import CourseCard from '@/components/card/course-card'
 import { LoadingState, ErrorState } from '@/components/loading-states'
 
-export default function VenueListPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function CourseListContent() {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
   const queryParams = useMemo(() => {
@@ -306,7 +307,7 @@ export default function VenueListPage() {
                 </h3>
               </div>
             ) : (
-              courses.map((course,index) => (
+              courses.map((course, index) => (
                 <CourseCard key={index} course={course} />
               ))
             )}
@@ -351,5 +352,23 @@ export default function VenueListPage() {
 
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function VenueListPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入課程資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <CourseListContent />
+    </Suspense>
   )
 }
