@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/navbar'
@@ -21,7 +21,8 @@ import {
 import { getUserBookings } from '@/api/course/booking'
 import { fetchLesson } from '@/api/course/lesson'
 
-export default function ClassDataPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function ClassDataContent() {
   const { user } = useAuth()
   const [bookings, setBookings] = useState([])
   const [allBookings, setAllBookings] = useState([])
@@ -392,5 +393,23 @@ export default function ClassDataPage() {
       </section>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function ClassDataPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入課程資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <ClassDataContent />
+    </Suspense>
   )
 }

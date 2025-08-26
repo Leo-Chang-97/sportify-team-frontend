@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/table'
 import { teamService } from '@/api/team/team'
 
-export default function TeamDataPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function TeamDataContent() {
   const { user } = useAuth()
   const [teams, setTeams] = useState([])
   const [allTeams, setAllTeams] = useState([])
@@ -252,19 +253,19 @@ export default function TeamDataPage() {
                   <Table className="w-full">
                     <TableHeader className="border-b-2 border-card-foreground">
                       <TableRow className="text-lg">
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground">
                           隊伍名稱
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           隊伍人數
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           運動種類
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           練習場館
                         </TableHead>
-                        <TableHead className="font-bold w-1/3 md:w-1/3 text-accent-foreground text-center">
+                        <TableHead className="font-bold w-1/5 text-accent-foreground text-center">
                           隊伍專頁
                         </TableHead>
                       </TableRow>
@@ -297,7 +298,7 @@ export default function TeamDataPage() {
                             <TableCell className="py-4 text-center">
                               <div className="flex flex-col md:flex-row justify-center gap-2">
                                 <Link
-                                  href={`/team/ourteam/teampage/${team.id}`}
+                                  href={`/team/ourteam/${team.id}`}
                                   passHref
                                 >
                                   <Button
@@ -337,5 +338,23 @@ export default function TeamDataPage() {
       </section>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function TeamDataPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入隊伍資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <TeamDataContent />
+    </Suspense>
   )
 }

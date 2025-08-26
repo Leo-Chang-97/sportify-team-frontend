@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Search, Star } from 'lucide-react'
@@ -35,7 +35,8 @@ const fadeUpVariants = {
   }),
 }
 
-export default function VenueSearchForm({ locations = [], sports = [] }) {
+// 抽取使用 useSearchParams 的內容組件
+function VenueSearchFormContent({ locations = [], sports = [] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -212,5 +213,14 @@ export default function VenueSearchForm({ locations = [], sports = [] }) {
         </CardFooter>
       </Card>
     </motion.div>
+  )
+}
+
+// 主要的導出組件，包裝在 Suspense 中
+export default function VenueSearchForm({ locations = [], sports = [] }) {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <VenueSearchFormContent locations={locations} sports={sports} />
+    </Suspense>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -61,8 +61,9 @@ import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
 import { LoadingState, ErrorState } from '@/components/loading-states'
-4
-export default function PaymentPage() {
+
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function PaymentContent() {
   // #region 路由和URL參數
   const router = useRouter()
   const { user } = useAuth()
@@ -445,9 +446,10 @@ export default function PaymentPage() {
               onStepClick={(step, index) => console.log('Clicked step:', step)}
             />
           </section>
+
           <section className="flex flex-col md:flex-row gap-6">
             {/* 付款流程 */}
-            <section className="flex-2 w-full">
+            <section className="flex-1 lg:flex-2 min-w-0 flex flex-col">
               <h2 className="text-xl font-semibold mb-4">付款方式</h2>
               <Card>
                 <CardContent className="flex flex-col gap-6">
@@ -470,6 +472,7 @@ export default function PaymentPage() {
                           onChange={(e) =>
                             handleInputChange('name', e.target.value)
                           }
+                          disabled
                         />
                         {errors.name && (
                           <span className="text-destructive text-sm">
@@ -492,6 +495,7 @@ export default function PaymentPage() {
                           onChange={(e) =>
                             handleInputChange('phone', e.target.value)
                           }
+                          disabled
                         />
                         {errors.phone && (
                           <span className="text-destructive text-sm">
@@ -528,10 +532,10 @@ export default function PaymentPage() {
                 </CardContent>
               </Card>
             </section>
-            {/* 訂單確認 */}
-            <section className="flex-1 w-full">
-              <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
 
+            {/* 訂單確認 */}
+            <section className="flex-1 lg:max-w-sm xl:max-w-md min-w-0 w-full">
+              <h2 className="text-xl font-semibold mb-4">您的訂單</h2>
               {/* 訂單摘要卡片 */}
               <Card>
                 <CardHeader>
@@ -678,5 +682,13 @@ export default function PaymentPage() {
 
       <Footer />
     </>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <PaymentContent />
+    </Suspense>
   )
 }
