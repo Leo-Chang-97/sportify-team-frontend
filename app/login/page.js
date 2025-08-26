@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { LoginForm } from '@/app/login/_components/login-form'
 import { Navbar } from '@/components/navbar'
+import GoogleLoginButton from './_components/google-login'
 
 export default function Page() {
   const { user, login, isAuthenticated } = useAuth()
@@ -89,6 +90,7 @@ export default function Page() {
             isLoading={isLoading}
             login={login}
           />
+          
         </div>
       </div>
     </>
