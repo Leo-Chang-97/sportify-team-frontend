@@ -1,8 +1,8 @@
-// app/admin/venue/center/page.js
+// app/admin/venue/court-time-slot/page.js
 'use client'
 
 // hooks
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 
 // 資料請求函式庫
 import useSWR from 'swr'
@@ -79,7 +79,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 
-export default function CourtTimeSlotPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function CourtTimeSlotContent() {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -1098,5 +1099,13 @@ export default function CourtTimeSlotPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
+  )
+}
+
+export default function CourtTimeSlotPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <CourtTimeSlotContent />
+    </Suspense>
   )
 }

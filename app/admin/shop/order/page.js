@@ -1,7 +1,7 @@
 'use client'
 
 // react
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR from 'swr'
 // icons
@@ -39,7 +39,8 @@ import {
 // others
 import { toast } from 'sonner'
 
-export default function OrderPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function OrderPageContent() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -256,5 +257,23 @@ export default function OrderPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function OrderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入訂單管理資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <OrderPageContent />
+    </Suspense>
   )
 }

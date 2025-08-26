@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TeamCard } from '@/components/card/team-card'
@@ -67,7 +67,8 @@ const formatSchedules = (schedules) => {
 }
 // --- 修改結束 (1/2) ---
 
-export default function TeamPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function TeamPageContent() {
   const [expandedCardIndex, setExpandedCardIndex] = useState(null)
   const [teams, setTeams] = useState([])
   const [sports, setSports] = useState([])
@@ -395,5 +396,23 @@ export default function TeamPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function TeamPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入隊伍資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <TeamPageContent />
+    </Suspense>
   )
 }

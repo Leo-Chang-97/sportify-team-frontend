@@ -1,4 +1,5 @@
 import { apiClient } from '@/api/axios'
+import { SERVER } from '@/lib/api-path'
 
 // 獲取用戶資料
 export const getUserProfile = async () => {
@@ -31,7 +32,7 @@ export const uploadUserAvatar = async (file) => {
  * @returns {string} 完整的頭像 URL
  */
 export const getAvatarUrl = (avatarName) => {
-  if (!avatarName) return 'http://localhost:3005/avatars/default.png' // 預設頭像
+  if (!avatarName) return '${SERVER}/avatars/default.png' // 預設頭像
 
   // 如果已經是完整 URL，直接使用
   if (avatarName.startsWith('http')) {
@@ -45,5 +46,5 @@ export const getAvatarUrl = (avatarName) => {
   }
 
   // 直接從後端靜態檔案目錄取得頭像（avatars 資料夾）
-  return `http://localhost:3005/avatars/${fileName}`
+  return `${SERVER}/avatars/${fileName}`
 }
