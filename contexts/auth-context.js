@@ -24,28 +24,21 @@ export function AuthProvider({ children }) {
       })
 
       const result = await res.json()
-      console.log('登入 API 回應:', result)
 
       if (res.ok && result.success) {
         localStorage.setItem(storageKey, result.token)
-        console.log('Token 已儲存:', result.token)
 
         // 登入成功後，立即獲取完整的用戶資料
-        console.log('登入成功，開始獲取完整用戶資料')
         try {
-          console.log('調用 /auth/verify API...')
           const verifyRes = await fetch(`${API_SERVER}/auth/verify`, {
             headers: {
               Authorization: `Bearer ${result.token}`,
             },
           })
-          console.log('verify API 狀態:', verifyRes.status)
 
           const verifyResult = await verifyRes.json()
-          console.log('verify API 回應:', verifyResult)
 
           if (verifyRes.ok && verifyResult.success) {
-            console.log('獲取完整用戶資料成功:', verifyResult.user)
             setUser(verifyResult.user)
             toast.success('登入成功！歡迎回來！', {
               className: 'bg-green-500 text-white border-green-600 shadow-lg',
@@ -58,8 +51,6 @@ export function AuthProvider({ children }) {
             })
             return { success: true, user: verifyResult.user }
           } else {
-            console.log('獲取完整用戶資料失敗，使用登入回傳的資料')
-            console.log('登入回傳的用戶資料:', result.user)
             setUser(result.user)
             toast.success('登入成功！歡迎回來！', {
               className: 'bg-green-500 text-white border-green-600 shadow-lg',
@@ -74,7 +65,6 @@ export function AuthProvider({ children }) {
           }
         } catch (verifyError) {
           console.error('獲取完整用戶資料時發生錯誤:', verifyError)
-          console.log('使用登入回傳的資料作為備用:', result.user)
           setUser(result.user)
           toast.success('登入成功！歡迎回來！', {
             className: 'bg-green-500 text-white border-green-600 shadow-lg',
@@ -126,7 +116,6 @@ export function AuthProvider({ children }) {
         localStorage.setItem(storageKey, result.token)
 
         // 註冊成功後，立即獲取完整的用戶資料
-        console.log('註冊成功，開始獲取完整用戶資料')
         try {
           const verifyRes = await fetch(`${API_SERVER}/auth/verify`, {
             headers: {
@@ -135,7 +124,6 @@ export function AuthProvider({ children }) {
           })
           const verifyResult = await verifyRes.json()
           if (verifyRes.ok && verifyResult.success) {
-            console.log('獲取完整用戶資料成功:', verifyResult.user)
             setUser(verifyResult.user)
             toast.success('註冊成功！歡迎加入我們！', {
               className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
@@ -148,7 +136,6 @@ export function AuthProvider({ children }) {
             })
             return { success: true, user: verifyResult.user }
           } else {
-            console.log('獲取完整用戶資料失敗，使用註冊回傳的資料')
             setUser(result.user)
             toast.success('註冊成功！歡迎加入我們！', {
               className: 'bg-blue-500 text-white border-blue-600 shadow-lg',
@@ -345,11 +332,9 @@ export function AuthProvider({ children }) {
       })
 
       const result = await res.json()
-      console.log('Google 登入 API 回應:', result)
 
       if (res.ok && result.success) {
         localStorage.setItem(storageKey, result.token)
-        console.log('Google 登入 Token 已儲存:', result.token)
         setUser(result.user)
         return { success: true, user: result.user }
       } else {
