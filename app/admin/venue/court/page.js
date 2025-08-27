@@ -637,7 +637,7 @@ function CourtPageContent() {
 export default function VenueCourtPage() {
   return (
     <Suspense fallback={<div>載入中...</div>}>
-      <VenueCourtContent />
+      <CourtPageContent />
     </Suspense>
   )
 }

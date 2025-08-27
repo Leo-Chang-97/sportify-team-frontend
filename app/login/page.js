@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { LoginForm } from '@/app/login/_components/login-form'
 import { Navbar } from '@/components/navbar'
+import GoogleLoginButton from './_components/google-login'
 
 // 將使用 useSearchParams 的邏輯抽取到單獨的組件
 function LoginContent() {
@@ -89,6 +90,7 @@ function LoginContent() {
             isLoading={isLoading}
             login={login}
           />
+          
         </div>
       </div>
     </>
