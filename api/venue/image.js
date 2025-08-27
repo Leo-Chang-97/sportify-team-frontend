@@ -5,7 +5,7 @@
  */
 import { SERVER } from '@/lib/api-path'
 export const getCenterImageUrl = (imageName) => {
-  if (!imageName) return `/shop/product/image/${imageName}` // 預設圖片
+  if (!imageName) return `/product-pic/product-img.jpg` // 預設圖片
   // 直接從後端靜態檔案目錄取得圖片（public 資料夾已經被 express.static 設為根目錄）
   return `${SERVER}/center-imgs/${imageName}`
 }

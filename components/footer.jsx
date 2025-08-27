@@ -100,7 +100,7 @@ const footerNav = [
     items: [
       {
         title: '關於我們',
-        href: '/about',
+        href: '/#',
         external: false,
       },
       {
