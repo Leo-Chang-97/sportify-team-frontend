@@ -3,10 +3,11 @@
  * @param {string} imageName - 圖片檔案名稱 (例如: "center01.jpg")
  * @returns {string} 完整的圖片 URL
  */
+import { SERVER } from '@/lib/api-path'
 export const getCenterImageUrl = (imageName) => {
-  if (!imageName) return `/shop/product/image/${imageName}` // 預設圖片
+  if (!imageName) return `/product-pic/product-img.jpg` // 預設圖片
   // 直接從後端靜態檔案目錄取得圖片（public 資料夾已經被 express.static 設為根目錄）
-  return `http://localhost:3005/center-imgs/${imageName}`
+  return `${SERVER}/center-imgs/${imageName}`
 }
 
 /**

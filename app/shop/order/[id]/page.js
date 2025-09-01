@@ -155,7 +155,7 @@ export default function OrderDetailPage() {
   return (
     <>
       <Navbar />
-      <BreadcrumbAuto />
+      <BreadcrumbAuto shopName="訂單詳情" />
       <section className="px-4 md:px-6 py-10 ">
         <div className="flex flex-col container mx-auto max-w-screen-xl min-h-screen gap-6">
           <div className="mx-auto md:max-w-2xl gap-6">

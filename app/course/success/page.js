@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { FaXmark, FaCheck } from 'react-icons/fa6'
 import { IconCircleCheckFilled, IconLoader } from '@tabler/icons-react'
 import Link from 'next/link'
@@ -40,7 +40,8 @@ const steps = [
   { id: 3, title: '完成訂單', active: true },
 ]
 
-export default function CourseSuccessPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function CourseSuccessContent() {
   // #region 路由和URL參數
   const searchParams = useSearchParams()
 
@@ -400,5 +401,23 @@ export default function CourseSuccessPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function CourseSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入課程成功資料中...</p>
+          </div>
+        </div>
+      }
+    >
+      <CourseSuccessContent />
+    </Suspense>
   )
 }

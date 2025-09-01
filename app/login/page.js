@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { LoginForm } from '@/app/login/_components/login-form'
 import { Navbar } from '@/components/navbar'
+import GoogleLoginButton from './_components/google-login'
 
-export default function Page() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function LoginContent() {
   const { user, login, isAuthenticated } = useAuth()
   const searchParams = useSearchParams()
   const redirectPath = searchParams.get('redirect') || '/'
@@ -22,7 +24,6 @@ export default function Page() {
       router.replace(redirectPath)
     }
   }, [isAuthenticated, user, router, redirectPath])
-
 
   // ===== 事件處理函數 =====
   const handleSubmit = async (formData) => {
@@ -89,8 +90,27 @@ export default function Page() {
             isLoading={isLoading}
             login={login}
           />
+          
         </div>
       </div>
     </>
+  )
+}
+
+// 主要導出組件，包含 Suspense 邊界
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-svh w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">載入中...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   )
 }

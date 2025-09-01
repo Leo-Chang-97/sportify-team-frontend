@@ -1,7 +1,7 @@
 'use client'
 
 // hooks
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useVenue } from '@/contexts/venue-context'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -61,8 +61,9 @@ import ReceiptTypeSelector, {
   receiptOptions,
 } from '@/components/receipt-type-selector'
 import { LoadingState, ErrorState } from '@/components/loading-states'
-4
-export default function PaymentPage() {
+
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function PaymentContent() {
   // #region 路由和URL參數
   const router = useRouter()
   const { user } = useAuth()
@@ -681,5 +682,13 @@ export default function PaymentPage() {
 
       <Footer />
     </>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <PaymentContent />
+    </Suspense>
   )
 }

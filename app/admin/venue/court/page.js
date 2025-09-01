@@ -2,7 +2,7 @@
 'use client'
 
 // ===== 依賴項匯入 =====
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppSidebar } from '@/components/admin/app-sidebar'
 import { SiteHeader } from '@/components/admin/site-header'
@@ -54,7 +54,8 @@ import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
 
-export default function CourtPage() {
+// 將使用 useSearchParams 的邏輯抽取到單獨的組件
+function CourtPageContent() {
   // ===== 路由和搜尋參數處理 =====
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -630,5 +631,13 @@ export default function CourtPage() {
         </AlertDialogContent>
       </AlertDialog>
     </SidebarProvider>
+  )
+}
+
+export default function VenueCourtPage() {
+  return (
+    <Suspense fallback={<div>載入中...</div>}>
+      <CourtPageContent />
+    </Suspense>
   )
 }
